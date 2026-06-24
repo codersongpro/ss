@@ -126,30 +126,42 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
   // 격자 지도 좌표 상태 및 맵 데이터 선언
   const [charPos, setCharPos] = useState({ x: 4, y: 3 }); // 1층중앙계단(4,4) 앞 안전 복도로 초기화
   
-  // 1층(1F) 맵 구성: G1, G2, G3 (1~3학년 교실), PR (교장실), CF (급식실), AD (행정실), HR (보건실), GR (체육실), PG (운동장), ST (중앙 계단)
+  // ============================================================
+  // 1층(1F) 맵 구성: 가운데 복도(row 3)를 길게 일직선 배치
+  // 복도 위쪽(row 1): G1(1학년), G2(2학년), G3(3학년), PR(교장실)
+  // 복도 아래쪽(row 5): CF(급식실), AD(행정실), HR(보건실), GR(체육실)
+  // 복도 왼쪽 끝(0,3): PG(운동장 출입구)
+  // 복도 오른쪽 끝(8,3): ST(2층으로 올라가는 계단)
+  // row 2, row 4: 각 방에서 복도로 나오는 짧은 통로
+  // ============================================================
   const SHIELD_MAP_1F = [
-    ['W', 'W',  'W',  'W',  'W',  'W',  'W',  'W',  'W'],
-    ['W', 'G1', 'P',  'G2', 'PR', 'G3', 'P',  'CF', 'W'],
-    ['W', 'P',  'W',  'W',  'P',  'W',  'W',  'P',  'W'],
-    ['W', 'P',  'W',  'W',  'P',  'W',  'W',  'P',  'W'],
-    ['W', 'AD', 'P',  'P',  'ST', 'P',  'P',  'HR', 'W'],
-    ['W', 'P',  'W',  'W',  'P',  'W',  'W',  'P',  'W'],
-    ['W', 'P',  'W',  'W',  'P',  'W',  'W',  'P',  'W'],
-    ['W', 'GR', 'P',  'P',  'P',  'P',  'P',  'PG', 'W'],
-    ['W', 'W',  'W',  'W',  'W',  'W',  'W',  'W',  'W']
+    ['W',  'W',  'W',  'W',  'W',  'W',  'W',  'W',  'W'],
+    ['W',  'G1', 'W',  'G2', 'W',  'G3', 'W',  'PR', 'W'],
+    ['W',  'P',  'W',  'P',  'W',  'P',  'W',  'P',  'W'],
+    ['PG', 'P',  'P',  'P',  'P',  'P',  'P',  'P',  'ST'],
+    ['W',  'P',  'W',  'P',  'W',  'P',  'W',  'P',  'W'],
+    ['W',  'CF', 'W',  'AD', 'W',  'HR', 'W',  'GR', 'W'],
+    ['W',  'W',  'W',  'W',  'W',  'W',  'W',  'W',  'W'],
+    ['W',  'W',  'W',  'W',  'W',  'W',  'W',  'W',  'W'],
+    ['W',  'W',  'W',  'W',  'W',  'W',  'W',  'W',  'W']
   ];
 
-  // 2층(2F) 맵 구성: G4, G5, G6 (4~6학년 교실), OF (교무실), CR (우리반 교실), LB (도서실), SC (과학실), GY (체육관), ST (중앙 계단)
+  // ============================================================
+  // 2층(2F) 맵 구성: 1층과 동일한 일직선 복도 구조
+  // 복도 위쪽(row 1): G4(4학년), G5(5학년), G6(6학년), OF(교무실)
+  // 복도 아래쪽(row 5): CR(우리반 교실), LB(도서실), SC(과학실), GY(체육관)
+  // 복도 오른쪽 끝(8,3): ST(1층으로 내려가는 계단)
+  // ============================================================
   const SHIELD_MAP_2F = [
-    ['W', 'W',  'W',  'W',  'W',  'W',  'W',  'W',  'W'],
-    ['W', 'G4', 'P',  'G5', 'OF', 'G6', 'P',  'CR', 'W'],
-    ['W', 'P',  'W',  'W',  'P',  'W',  'W',  'P',  'W'],
-    ['W', 'P',  'W',  'W',  'P',  'W',  'W',  'P',  'W'],
-    ['W', 'LB', 'P',  'P',  'ST', 'P',  'P',  'SC', 'W'],
-    ['W', 'P',  'W',  'W',  'P',  'W',  'W',  'P',  'W'],
-    ['W', 'P',  'W',  'W',  'P',  'W',  'W',  'P',  'W'],
-    ['W', 'GY', 'P',  'P',  'P',  'P',  'P',  'P',  'W'],
-    ['W', 'W',  'W',  'W',  'W',  'W',  'W',  'W',  'W']
+    ['W',  'W',  'W',  'W',  'W',  'W',  'W',  'W',  'W'],
+    ['W',  'G4', 'W',  'G5', 'W',  'G6', 'W',  'OF', 'W'],
+    ['W',  'P',  'W',  'P',  'W',  'P',  'W',  'P',  'W'],
+    ['W',  'P',  'P',  'P',  'P',  'P',  'P',  'P',  'ST'],
+    ['W',  'P',  'W',  'P',  'W',  'P',  'W',  'P',  'W'],
+    ['W',  'CR', 'W',  'LB', 'W',  'SC', 'W',  'GY', 'W'],
+    ['W',  'W',  'W',  'W',  'W',  'W',  'W',  'W',  'W'],
+    ['W',  'W',  'W',  'W',  'W',  'W',  'W',  'W',  'W'],
+    ['W',  'W',  'W',  'W',  'W',  'W',  'W',  'W',  'W']
   ];
 
   const currentMap = currentFloor === 1 ? SHIELD_MAP_1F : SHIELD_MAP_2F;
@@ -208,7 +220,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
       } else if (tile === 'ST') {
         setTimeout(() => {
           setCurrentFloor((prevFloor) => (prevFloor === 1 ? 2 : 1));
-          setCharPos({ x: 4, y: 3 }); // 층간 전환 후 바로 위 복도 안전 리스폰
+          setCharPos({ x: 7, y: 3 }); // 계단(8,3) 바로 왼쪽 복도(7,3)로 안전 리스폰
           useGameStore.getState().showToast(`[층간 이동] ${currentFloor === 1 ? '2층' : '1층'}으로 이동했습니다.`);
         }, 50);
       }
@@ -262,61 +274,67 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
   // 캐릭터가 다시 포탈 위에 스폰되어 방에 무한 진입하는 루프 버그를 방지하기 위해 
   // 방에서 나오는 순간 해당 포탈 바로 앞의 안전한 'P'(복도/길) 타일로 캐릭터 위치를 변경합니다.
   const handleBackToMap = () => {
+    // =============================================
+    // 장소에서 나올 때 포탈 타일 위가 아닌 인접 복도('P') 타일로 리스폰
+    // → 포탈 재진입 무한 루프 버그를 방지합니다.
+    // =============================================
+
+    // === 1층 장소 복귀 좌표 ===
     if (currentLocation === 'class_grade1') {
       setCurrentFloor(1);
-      setCharPos({ x: 2, y: 1 }); // 1학년 교실(1,1) -> 오른쪽 복도(2,1)
+      setCharPos({ x: 1, y: 2 }); // G1(1,1) → 바로 아래 통로(1,2)
     } else if (currentLocation === 'class_grade2') {
       setCurrentFloor(1);
-      setCharPos({ x: 2, y: 1 });
-    } else if (currentLocation === 'principal_room') {
-      setCurrentFloor(1);
-      setCharPos({ x: 4, y: 2 }); // 교장실(4,1) -> 아래쪽 복도(4,2)
+      setCharPos({ x: 3, y: 2 }); // G2(3,1) → 바로 아래 통로(3,2)
     } else if (currentLocation === 'class_grade3') {
       setCurrentFloor(1);
-      setCharPos({ x: 6, y: 1 });
+      setCharPos({ x: 5, y: 2 }); // G3(5,1) → 바로 아래 통로(5,2)
+    } else if (currentLocation === 'principal_room') {
+      setCurrentFloor(1);
+      setCharPos({ x: 7, y: 2 }); // PR(7,1) → 바로 아래 통로(7,2)
     } else if (currentLocation === 'cafeteria') {
       setCurrentFloor(1);
-      setCharPos({ x: 6, y: 1 }); // 급식실(7,1) -> 왼쪽 복도(6,1)
+      setCharPos({ x: 1, y: 4 }); // CF(1,5) → 바로 위 통로(1,4)
     } else if (currentLocation === 'admin_office') {
       setCurrentFloor(1);
-      setCharPos({ x: 2, y: 4 }); // 행정실(1,4) -> 오른쪽 복도(2,4)
+      setCharPos({ x: 3, y: 4 }); // AD(3,5) → 바로 위 통로(3,4)
     } else if (currentLocation === 'health_room') {
       setCurrentFloor(1);
-      setCharPos({ x: 6, y: 4 }); // 보건실(7,4) -> 왼쪽 복도(6,4)
+      setCharPos({ x: 5, y: 4 }); // HR(5,5) → 바로 위 통로(5,4)
     } else if (currentLocation === 'gym_room') {
       setCurrentFloor(1);
-      setCharPos({ x: 2, y: 7 }); // 체육실(1,7) -> 오른쪽 복도(2,7)
+      setCharPos({ x: 7, y: 4 }); // GR(7,5) → 바로 위 통로(7,4)
     } else if (currentLocation === 'playground') {
       setCurrentFloor(1);
-      setCharPos({ x: 6, y: 7 }); // 운동장(7,7) -> 왼쪽 복도(6,7)
+      setCharPos({ x: 1, y: 3 }); // PG(0,3) → 오른쪽 복도(1,3)
     }
-    // 2층 복귀 좌표
+    // === 2층 장소 복귀 좌표 ===
     else if (currentLocation === 'class_grade4') {
       setCurrentFloor(2);
-      setCharPos({ x: 2, y: 1 }); // 4학년 교실(1,1) -> 오른쪽 복도(2,1)
+      setCharPos({ x: 1, y: 2 }); // G4(1,1) → 바로 아래 통로(1,2)
     } else if (currentLocation === 'class_grade5') {
       setCurrentFloor(2);
-      setCharPos({ x: 2, y: 1 });
-    } else if (currentLocation === 'office') {
-      setCurrentFloor(2);
-      setCharPos({ x: 4, y: 2 }); // 교무실(4,1) -> 아래쪽 복도(4,2)
+      setCharPos({ x: 3, y: 2 }); // G5(3,1) → 바로 아래 통로(3,2)
     } else if (currentLocation === 'class_grade6') {
       setCurrentFloor(2);
-      setCharPos({ x: 6, y: 1 });
+      setCharPos({ x: 5, y: 2 }); // G6(5,1) → 바로 아래 통로(5,2)
+    } else if (currentLocation === 'office') {
+      setCurrentFloor(2);
+      setCharPos({ x: 7, y: 2 }); // OF(7,1) → 바로 아래 통로(7,2)
     } else if (currentLocation === 'classroom') {
       setCurrentFloor(2);
-      setCharPos({ x: 6, y: 1 }); // 우리반 교실(7,1) -> 왼쪽 복도(6,1)
+      setCharPos({ x: 1, y: 4 }); // CR(1,5) → 바로 위 통로(1,4)
     } else if (currentLocation === 'library') {
       setCurrentFloor(2);
-      setCharPos({ x: 2, y: 4 }); // 도서실(1,4) -> 오른쪽 복도(2,4)
+      setCharPos({ x: 3, y: 4 }); // LB(3,5) → 바로 위 통로(3,4)
     } else if (currentLocation === 'science_lab') {
       setCurrentFloor(2);
-      setCharPos({ x: 6, y: 4 }); // 과학실(7,4) -> 왼쪽 복도(6,4)
+      setCharPos({ x: 5, y: 4 }); // SC(5,5) → 바로 위 통로(5,4)
     } else if (currentLocation === 'gymnasium') {
       setCurrentFloor(2);
-      setCharPos({ x: 2, y: 7 }); // 체육관(1,7) -> 오른쪽 복도(2,7)
+      setCharPos({ x: 7, y: 4 }); // GY(7,5) → 바로 위 통로(7,4)
     } else {
-      setCharPos({ x: 4, y: 3 }); // 디폴트 중앙 복도 스폰
+      setCharPos({ x: 4, y: 3 }); // 디폴트: 복도 한가운데 스폰
     }
     moveToLocation(null);
   };
@@ -838,7 +856,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                                         else if (tile === 'G6') moveToLocation('class_grade6');
                                         else if (tile === 'ST') {
                                           setCurrentFloor(prev => prev === 1 ? 2 : 1);
-                                          setCharPos({ x: 4, y: 3 });
+                                          setCharPos({ x: 7, y: 3 }); // 계단(8,3) 옆 복도(7,3)로 리스폰
                                           useGameStore.getState().showToast(`[층간 이동] ${currentFloor === 1 ? '2층' : '1층'}으로 이동했습니다.`);
                                         }
                                       }

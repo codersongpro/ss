@@ -51,11 +51,11 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
         </div>
 
         {/* 메뉴 버튼 그룹 */}
-        <div className="flex flex-col sm:flex-row gap-4 w-full justify-center max-w-lg">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-4 w-full justify-center max-w-lg">
           {gameStarted ? (
             <button
               onClick={handleContinue}
-              className="flex-1 btn-school-accent flex items-center justify-center gap-2 py-3 px-6 text-lg"
+              className="flex-1 min-w-[140px] btn-school-accent flex items-center justify-center gap-2 py-3 px-6 text-lg whitespace-nowrap"
             >
               <Play className="w-5 h-5" />
               이어하기
@@ -63,7 +63,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
           ) : (
             <button
               onClick={onStartNewGame}
-              className="flex-1 btn-school-primary flex items-center justify-center gap-2 py-3 px-6 text-lg"
+              className="flex-1 min-w-[140px] btn-school-primary flex items-center justify-center gap-2 py-3 px-6 text-lg whitespace-nowrap"
             >
               <Play className="w-5 h-5" />
               새 게임 시작
@@ -78,7 +78,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
                   onStartNewGame();
                 }
               }}
-              className="flex-1 btn-school-secondary flex items-center justify-center gap-2 py-3 px-6 text-lg text-slate-700"
+              className="flex-1 min-w-[160px] btn-school-secondary flex items-center justify-center gap-2 py-3 px-6 text-lg text-slate-700 whitespace-nowrap"
             >
               <RotateCcw className="w-5 h-5" />
               처음부터 하기
@@ -87,7 +87,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
 
           <button
             onClick={onOpenGallery}
-            className="flex-1 btn-school-secondary flex items-center justify-center gap-2 py-3 px-6 text-lg text-slate-700"
+            className="flex-1 min-w-[140px] btn-school-secondary flex items-center justify-center gap-2 py-3 px-6 text-lg text-slate-700 whitespace-nowrap"
           >
             <Award className="w-5 h-5" />
             엔딩 갤러리
