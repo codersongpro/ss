@@ -13,6 +13,9 @@ export interface Stats {
   educationSoshin: number;    // 교육적 소신 (0 ~ 100)
   reputation: number;         // 대외 평판 (0 ~ 100)
   careerPoint: number;        // 커리어 포인트 (엔딩 진로 해금용)
+  teachingSatisfaction: number; // 교육적 보람 (0 ~ 100) [NEW]
+  colleagueSolidarity: number;  // 동료 교직원 연대감 (0 ~ 100) [NEW]
+  parentComplaint: number;      // 학부모 민원 수치 (0 ~ 100, 높을수록 위험) [NEW]
 }
 
 // 플레이어 기본 신상 정보
@@ -55,7 +58,18 @@ export interface GameChoice {
 }
 
 // 학교 내부의 공간 정의
-export type LocationType = 'classroom' | 'office' | 'health_room' | 'playground' | 'principal_room';
+export type LocationType = 
+  | 'classroom' 
+  | 'office' 
+  | 'health_room' 
+  | 'playground' 
+  | 'principal_room'
+  | 'admin_office' 
+  | 'cafeteria' 
+  | 'library' 
+  | 'wee_class' 
+  | 'science_lab' 
+  | 'school_gate';
 
 // 이벤트 구조
 export interface GameEvent {

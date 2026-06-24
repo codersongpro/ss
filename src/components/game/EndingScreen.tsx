@@ -25,8 +25,18 @@ export const EndingScreen: React.FC<EndingScreenProps> = ({ onRestart }) => {
       }
     }
 
-    // 번아웃이나 가정 파탄 같은 배드 엔딩이 아닐 때만 폭죽 연출
-    if (endingId && !['ending_burnout', 'ending_family_rupture'].includes(endingId)) {
+    // 배드엔딩이나 게임오버가 아닐 때만 축하 폭죽 연출 [NEW]
+    if (
+      endingId && 
+      ![
+        'ending_burnout', 
+        'ending_family_rupture', 
+        'ending_gameover_hp', 
+        'ending_gameover_mental', 
+        'ending_gameover_burnout', 
+        'ending_gameover_complaint'
+      ].includes(endingId)
+    ) {
       const duration = 3 * 1000;
       const animationEnd = Date.now() + duration;
       const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
@@ -53,6 +63,54 @@ export const EndingScreen: React.FC<EndingScreenProps> = ({ onRestart }) => {
   // 엔딩 콘텐츠 매퍼
   const getEndingDetails = (id: string | null) => {
     switch (id) {
+      case 'ending_gameover_hp':
+        return {
+          title: '🚑 체력 전방위 방전 (응급 요양)',
+          subtitle: '지옥의 행무와 지도를 견디지 못하고 실려간 교사',
+          desc: '체력 지표가 기어코 0에 달했습니다. 교실 앞 지도를 열거나 복도를 걸어가려다 주저앉아 동료들의 부축으로 구급차에 실려갔습니다. 진단명은 과도한 누적 피로와 면역계 파탄. 장기 병가 승인이 떨어지며 교단의 서사는 비정하게 차단됩니다. (세이브 파일 파괴)',
+          badgeColor: 'bg-rose-700 text-white',
+          illustration: '🚑🏥🛌'
+        };
+      case 'ending_gameover_mental':
+        return {
+          title: '🚨 정서적 탈진 및 사직 (멘탈 파산)',
+          subtitle: '독한 민원과 학급 갈등을 이겨내지 못한 마음',
+          desc: '멘탈 지표가 0에 수렴했습니다. 악성 민원의 시달림과 교실 안의 잦은 붕괴 사고 속에서 당신은 공황 장애 판정을 받았습니다. 학생들의 눈빛조차 무서워져 출근 종소리를 들으며 울음을 터뜨렸고, 결국 조용한 명예퇴직을 신청해 가방을 쌉니다. (세이브 파일 파괴)',
+          badgeColor: 'bg-indigo-950 text-white',
+          illustration: '😭🚪❄'
+        };
+      case 'ending_gameover_burnout':
+        return {
+          title: '🔥 번아웃 105% 임계점 돌파 (사직서 제출)',
+          subtitle: '이따위 서류 작업과 예산을 위해 임용을 겪었나',
+          desc: '번아웃 수치가 100% 한계를 뚫었습니다. 행정실의 깐깐한 품의 반려와 관리자의 기획안 독촉, 가방을 팽개치는 무기력한 제자들을 지켜보며 교사로서의 모든 애정과 사명감이 잿더미로 변했습니다. 주인공은 교무실 책상에 사직서를 내려놓고 교문을 나섭니다. (세이브 파일 파괴)',
+          badgeColor: 'bg-orange-850 text-white',
+          illustration: '🔥📝🔥'
+        };
+      case 'ending_gameover_complaint':
+        return {
+          title: '💣 민원 대폭발로 인한 직위해제',
+          subtitle: '악성 민원의 무게를 견디지 못한 담임 교사의 비극',
+          desc: '학부모 민원 수치가 100% 임계점을 돌파했습니다. 연일 계속되는 교장실 소환, 교육청 감사 지시, 인터넷 커뮤니티의 왜곡된 실명 폭로와 함께 언론 보도가 나기 시작합니다. 결국 담임 교사 직위해제 명령서가 교무실 책상 위에 배달되고 주인공은 쓸쓸히 교문을 나섭니다. (세이브 파일 파괴)',
+          badgeColor: 'bg-red-950 text-white',
+          illustration: '💣📢📰'
+        };
+      case 'ending_legendary_mentor':
+        return {
+          title: '🌟 전설의 참된 은사 (레전더리 멘토)',
+          subtitle: '아이들의 삶에 평생 마르지 않을 샘물을 남기다',
+          desc: '당신은 언제나 아이들의 편이었고, 학업 고민과 왕따 극복을 위해 혼신의 힘을 쏟았습니다. 30일이 지난 마지막 종례 날, 반 학생들이 직접 쓴 수십 장의 비밀 롤링페이퍼와 눈물의 깜짝 송별 파티를 선물합니다. 당신은 아이들의 가슴에 전설적인 은사로 기억될 것입니다.',
+          badgeColor: 'bg-amber-400 text-slate-900',
+          illustration: '🌟🎁😭'
+        };
+      case 'ending_labor_union_leader':
+        return {
+          title: '✊ 교사 권익 수호의 투사 (교사노조 의장)',
+          subtitle: '부조리한 공교육 시스템에 당당히 맞선 동료들의 목소리',
+          desc: '그 누구보다 확고한 교육 소신과 동료 연대감으로 학교의 부당한 지시와 교육계의 모순에 정면 대항했습니다. 당신의 당당함을 알아본 동료 교사들의 압도적인 지지를 업고 교직원 조합의 위원장으로 선출되어 공교육 체질 개선을 위한 입법 투쟁에 돌입합니다.',
+          badgeColor: 'bg-red-700 text-white',
+          illustration: '✊🚩📢'
+        };
       case 'ending_supervisor':
         return {
           title: '장학사 · 교육전문직',
@@ -68,6 +126,14 @@ export const EndingScreen: React.FC<EndingScreenProps> = ({ onRestart }) => {
           desc: '당신은 관리자와 동료 교사들의 압도적 신뢰를 바탕으로 위기를 현명하게 조율했습니다. 조직을 이해하고 행정을 지혜롭게 경영하여 미래 학교를 이끌어가는 책임감 있는 관리자로 성장해 나갑니다.',
           badgeColor: 'bg-amber-600 text-white',
           illustration: '💼👔🏫'
+        };
+      case 'ending_best_selling_author':
+        return {
+          title: '📖 베스트셀러 교육 서적 작가',
+          subtitle: '교실에서의 기적을 한 권의 책으로 엮어내다',
+          desc: '자신만의 독창적인 수업 지도법과 담임 교실의 따뜻한 학생 상담 이야기를 엮어 출판한 수필이 메가 히트를 쳤습니다. 교육 베스트셀러 1위 작가로 등극하며, 전국 교육 연수원의 대표 강사로 초빙되어 교단 밖에서도 선한 영향력을 넓힙니다.',
+          badgeColor: 'bg-violet-600 text-white',
+          illustration: '✍️📚🎉'
         };
       case 'ending_expert':
         return {
@@ -85,6 +151,46 @@ export const EndingScreen: React.FC<EndingScreenProps> = ({ onRestart }) => {
           badgeColor: 'bg-cyan-600 text-white',
           illustration: '💻🚀✨'
         };
+      case 'ending_office_master':
+        return {
+          title: '🖨️ 행정의 신 (교무/행정실의 참지배자)',
+          subtitle: '어떤 난해한 결재와 공문도 무결점으로 돌파하다',
+          desc: '결재선이 어긋나기 쉬운 시도 공문과 난해한 감사 지적 사안들을 기가 막힌 서류 처리 능력으로 무마하며 교무실에서 추앙받습니다. 교장실과 행정실 직원들 모두가 결재 지도를 위해 당신에게 자문을 구하러 찾아옵니다.',
+          badgeColor: 'bg-slate-800 text-white',
+          illustration: '💻📃👑'
+        };
+      case 'ending_peacekeeper':
+        return {
+          title: '🕊️ 학교 평화 갈등 조정 전문가',
+          subtitle: '학폭 갈등과 민원 대폭발도 조용히 잠재우는 자',
+          desc: '학부모 간의 날선 소송전 공방과 학생들의 해묵은 학교 폭력 사태들을 고도의 소통 및 공감 대화법으로 완벽히 화해시켰습니다. 분쟁 조정 위원회의 주축 전문 위원으로 임용되어 전국에 갈등의 소용돌이를 진정시킵니다.',
+          badgeColor: 'bg-emerald-500 text-white',
+          illustration: '🕊️🤝✨'
+        };
+      case 'ending_family_first':
+        return {
+          title: '🏡 워라밸 완벽 조율 수호자',
+          subtitle: '학교에서는 훌륭한 담임, 가정에서는 최고의 가족',
+          desc: '어떤 급박한 업무 독촉에도 흔들리지 않고 가정을 수호하는 칼퇴근 지침을 완벽히 지켰습니다. 매일 저녁 정시에 가족들과 밥을 먹으며 얻은 긍정 에너지로 교실 학생들에게도 세심한 지도를 선사하여 최고의 밸런스를 달성했습니다.',
+          badgeColor: 'bg-sky-500 text-white',
+          illustration: '🏡🍽️🚲'
+        };
+      case 'ending_coop_star':
+        return {
+          title: '💖 동료애 넘치는 교무실의 인싸교사',
+          subtitle: '교사, 조리사, 실무직원 모두가 사랑하는 동료 교직원',
+          desc: '보건실, 행정실, 과학실, 급식소 등 학교 내부 모든 구성원의 고충을 먼저 듣고 따뜻하게 공조했습니다. 주인공이 독감에 걸려 결근한 날에는 온 학교의 교직원이 보낸 비타민과 선물이 교무실 책상에 산더미처럼 쌓일 정도의 사랑을 누립니다.',
+          badgeColor: 'bg-pink-500 text-white',
+          illustration: '💖☕🎁'
+        };
+      case 'ending_great_escapist':
+        return {
+          title: '🚀 교육용 벤처 에듀테크 창업가',
+          subtitle: '경직된 학교 문을 박차고 새로운 교육 생태계로',
+          desc: '교단에서의 풍부한 실무 경험과 학교 현장의 고질적인 불편함을 해결하기 위해 사직서를 던지고 교육 정보격차를 해소할 에듀테크 스타트업을 창업합니다. 현장에 최적화된 앱으로 수십 억의 투자 유치에 성공하여 혁신 기업가로 거듭납니다.',
+          badgeColor: 'bg-rose-500 text-white',
+          illustration: '🚀💼💡'
+        };
       case 'ending_burnout':
         return {
           title: '영웅적 헌신 후의 병가 / 번아웃',
@@ -100,6 +206,14 @@ export const EndingScreen: React.FC<EndingScreenProps> = ({ onRestart }) => {
           desc: '학교 평판과 학생들의 찬사는 얻었을지 모릅니다. 그러나 늦은 밤 긴 전화와 주말 출장으로 당신의 식탁에는 정적과 차가운 한숨만이 굳었습니다. 배우자 및 가족들과의 감정적 거리는 걷잡을 수 없이 어긋났습니다.',
           badgeColor: 'bg-slate-700 text-white',
           illustration: '💔🚪❄️'
+        };
+      case 'ending_hobbyist':
+        return {
+          title: '🎨 교문 밖의 예술가 (취미 만랩 교사)',
+          subtitle: '학교에서는 무난하게, 퇴근 후에는 나만의 찬란한 자아실현',
+          desc: '수업 및 학교 업무는 적절하고 무난하게 완수하면서, 퇴근 후의 밴드 음악 활동이나 가죽 공예, 미술 창작에 혼을 실었습니다. 전국 직장인 동호회 전시회에서 수상하거나 음반을 발매하며 찬란한 투잡 라이프의 진수를 이룩합니다.',
+          badgeColor: 'bg-amber-500 text-white',
+          illustration: '🎨🎸🥂'
         };
       case 'ending_sustainable':
         return {
@@ -127,32 +241,14 @@ export const EndingScreen: React.FC<EndingScreenProps> = ({ onRestart }) => {
     return students.map(stud => {
       let letterContent = '';
       let isPositive = stud.teacherTrust >= 60;
+      
+      const trait = stud.traits[0] || '조용한';
+      const issue = stud.currentIssues[0] || '학업';
 
-      if (stud.id === 'student_minjun') {
-        letterContent = isPositive 
-          ? '선생님, 시험 치기 전에 너무 떨릴 때 보건실 보내주셔서 감사했어요. 점수보다 제 건강이 더 소중하다고 해주신 말씀 평생 기억할게요.'
-          : '선생님, 제가 시험 점수 때문에 너무 괴로울 때도 규정을 칼같이 대하시며 굳은 표정으로 계셔서 사실 좀 서운하고 무서웠어요...';
-      } else if (stud.id === 'student_seoyeon') {
-        letterContent = isPositive
-          ? '선생님, 제가 맨날 구구단 늦게 외우고 수학 다 틀려도 한 번도 화 안내시고 지켜봐 주셔서 수학 공부할 용기가 생겼어요! 감사해요.'
-          : '선생님, 제가 느려서 그런지 방과후 프로그램만 등록해 두시고 저랑 깊게 대화는 안 하시는 것 같아서 조금 쓸쓸했어요...';
-      } else if (stud.id === 'student_jihun') {
-        letterContent = isPositive
-          ? '쌤, 저 맨날 사고만 치는 꼴통이었는데 다른 반 녀석이랑 싸웠을 때 제 억울한 말 끝까지 들어주시고 편들어주셔서 진짜 감동이었어요. 저 이제 싸움 안 할게요.'
-          : '쌤, 저도 잘못하긴 했지만 맨날 무슨 일만 생기면 제 필적부터 의심하고 혼부터 내셔서 솔직히 학교 오기가 매일 짜증 났었습니다.';
-      } else if (stud.id === 'student_haeun') {
-        letterContent = isPositive
-          ? '선생님, 친구들이 저 단톡방에서 빼고 괴롭히는 거 알아차려 주시고 안전하게 위센터 연결해 주셔서 감사해요. 다시 학교 나올 힘을 얻었어요.'
-          : '선생님, 제가 너무 외로워서 일기장에 힌트 많이 적어뒀는데 조용히 지나치시는 걸 보고 아무도 제 편은 없다고 느꼈었어요...';
-      } else if (stud.id === 'student_yejun') {
-        letterContent = isPositive
-          ? '선생님, 수업 중에 그린 낙서 뺏지 않으시고 제 예술적 재능을 응원해 주셔서 감사해요. 수학 공부도 이제 틈틈이 해볼게요!'
-          : '선생님, 부모님이 시키는 의대 뺑뺑이 학원 숙제 안 했다고 교실 뒤에 서있게 하셔서 너무 싫었어요. 제 낙서장 뺏긴 것도 슬펐어요.';
+      if (isPositive) {
+        letterContent = `선생님! 매일 조회 시간마다 따뜻하게 챙겨주셔서 고마웠어요. 제가 '${trait}' 성향이라 부끄러움이 많았는데, 선생님 덕분에 '${issue}' 문제를 이겨낼 용기를 얻고 무사히 학기를 보냈어요!`;
       } else {
-        // 수아
-        letterContent = isPositive
-          ? '선생님! 매일 5교시 끝나고 조퇴계 낼 때 눈치 안 주시고 파이팅하라고 악수해 주셔서 전국 대회 잘 치를 수 있었어요. 담임 쌤이 최고예요!'
-          : '선생님, 제가 운동 훈련 가야 하는데 조퇴계 서류 보완해오라고 결재 계속 미뤄두셔서 눈치가 보이고 훈련 늦어서 힘들었어요...';
+        letterContent = `선생님, 제가 '${issue}' 문제로 한창 불안해하고 끙끙 앓고 있을 때도 바쁘다는 이유로 굳은 얼굴로 행무 결재 서류만 보고 계셔서 사실은 조금 다가가기 어려웠어요...`;
       }
 
       return {
@@ -209,37 +305,48 @@ export const EndingScreen: React.FC<EndingScreenProps> = ({ onRestart }) => {
         </div>
 
         {/* 2. 아이들의 롤링페이퍼 편지함 */}
-        <div className="paper-card bg-white p-6 border-4 border-slate-900 shadow-school-deep">
-          <h3 className="text-xl font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-3 mb-6 flex items-center gap-2">
-            <Mail className="w-6 h-6 text-emerald-600 animate-float" />
-            30일의 마지막 종례, 책상 위에 남겨진 편지꾸러미
-          </h3>
+        {!['ending_gameover_hp', 'ending_gameover_mental', 'ending_gameover_burnout', 'ending_gameover_complaint'].includes(endingId || '') ? (
+          <div className="paper-card bg-white p-6 border-4 border-slate-900 shadow-school-deep">
+            <h3 className="text-xl font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-3 mb-6 flex items-center gap-2">
+              <Mail className="w-6 h-6 text-emerald-600 animate-float" />
+              30일의 마지막 종례, 책상 위에 남겨진 편지꾸러미
+            </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {letters.map((letObj, idx) => (
-              <div 
-                key={idx} 
-                className={`postit-card flex flex-col justify-between ${
-                  letObj.isPositive 
-                    ? 'bg-school-postit-yellow border-emerald-900 text-slate-800' 
-                    : 'bg-school-postit-pink border-rose-950 text-slate-800'
-                }`}
-                style={{ transform: `rotate(${(idx % 3) * 1.5 - 1.5}deg)` }}
-              >
-                <p className="text-xs md:text-sm leading-relaxed mb-4 italic font-medium">
-                  "{letObj.content}"
-                </p>
-                <div className="flex items-center justify-between border-t border-black/10 pt-2 text-[10px] font-bold">
-                  <span className="text-slate-400">학급 종례 발신</span>
-                  <span className="flex items-center gap-0.5 text-slate-800">
-                    <Heart className={`w-3.5 h-3.5 ${letObj.isPositive ? 'text-red-500 fill-red-500' : 'text-slate-400'}`} />
-                    From. {letObj.name}
-                  </span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {letters.map((letObj, idx) => (
+                <div 
+                  key={idx} 
+                  className={`postit-card flex flex-col justify-between ${
+                    letObj.isPositive 
+                      ? 'bg-school-postit-yellow border-emerald-900 text-slate-800' 
+                      : 'bg-school-postit-pink border-rose-950 text-slate-800'
+                  }`}
+                  style={{ transform: `rotate(${(idx % 3) * 1.5 - 1.5}deg)` }}
+                >
+                  <p className="text-xs md:text-sm leading-relaxed mb-4 italic font-medium">
+                    "{letObj.content}"
+                  </p>
+                  <div className="flex items-center justify-between border-t border-black/10 pt-2 text-[10px] font-bold">
+                    <span className="text-slate-400">학급 종례 발신</span>
+                    <span className="flex items-center gap-0.5 text-slate-800">
+                      <Heart className={`w-3.5 h-3.5 ${letObj.isPositive ? 'text-red-500 fill-red-500' : 'text-slate-400'}`} />
+                      From. {letObj.name}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="paper-card bg-rose-50 p-8 border-4 border-rose-950 shadow-school-deep text-center space-y-3">
+            <h3 className="text-lg font-bold text-rose-950 flex items-center justify-center gap-2">
+              💀 로그라이크 중도 퇴직 (게임 오버)
+            </h3>
+            <p className="text-sm text-rose-900 leading-relaxed font-light">
+              교직 생활 30일을 완수하지 못하고 중도 하차했습니다. 교실 안에 정적만 맴돌며, 아이들은 갑자기 담임 교사를 잃고 말았습니다. 편지꾸러미는 쓸쓸히 텅 비어 있습니다.
+            </p>
+          </div>
+        )}
 
         {/* 3. 재도전 및 갤러리 */}
         <div className="flex justify-center gap-4">

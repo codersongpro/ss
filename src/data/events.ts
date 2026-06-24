@@ -1,6 +1,123 @@
 import type { GameEvent } from '@/game/types';
 
 export const gameEvents: GameEvent[] = [
+  // ==================== [학부모 악성 민원 사건군 (evt_complaint_01 ~ 03) [NEW]] ====================
+  {
+    id: 'evt_complaint_01',
+    dayRange: [10, 15],
+    title: '교탁 밑 도청 녹음기 발견',
+    category: 'parent',
+    situation: '교실',
+    narratorText: '수업을 마치고 교실 교탁 밑을 정리하던 중, 검은 절연테이프로 숨겨진 소형 도청 녹음기가 켜진 채 작동 중인 것을 발견했습니다. 확인 결과 학급 예준이 부모님이 아이 가방과 교탁 밑에 붙여둔 녹음기임이 파악되었습니다. 어떻게 대처하시겠습니까?',
+    weight: 120,
+    tags: ['민원', '도청', '교권침해'],
+    choices: [
+      {
+        id: 'choice_complaint_01_1',
+        text: '통신비밀보호법 위반으로 경찰에 신고하고 교권보호위원회 소집을 강력히 요구한다.',
+        intent: '법적 강경 대응',
+        immediateEffects: [
+          { stat: 'parentComplaint', value: 25 },
+          { stat: 'educationSoshin', value: 15 },
+          { stat: 'mental', value: -15 },
+          { stat: 'colleagueSolidarity', value: 5 }
+        ],
+        hiddenFlags: ['rules_strict'],
+        resultText: '학부모 측은 크게 당황하면서도 "오죽하면 녹음기를 넣었겠느냐, 아동학대로 맞고소하겠다"며 극단적인 민원 공세를 퍼붓기 시작합니다.'
+      },
+      {
+        id: 'choice_complaint_01_2',
+        text: '학부모를 조용히 상담실로 불러 녹음 사실을 환기하며 원만한 타협과 대안을 찾는다.',
+        intent: '온건적 면담 중재',
+        immediateEffects: [
+          { stat: 'parentComplaint', value: 5 },
+          { stat: 'mental', value: -20 },
+          { stat: 'parentTrust', value: 10 },
+          { stat: 'colleagueSolidarity', value: -5 }
+        ],
+        hiddenFlags: ['conflict_avoidance'],
+        resultText: '학부모는 도청의 잘못을 시인하고 눈물을 흘리며 사과했습니다. 꼬인 실타래를 풀었으나 교사 본인의 가슴에는 깊은 정서적 상처가 남았습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_complaint_02',
+    dayRange: [18, 22],
+    title: '상대 학생 즉시 전학 요구',
+    category: 'parent',
+    situation: '교무실',
+    narratorText: '체육 시간 도중 민준이가 넘어지며 지현이와 부딪혀 무릎에 가벼운 찰과상을 입었습니다. 이에 민준이 부모님은 지현이를 학교 폭력 가해자로 즉각 징계하고 다른 학교로 강제 전학시킬 것을 강력히 촉구하며 매일 아침 교무실로 전화를 걸어옵니다.',
+    weight: 120,
+    tags: ['민원', '학폭', '관계갈등'],
+    choices: [
+      {
+        id: 'choice_complaint_02_1',
+        text: '의도성이 없고 경미한 접촉이므로 전학 처리는 법적으로 불가능함을 정중하지만 단호하게 고지한다.',
+        intent: '법적 한계 고지 및 원칙 종결',
+        immediateEffects: [
+          { stat: 'parentComplaint', value: 30 },
+          { stat: 'educationSoshin', value: 10 },
+          { stat: 'parentTrust', value: -15 },
+          { stat: 'colleagueSolidarity', value: 5 }
+        ],
+        hiddenFlags: ['rules_strict'],
+        resultText: '민준 부모님은 "교사가 가해 학생을 비호하며 학폭을 은폐 축소하려 한다"고 교육청 국민신문고에 실명 민원을 제기했습니다.'
+      },
+      {
+        id: 'choice_complaint_02_2',
+        text: '교감 선생님께 공식 중재를 구하고 매뉴얼에 따른 학폭 공동대응과 화해 조정을 진행한다.',
+        intent: '관리자 조율 및 분쟁 조정',
+        immediateEffects: [
+          { stat: 'parentComplaint', value: 10 },
+          { stat: 'adminTrust', value: -5 },
+          { stat: 'adminPower', value: 10 },
+          { stat: 'mental', value: -10 },
+          { stat: 'colleagueSolidarity', value: 8 }
+        ],
+        hiddenFlags: ['collaboration'],
+        resultText: '관리자의 노련한 중재와 정식 화해 권고 절차 덕에 학부모들도 감정을 가라앉히고 치료비 실비 정산 선에서 합의했습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_complaint_03',
+    dayRange: [24, 28],
+    title: '심야 카톡 알림장 항의',
+    category: 'parent',
+    situation: 'evening',
+    narratorText: '일요일 밤 11시 30분, 하은이 어머님으로부터 개인 모바일 카카오톡 메신저로 불만 섞인 폭탄 문자가 날아옵니다. "선생님, 월요일 준비물 공지를 왜 늦게 올려주시나요? 아이 재우다 깜짝 놀라 다이소에 급하게 다녀왔는데 사과해 주시죠."',
+    weight: 120,
+    tags: ['민원', '퇴근후연락', '사생활침해'],
+    choices: [
+      {
+        id: 'choice_complaint_03_1',
+        text: '근무 시간 외 사적 연락 금지 안내문을 띄우고 월요일 아침 출근 직후 정중하게 회신한다.',
+        intent: '사생활 경계 확립',
+        immediateEffects: [
+          { stat: 'parentComplaint', value: 15 },
+          { stat: 'familySatisfaction', value: 15 },
+          { stat: 'educationSoshin', value: 10 },
+          { stat: 'parentTrust', value: -10 }
+        ],
+        hiddenFlags: ['family_first'],
+        resultText: '개인 휴식을 확보하고 워라밸을 지켰으나, 월요일 아침 교문에 들어서자마자 하은 어머님이 교장실로 교사의 태도에 대한 항의 민원을 넣어 소란이 빚어집니다.'
+      },
+      {
+        id: 'choice_complaint_03_2',
+        text: '학부모의 과격한 화를 누그러뜨리기 위해 심야 시간임에도 불구하고 곧장 사과와 해명을 섞은 장문의 답장을 보낸다.',
+        intent: '감정적 비위 맞추기',
+        immediateEffects: [
+          { stat: 'parentComplaint', value: -10 },
+          { stat: 'burnout', value: 20 },
+          { stat: 'mental', value: -15 },
+          { stat: 'familySatisfaction', value: -15 }
+        ],
+        hiddenFlags: ['conflict_avoidance'],
+        resultText: '학부모는 납득하며 고맙다고 말했습니다. 하지만 당신을 본인의 개인 비서처럼 여겨 사소한 용무로 수시로 심야 전화를 거는 나쁜 선례를 열고 말았습니다.'
+      }
+    ]
+  },
+
   // ==================== [카테고리 1: 학생 지도 (evt_student_01 ~ 10)] ====================
   {
     id: 'evt_student_01',
@@ -53,7 +170,8 @@ export const gameEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'hp', value: -10 },
           { stat: 'expert', value: 10 },
-          { stat: 'studentTrust', value: 10 }
+          { stat: 'studentTrust', value: 10 },
+          { stat: 'teachingSatisfaction', value: 5 }
         ],
         hiddenFlags: ['student_center'],
         resultText: '학기 초 교사의 분석력이 빛을 발합니다. 아이들은 큰 트러블 없이 자리에 만족하는 눈치입니다. 다만, 자리를 배치하기 위해 퇴근 시간이 1시간 늦어졌습니다.'

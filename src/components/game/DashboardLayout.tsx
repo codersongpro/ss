@@ -83,6 +83,116 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
   // 학생 프로필 모달을 띄우기 위한 상태
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
 
+  // 격자 지도 좌표 상태 및 맵 데이터 선언
+  const [charPos, setCharPos] = useState({ x: 4, y: 4 });
+  
+  // W: 벽, P: 길/복도, CR: 교실, OF: 교무실, HR: 보건실, PG: 운동장, PR: 교장실
+  const SHIELD_MAP = [
+    ['W', 'W',  'W', 'W',  'W',  'W', 'W',  'W',  'W'],
+    ['W', 'CR', 'P', 'P',  'PR', 'P', 'P',  'HR', 'W'],
+    ['W', 'P',  'W', 'W',  'P',  'W', 'W',  'P',  'W'],
+    ['W', 'P',  'W', 'W',  'P',  'W', 'W',  'P',  'W'],
+    ['W', 'P',  'P', 'P',  'P',  'P', 'P',  'P',  'W'],
+    ['W', 'P',  'W', 'W',  'P',  'W', 'W',  'P',  'W'],
+    ['W', 'P',  'W', 'W',  'P',  'W', 'W',  'P',  'W'],
+    ['W', 'OF', 'P', 'P',  'P',  'P', 'P',  'PG', 'W'],
+    ['W', 'W',  'W', 'W',  'W',  'W', 'W',  'W',  'W']
+  ];
+
+  // 캐릭터 이동 제어 헬퍼 함수
+  const moveChar = React.useCallback((dx: number, dy: number) => {
+    // 현재 퀴즈 이벤트가 진행 중이거나 방 내부에 있다면 격자 이동을 차단합니다.
+    if (useGameStore.getState().currentLocation !== null || useGameStore.getState().currentEvent !== null) return;
+    
+    setCharPos((prev) => {
+      const newX = prev.x + dx;
+      const newY = prev.y + dy;
+      
+      // 맵 범위를 벗어나는지 체크
+      if (newX < 0 || newX >= 9 || newY < 0 || newY >= 9) return prev;
+      
+      // 가려는 타일의 성격 파악
+      const tile = SHIELD_MAP[newY][newX];
+      if (tile === 'W') return prev; // 벽은 통과할 수 없습니다.
+      
+      // 장소 포탈 타일 도달 시 처리 (react batch 및 state 타이밍 보호를 위해 setTimeout으로 지연 격발)
+      if (tile === 'CR') {
+        setTimeout(() => moveToLocation('classroom'), 50);
+      } else if (tile === 'OF') {
+        setTimeout(() => moveToLocation('office'), 50);
+      } else if (tile === 'HR') {
+        setTimeout(() => moveToLocation('health_room'), 50);
+      } else if (tile === 'PG') {
+        setTimeout(() => moveToLocation('playground'), 50);
+      } else if (tile === 'PR') {
+        setTimeout(() => moveToLocation('principal_room'), 50);
+      }
+      
+      return { x: newX, y: newY };
+    });
+  }, [moveToLocation]);
+
+  // 키보드 입력(WASD, 방향키) 리스너
+  React.useEffect(() => {
+    if (currentLocation !== null || currentEvent !== null) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      switch (e.key) {
+        case 'ArrowUp':
+        case 'w':
+        case 'W':
+          e.preventDefault();
+          moveChar(0, -1);
+          break;
+        case 'ArrowDown':
+        case 's':
+        case 'S':
+          e.preventDefault();
+          moveChar(0, 1);
+          break;
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+          e.preventDefault();
+          moveChar(-1, 0);
+          break;
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+          e.preventDefault();
+          moveChar(1, 0);
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [currentLocation, currentEvent, moveChar]);
+
+  // 각 방 내부 뷰에서 [지도로 돌아가기] 버튼을 누를 때 호출되는 UX 안전 조치 핸들러
+  // 캐릭터가 다시 포탈 위에 스폰되어 방에 무한 진입하는 루프 버그를 방지하기 위해 
+  // 방에서 나오는 순간 해당 포탈 바로 앞의 안전한 'P'(복도/길) 타일로 캐릭터 위치를 변경합니다.
+  const handleBackToMap = () => {
+    if (currentLocation === 'classroom') {
+      setCharPos({ x: 2, y: 1 }); // 교실(1,1) -> 오른쪽 복도(2,1)
+    } else if (currentLocation === 'office') {
+      setCharPos({ x: 2, y: 7 }); // 교무실(1,7) -> 오른쪽 복도(2,7)
+    } else if (currentLocation === 'health_room') {
+      setCharPos({ x: 6, y: 1 }); // 보건실(7,1) -> 왼쪽 복도(6,1)
+    } else if (currentLocation === 'playground') {
+      setCharPos({ x: 6, y: 7 }); // 운동장(7,7) -> 왼쪽 복도(6,7)
+    } else if (currentLocation === 'principal_room') {
+      setCharPos({ x: 4, y: 2 }); // 교장실(4,1) -> 아래쪽 복도(4,2)
+    } else {
+      setCharPos({ x: 4, y: 4 }); // 디폴트 중앙 스폰
+    }
+    moveToLocation(null);
+  };
+
   // 시간대별 한글 설명 및 스타일 헬퍼
   const getTimeLabel = (time: TimeOfDay) => {
     switch (time) {
@@ -512,66 +622,120 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                             <ChevronRight className="w-3.5 h-3.5" />
                           </button>
                         </div>
-                        <p className="text-xs text-slate-500 mb-6 font-medium">
-                          가고 싶은 학교 장소를 선택해 이동하세요. 각 장소마다 만날 수 있는 인물(NPC)과 수행할 수 있는 행동이 다릅니다. (탐색 및 행동 시 AP 소모)
+                        
+                        <p className="text-xs text-slate-500 mb-4 font-medium leading-relaxed">
+                          방향키나 WASD, 혹은 하단 D-Pad를 눌러 캐릭터(👨‍🏫)를 움직여 이동하세요. 
+                          특정 장소 포탈(이모지 타일)에 도착하면 방 안으로 입장합니다. 타일을 직접 터치하여 빠른 순간이동도 가능합니다.
                         </p>
 
-                        {/* 학교 건물 평면도풍 그리드 레이아웃 */}
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                          {/* 교실 */}
-                          <button
-                            onClick={() => moveToLocation('classroom')}
-                            className="border-2 border-black rounded-xl p-4 bg-emerald-50 hover:bg-emerald-100 active:translate-y-0.5 shadow-school-press text-left transition-all group"
-                          >
-                            <span className="text-2xl mb-2 block group-hover:scale-110 transition-transform">👩‍🏫</span>
-                            <h4 className="font-bold text-sm text-slate-800">교실 (Classroom)</h4>
-                            <p className="text-[10px] text-slate-500 mt-1">우리 반 학생들을 지도하고 조회합니다.</p>
-                          </button>
+                        {/* 격자 기반 2D 학교 맵 */}
+                        <div className="flex flex-col items-center justify-center bg-slate-100 rounded-xl p-4 border border-slate-200">
+                          <div className="w-full max-w-[360px] aspect-square bg-slate-800 border-4 border-slate-950 rounded-xl p-1.5 shadow-inner grid grid-cols-9 gap-1">
+                            {SHIELD_MAP.flatMap((row, y) => 
+                              row.map((tile, x) => {
+                                const isChar = charPos.x === x && charPos.y === y;
+                                
+                                // 타일별 스타일 및 이모지 대응
+                                let bgClass = "bg-slate-700 border-slate-650 rounded-md shadow-inner";
+                                let content: React.ReactNode = null;
+                                
+                                if (tile === 'W') {
+                                  // 벽: 짙은 대리석 무늬 느낌
+                                  bgClass = "bg-slate-750 border-slate-800 rounded-md opacity-90 cursor-not-allowed";
+                                  content = <span className="text-[10px] text-slate-600 font-extrabold select-none">🧱</span>;
+                                } else if (tile === 'P') {
+                                  // 일반 이동 통로: 나무 복도 느낌
+                                  bgClass = "bg-[#FAF7EE] border-amber-100 rounded-md hover:bg-amber-50/80 cursor-pointer transition-colors";
+                                } else if (tile === 'CR') {
+                                  // 교실 (1,1)
+                                  bgClass = "bg-emerald-100 border-emerald-400 rounded-md cursor-pointer hover:bg-emerald-200 text-emerald-800 font-bold flex items-center justify-center shadow-sm";
+                                  content = <span className="text-sm select-none" title="교실">🏫</span>;
+                                } else if (tile === 'OF') {
+                                  // 교무실 (1,7)
+                                  bgClass = "bg-indigo-100 border-indigo-400 rounded-md cursor-pointer hover:bg-indigo-200 text-indigo-800 font-bold flex items-center justify-center shadow-sm";
+                                  content = <span className="text-sm select-none" title="교무실">💼</span>;
+                                } else if (tile === 'HR') {
+                                  // 보건실 (7,1)
+                                  bgClass = "bg-teal-100 border-teal-400 rounded-md cursor-pointer hover:bg-teal-200 text-teal-800 font-bold flex items-center justify-center shadow-sm";
+                                  content = <span className="text-sm select-none" title="보건실">🏥</span>;
+                                } else if (tile === 'PG') {
+                                  // 운동장 (7,7)
+                                  bgClass = "bg-orange-100 border-orange-400 rounded-md cursor-pointer hover:bg-orange-200 text-orange-850 font-bold flex items-center justify-center shadow-sm";
+                                  content = <span className="text-sm select-none" title="운동장">🏃‍♂️</span>;
+                                } else if (tile === 'PR') {
+                                  // 교장실 (4,1)
+                                  bgClass = "bg-amber-100 border-amber-400 rounded-md cursor-pointer hover:bg-amber-200 text-amber-900 font-bold flex items-center justify-center shadow-sm";
+                                  content = <span className="text-sm select-none" title="교장실">🍵</span>;
+                                }
+                                
+                                return (
+                                  <div 
+                                    key={`${y}-${x}`} 
+                                    onClick={() => {
+                                      // 벽이 아닌 경우 클릭 터치식 텔레포트 이동 허용
+                                      if (tile !== 'W') {
+                                        setCharPos({ x, y });
+                                        if (tile === 'CR') moveToLocation('classroom');
+                                        else if (tile === 'OF') moveToLocation('office');
+                                        else if (tile === 'HR') moveToLocation('health_room');
+                                        else if (tile === 'PG') moveToLocation('playground');
+                                        else if (tile === 'PR') moveToLocation('principal_room');
+                                      }
+                                    }}
+                                    className={`relative aspect-square border flex items-center justify-center transition-all duration-100 ${bgClass}`}
+                                  >
+                                    {isChar ? (
+                                      <span className="text-lg md:text-xl z-20 animate-bounce select-none">👨‍🏫</span>
+                                    ) : (
+                                      content
+                                    )}
+                                  </div>
+                                );
+                              })
+                            )}
+                          </div>
 
-                          {/* 교무실 */}
-                          <button
-                            onClick={() => moveToLocation('office')}
-                            className="border-2 border-black rounded-xl p-4 bg-slate-50 hover:bg-slate-100 active:translate-y-0.5 shadow-school-press text-left transition-all group"
-                          >
-                            <span className="text-2xl mb-2 block group-hover:scale-110 transition-transform">💼</span>
-                            <h4 className="font-bold text-sm text-slate-800">교무실 (Staff Office)</h4>
-                            <p className="text-[10px] text-slate-500 mt-1">동료 교사와 대화하고 서류 처리를 보강합니다.</p>
-                          </button>
-
-                          {/* 보건실 */}
-                          <button
-                            onClick={() => moveToLocation('health_room')}
-                            className="border-2 border-black rounded-xl p-4 bg-teal-50 hover:bg-teal-100 active:translate-y-0.5 shadow-school-press text-left transition-all group"
-                          >
-                            <span className="text-2xl mb-2 block group-hover:scale-110 transition-transform">🏥</span>
-                            <h4 className="font-bold text-sm text-slate-800">보건실 (Infirmary)</h4>
-                            <p className="text-[10px] text-slate-500 mt-1">지친 체력과 멘탈을 회복할 수 있는 쉼터.</p>
-                          </button>
-
-                          {/* 운동장 */}
-                          <button
-                            onClick={() => moveToLocation('playground')}
-                            className="border-2 border-black rounded-xl p-4 bg-orange-50 hover:bg-orange-100 active:translate-y-0.5 shadow-school-press text-left transition-all group"
-                          >
-                            <span className="text-2xl mb-2 block group-hover:scale-110 transition-transform">🏃‍♂️</span>
-                            <h4 className="font-bold text-sm text-slate-800">운동장 (Playground)</h4>
-                            <p className="text-[10px] text-slate-500 mt-1">체력을 보강하고 맑은 공기를 쐽니다.</p>
-                          </button>
-
-                          {/* 교장실 */}
-                          <button
-                            onClick={() => moveToLocation('principal_room')}
-                            className="border-2 border-black rounded-xl p-4 bg-amber-50 hover:bg-amber-100 active:translate-y-0.5 shadow-school-press text-left transition-all group"
-                          >
-                            <span className="text-2xl mb-2 block group-hover:scale-110 transition-transform">🍵</span>
-                            <h4 className="font-bold text-sm text-slate-800">교장실 (Principal Office)</h4>
-                            <p className="text-[10px] text-slate-500 mt-1">학교 관리자들과 깊은 자문과 차담을 합니다.</p>
-                          </button>
+                          {/* D-Pad 조작 인터페이스 */}
+                          <div className="flex flex-col items-center gap-1 mt-4">
+                            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1">D-PAD 조작 (마우스/터치 지원)</span>
+                            
+                            <button 
+                              onClick={() => moveChar(0, -1)}
+                              className="w-10 h-10 bg-slate-800 hover:bg-slate-700 text-white font-extrabold border-2 border-black rounded-xl shadow-school-press flex items-center justify-center transition-all active:translate-y-0.5 active:shadow-none hover:scale-105"
+                            >
+                              ▲
+                            </button>
+                            <div className="flex gap-8">
+                              <button 
+                                onClick={() => moveChar(-1, 0)}
+                                className="w-10 h-10 bg-slate-800 hover:bg-slate-700 text-white font-extrabold border-2 border-black rounded-xl shadow-school-press flex items-center justify-center transition-all active:translate-y-0.5 active:shadow-none hover:scale-105"
+                              >
+                                ◀
+                              </button>
+                              <button 
+                                onClick={() => moveChar(1, 0)}
+                                className="w-10 h-10 bg-slate-800 hover:bg-slate-700 text-white font-extrabold border-2 border-black rounded-xl shadow-school-press flex items-center justify-center transition-all active:translate-y-0.5 active:shadow-none hover:scale-105"
+                              >
+                                ▶
+                              </button>
+                            </div>
+                            <button 
+                              onClick={() => moveChar(0, 1)}
+                              className="w-10 h-10 bg-slate-800 hover:bg-slate-700 text-white font-extrabold border-2 border-black rounded-xl shadow-school-press flex items-center justify-center transition-all active:translate-y-0.5 active:shadow-none hover:scale-105"
+                            >
+                              ▼
+                            </button>
+                          </div>
                         </div>
                       </div>
-
-                      <div className="mt-8 bg-slate-50 border border-slate-200 p-3 rounded-lg text-[10px] text-slate-400">
-                        💡 <b>가이드:</b> 장소를 탐색하거나 고유 행동을 하면 행동 포인트(AP)가 소모됩니다. AP를 다 썼거나 다음 일과로 넘어가고 싶으시다면 상단의 [일과 전진]을 눌러 다음 시간대로 가세요.
+                      
+                      {/* 포탈 설명 레전드 */}
+                      <div className="mt-4 flex flex-wrap gap-2 justify-center text-[10px] font-semibold text-slate-600 bg-slate-50 border border-slate-200 p-2 rounded-lg">
+                        <span className="flex items-center gap-0.5">🏫 교실</span>
+                        <span className="flex items-center gap-0.5">💼 교무실</span>
+                        <span className="flex items-center gap-0.5">🏥 보건실</span>
+                        <span className="flex items-center gap-0.5">🏃‍♂️ 운동장</span>
+                        <span className="flex items-center gap-0.5">🍵 교장실</span>
                       </div>
                     </div>
                   ) : (
@@ -587,7 +751,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                                 📍 {theme.name} 내부
                               </h2>
                               <button
-                                onClick={() => moveToLocation(null)}
+                                onClick={handleBackToMap}
                                 className="px-3 py-1.5 bg-slate-100 text-slate-800 hover:bg-slate-200 font-bold border-2 border-black rounded-lg active:translate-y-0.5 shadow-school-press text-xs transition-colors"
                               >
                                 ◀ 지도로 돌아가기
@@ -799,7 +963,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
           <div className="paper-card bg-white p-4">
             <h3 className="font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-2 mb-3 flex items-center gap-1.5">
               <Smartphone className="w-5 h-5 text-emerald-600" />
-              쿨메신저 & 알림
+              학교메신저 & 알림
             </h3>
             
             <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
