@@ -35,6 +35,7 @@ function App() {
         <TitleScreen
           onStartNewGame={() => setViewState('create')}
           onOpenGallery={() => setViewState('gallery')}
+          onContinueGame={() => setViewState('playing')}
         />
       )}
 

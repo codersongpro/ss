@@ -13,13 +13,27 @@ import type {
   LocationType,
   DialogueChoice,
   DialogueStep,
-  DialogueSession
+  DialogueSession,
+  MessengerNotification
 } from '@/game/types';
 import { initialStudents, initialParents } from '@/data/students';
 import { gameEvents } from '@/data/events';
 
 // 시간대 정의
 export type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'night' | 'summary';
+
+// 메신저 전용 선택지 이벤트 구조 [NEW]
+export interface MessengerEvent {
+  id: string;
+  sender: string;
+  previewText: string;
+  choices: {
+    id: string;
+    text: string;
+    effects: StatEffect[];
+    resultText: string;
+  }[];
+}
 
 // Zustand 스토어 상태 인터페이스
 interface GameState {
@@ -34,6 +48,9 @@ interface GameState {
   currentLocation: LocationType | null; // 현재 머무는 학교 장소 (null 이면 지도 화면)
   currentNpcDialogue: { npcName: string; text: string; statEffectText?: string } | null; // (레거시/하위 호환) 단순 팝업
   npcDialogueSession: DialogueSession | null; // (추가) 멀티턴 이벤트 대화 세션
+  dailyNpcPlacement: Record<string, { id: string; name: string; role?: string }[]>; // [NEW] 각 장소별 당일 등장 캐릭터 목록
+  messengerNotifications: MessengerNotification[]; // [NEW] 수신된 학교 메신저 목록
+  activeMessengerEvent: MessengerEvent | null; // [NEW] 현재 활성화되어 팝업된 메신저 사건
   
   // 핵심 데이터
   stats: Stats;
@@ -86,11 +103,19 @@ interface GameState {
     | 'wee_counsel'
     | 'science_safety'
     | 'gate_safety'
+    | 'gym_safety'
+    | 'gym_room_organize'
+    | 'grade_class_inspect'
   ) => void;
   talkToNPC: (npcId: string, npcName: string) => void;
   clearNpcDialogue: () => void;
   exploreLocation: () => void;
   closeEventResult: () => void;
+  shuffleNpcPlacements: () => void; // [NEW] 매일 아침 NPC 재배치
+  generateMessengerNotifications: () => void; // [NEW] 매일 아침 메신저 수신
+  triggerMessengerAction: (notificationId: string) => void; // [NEW] 메신저 쪽지 클릭
+  selectMessengerChoice: (choiceId: string, effects: StatEffect[], resultText: string) => void; // [NEW] 메신저 선택지 클릭
+  closeMessengerEvent: () => void; // [NEW] 메신저 팝업 닫기
   
   // 멀티턴 대화 추가 액션
   selectDialogueChoice: (choice: DialogueChoice) => void;
@@ -313,6 +338,9 @@ export const useGameStore = create<GameState>()(
       currentLocation: null,
       currentNpcDialogue: null,
       npcDialogueSession: null,
+      dailyNpcPlacement: {},
+      messengerNotifications: [],
+      activeMessengerEvent: null,
       
       stats: {
         hp: 80,
@@ -403,6 +431,10 @@ export const useGameStore = create<GameState>()(
           maxActionPoints: maxAP,
           recentLogs: ['새 학기 첫 출근을 시작했습니다. 90일 교사 서사가 막을 올립니다.']
         });
+
+        // [NEW] 캐릭터 배치 셔플 및 메신저 생성
+        get().shuffleNpcPlacements();
+        get().generateMessengerNotifications();
       },
 
       // 2. 게임 리셋
@@ -624,6 +656,10 @@ export const useGameStore = create<GameState>()(
               completedNpcDialoguesToday: [],
               tasks: updatedTasks
             });
+
+            // [NEW] 캐릭터 배치 셔플 및 메신저 생성
+            get().shuffleNpcPlacements();
+            get().generateMessengerNotifications();
           }
         }
       },
@@ -895,6 +931,19 @@ export const useGameStore = create<GameState>()(
           categories = ['admin', 'colleague'];
         } else if (currentLocation === 'school_gate') {
           categories = ['parent', 'student', 'random'];
+        } else if (currentLocation === 'gym_room') {
+          categories = ['colleague', 'admin', 'random'];
+        } else if (currentLocation === 'gymnasium') {
+          categories = ['student', 'random'];
+        } else if (
+          currentLocation === 'class_grade1' ||
+          currentLocation === 'class_grade2' ||
+          currentLocation === 'class_grade3' ||
+          currentLocation === 'class_grade4' ||
+          currentLocation === 'class_grade5' ||
+          currentLocation === 'class_grade6'
+        ) {
+          categories = ['student'];
         } else {
           get().showToast('이 장소는 평화롭습니다. 휴식을 취하세요.');
           return;
@@ -952,6 +1001,9 @@ export const useGameStore = create<GameState>()(
         | 'wee_counsel'
         | 'science_safety'
         | 'gate_safety'
+        | 'gym_safety'
+        | 'gym_room_organize'
+        | 'grade_class_inspect'
       ) => {
         const { actionPoints, stats, day, recentLogs } = get();
         if (actionPoints < 1) {
@@ -1019,6 +1071,21 @@ export const useGameStore = create<GameState>()(
           newStats.parentComplaint = clamp(newStats.parentComplaint + 2);
           newStats.hp = clamp(newStats.hp - 4);
           msg = '교문에서 배움터지킴이 보안관님과 함께 등교하는 학생들의 안전 복장 및 교통 안전 수칙 등교 지도를 실시했습니다.';
+        } else if (actionType === 'gym_safety') {
+          newStats.hp = clamp(newStats.hp - 4);
+          newStats.studentTrust = clamp(newStats.studentTrust + 4);
+          newStats.teachingSatisfaction = clamp(newStats.teachingSatisfaction + 4);
+          msg = '체육관에서 아이들의 안전을 모니터링하고 체육 강당 매트를 정돈했습니다. 학생 신뢰도와 보람이 증가했습니다.';
+        } else if (actionType === 'gym_room_organize') {
+          newStats.hp = clamp(newStats.hp - 5);
+          newStats.colleagueSolidarity = clamp(newStats.colleagueSolidarity + 5);
+          newStats.adminPower = clamp(newStats.adminPower + 3);
+          msg = '체육실에서 잃어버린 호루라기와 낡은 구령대 축구공 바구니를 깔끔하게 수납 정리했습니다. 동료 교직원 연대감이 증가했습니다.';
+        } else if (actionType === 'grade_class_inspect') {
+          newStats.expert = clamp(newStats.expert + 5);
+          newStats.teachingSatisfaction = clamp(newStats.teachingSatisfaction + 3);
+          newStats.hp = clamp(newStats.hp - 2);
+          msg = '1~6학년 복도 교실을 돌며 동료 교사들의 수업 환경과 교실 게시판 테마를 참관 연구했습니다. 수업 전문성과 보람이 증가했습니다.';
         }
 
         const updatedLogs = [
@@ -1068,6 +1135,356 @@ export const useGameStore = create<GameState>()(
             ];
           }
         } 
+        // 1~6학년 가상 담임교사 12명 대화 시나리오 연동 [NEW]
+        else if (npcId === 'colleague_g1_a') {
+          steps = [
+            {
+              speaker: '정민우 교사 (1학년)',
+              text: '"김 선생님! 1학년 애기들 한글 홑받침이랑 겹받침 지도하다가 속이 까맣게 들어갔어요. 가나다도 헷갈리는 제자들을 어쩌면 좋죠?" 정 교사가 한숨을 쉽니다.',
+              choices: [
+                {
+                  text: '“힘내세요! 제 교실에 있는 교구용 한글 놀이 낱말 카드와 보드게임 세트를 빌려드릴 테니 교실 뒤에서 놀이식으로 지도해 보세요.” (한글 보드게임 공유)',
+                  nextStepIndex: 1,
+                  effects: [{ stat: 'colleagueSolidarity', value: 8 }, { stat: 'colleagueRelation', value: 5 }, { stat: 'mental', value: -2 }],
+                  resultText: '"우와, 이런 유용한 보드게임이 있었군요! 당장 내일 아침 놀이 수업 시간에 모둠별로 돌려봐야겠어요. 정말 든든한 동료십니다!"'
+                },
+                {
+                  text: '“1학년 수준에서는 무조건 매일 아침 받아쓰기 10문항씩 고전적인 반복 학습을 진행해 기틀을 잡아주는 것이 원칙입니다.” (반복 훈련 조언)',
+                  nextStepIndex: 2,
+                  effects: [{ stat: 'educationSoshin', value: 6 }, { stat: 'expert', value: 4 }],
+                  resultText: '"음, 확실히 기초 단계에는 눈으로 익히고 직접 써보는 훈련이 약이죠. 내일부터 받아쓰기 공책을 인쇄해서 써보게 할게요!"'
+                }
+              ]
+            },
+            {
+              speaker: '정민우 교사 (1학년)',
+              text: '동료에게 교실 교구를 흔쾌히 양보하고 조력하며 끈끈한 교직원 연대감과 동료애를 공고히 다졌습니다.'
+            },
+            {
+              speaker: '정민우 교사 (1학년)',
+              text: '구체적인 원칙 기반 훈육 조언을 피드백하여 교직 전문성을 입증하고 교육 소신을 확립했습니다.'
+            }
+          ];
+        } else if (npcId === 'colleague_g1_b') {
+          steps = [
+            {
+              speaker: '김영희 교사 (1학년)',
+              text: '"아이쿠 김 선생님, 방금 복도에서 소란을 부리던 아이들 줄 세우고, 교실에서 신발끈 묶어주고 오느라 허리가 다 부러질 지경이에요. 1학년은 보모가 된 느낌이네요." 김 교사가 허리를 두드립니다.',
+              choices: [
+                {
+                  text: '“1학년 담임의 피로는 상상을 초월하죠. 여기 따뜻한 유자차 한 잔 드시고 쉬세요. 5분 뒤 조회 지도는 제가 대신 돌아봐 드릴게요.” (동료 쉼 지원)',
+                  nextStepIndex: 1,
+                  effects: [{ stat: 'colleagueSolidarity', value: 10 }, { stat: 'colleagueRelation', value: 8 }, { stat: 'hp', value: -2 }],
+                  resultText: '"아니, 김 선생님 반 조례도 바쁘실 텐데 이런 배려를...! 정말 눈물 나게 고맙습니다. 유자차 마시고 힘낼게요!"'
+                },
+                {
+                  text: '“아이들이 스스로 신발끈을 묶을 수 있도록 학급 자치 규정을 세우고, 신발끈 대회 등을 열어 자조력을 키워 주시는 편이 근본적 해결책입니다.” (자립 교육 권유)',
+                  nextStepIndex: 2,
+                  effects: [{ stat: 'expert', value: 6 }, { stat: 'mental', value: 2 }],
+                  resultText: '"아, 맞아요. 사소한 편의를 계속 봐주면 애들이 자립하지 못하죠. 스스로 묶기 챌린지를 교실에 도입해 볼게요!"'
+                }
+              ]
+            },
+            {
+              speaker: '김영희 교사 (1학년)',
+              text: '동료의 아침 복도 지도를 대행해주며 깊은 동료애를 쌓고 연대감을 고양했으나 약간의 체력을 썼습니다.'
+            },
+            {
+              speaker: '김영희 교사 (1학년)',
+              text: '전문적인 초등 생활 지도 기법을 제시하여, 동료의 업무 과중을 덜고 학생들의 자립도를 높이는 훈육을 전수했습니다.'
+            }
+          ];
+        } else if (npcId === 'colleague_g2_a') {
+          steps = [
+            {
+              speaker: '박지수 교사 (2학년)',
+              text: '"김 선생님, 우리 반 지훈이가 구구단 3단과 4단을 도무지 외우질 못해서 수학 익힘책 진도를 나가지 못하고 있어요. 외우기 쉬운 요령이 있을까요?" 박 교사가 난감해합니다.',
+              choices: [
+                {
+                  text: '“요즘 아이들은 리듬을 타는 구구단 노래 교육용 웹 게임 어플이 아주 잘 맞아요. 스마트 교실 태블릿에 설치해 사용해 보세요.” (에듀테크 융합 제안)',
+                  nextStepIndex: 1,
+                  effects: [{ stat: 'expert', value: 8 }, { stat: 'colleagueSolidarity', value: 6 }],
+                  resultText: '"아! 태블릿을 게임처럼 활용해 구구단을 외우는군요! 요즘 애들 취향에 딱 맞겠네요. 훌륭한 수업 노하우예요!"'
+                },
+                {
+                  text: '“방과 후 교실에 10분간 남겨서, 교사 앞에서 직접 외우고 통과 도장을 찍어주는 엄격한 면담 지도가 확실합니다.” (엄격한 오프라인 밀착 지도)',
+                  nextStepIndex: 2,
+                  effects: [{ stat: 'educationSoshin', value: 8 }, { stat: 'mental', value: -2 }],
+                  resultText: '"흠, 역시 전통적인 면대면 끈기 훈련이 가장 확실하죠. 오늘 방과 후에 구구단 보충 지도를 열어 통과제를 해보겠습니다!"'
+                }
+              ]
+            },
+            {
+              speaker: '박지수 교사 (2학년)',
+              text: '에듀테크 접목 수학 지도 아이디어를 전수하여 동료를 돕고 자신의 수업 전문성을 드높였습니다.'
+            },
+            {
+              speaker: '박지수 교사 (2학년)',
+              text: '원칙 위주의 면담 보충 지도 방향을 일러주어 교사로서의 소신과 학력 고수 기조를 확립했습니다.'
+            }
+          ];
+        } else if (npcId === 'colleague_g2_b') {
+          steps = [
+            {
+              speaker: '최유진 교사 (2학년)',
+              text: '"선생님! 오늘 아침 조회 때 교실 뒤에서 애들이 연필깎이 통을 엎어서 가루로 모래놀이를 하고 있었더라고요. 청소를 다 하느라 옷이 엉망이 되었어요." 최 교사가 울상을 짓습니다.',
+              choices: [
+                {
+                  text: '“어이구, 아침부터 가루 폭탄을 맞으셨군요! 저희 학급에 흡입력이 강한 무선 미니 청소기가 있으니 당분간 교실에 두고 편하게 쓰세요.” (청소 용품 지원)',
+                  nextStepIndex: 1,
+                  effects: [{ stat: 'colleagueSolidarity', value: 10 }, { stat: 'colleagueRelation', value: 8 }],
+                  resultText: '"정말요? 빗자루로는 가루가 날려서 곤란했는데, 무선 청소기 덕에 금방 치우겠어요. 김 선생님의 정성에 정말 감동했습니다!"'
+                },
+                {
+                  text: '“학급 환경 규칙을 위반하고 공용 기물을 어지럽힌 주동 학생들에게 방과후 빗자루 청소 3일의 봉사 조치를 단호히 부과하세요.” (책임 훈육 강조)',
+                  nextStepIndex: 2,
+                  effects: [{ stat: 'educationSoshin', value: 8 }, { stat: 'mental', value: 3 }],
+                  resultText: '"맞아요. 스스로 어지럽힌 물건은 본인들이 책임져야 기강이 서죠. 장난친 아이들을 불러 점심시간 분리수거 지도를 시키겠습니다!"'
+                }
+              ]
+            },
+            {
+              speaker: '최유진 교사 (2학년)',
+              text: '실질적인 학급 물품 공유와 정서 지지를 통해 교직원 연대감을 가득 다지고 강력한 우애를 도모했습니다.'
+            },
+            {
+              speaker: '최유진 교사 (2학년)',
+              text: '학생 스스로가 지은 잘못에 책임을 지도록 유도하는 책임 교육 소신을 확고히 전수했습니다.'
+            }
+          ];
+        } else if (npcId === 'colleague_g3_a') {
+          steps = [
+            {
+              speaker: '이성우 교사 (3학년)',
+              text: '"김 선생님, 3학년이 되니까 수업 시수도 늘고, 애들이 슬슬 머리가 컸는지 말대답을 하기 시작해요. 교실 기강을 어떻게 잡아야 할지 통 감이 안 오네요." 이 교사가 걱정을 털어놓습니다.',
+              choices: [
+                {
+                  text: '“3학년은 사춘기 진입 단계라 감정 조절이 조심스럽죠. 마주보고 다그치기보다 개별 면담을 거쳐 감정을 털어내게 도와보세요.” (상담 지향 중재)',
+                  nextStepIndex: 1,
+                  effects: [{ stat: 'expert', value: 7 }, { stat: 'colleagueSolidarity', value: 6 }],
+                  resultText: '"개별 상담을 통해 아이의 진짜 속내를 듣는 방법이군요. 공격적인 말대답 이면의 다른 정서적 원인이 있는지 짚어보겠습니다."'
+                },
+                {
+                  text: '“첫 기선제압이 중요합니다. 반항성 말대답 시 즉시 단호한 벌점과 반성문 쓰기 등 엄격한 훈육 원칙을 예외 없이 적용하세요.” (원칙 규율 훈육)',
+                  nextStepIndex: 2,
+                  effects: [{ stat: 'educationSoshin', value: 8 }, { stat: 'mental', value: 3 }],
+                  resultText: '"과연, 교실 내 기강의 붕괴는 작은 말대답 용인에서 시작되죠. 단호한 학급 운영 규칙 카드를 오늘 아침 홈룸 시간에 선포해야겠어요."'
+                }
+              ]
+            },
+            {
+              speaker: '이성우 교사 (3학년)',
+              text: '정서 지지 상담 노하우를 공유하여 학생 중심 수업 지도 역량과 동료와의 협동성을 증진시켰습니다.'
+            },
+            {
+              speaker: '이성우 교사 (3학년)',
+              text: '엄한 기율 수호 가이드를 전수하며 공정하고 흐트러짐 없는 원칙주의 교사 소신을 다잡았습니다.'
+            }
+          ];
+        } else if (npcId === 'colleague_g3_b') {
+          steps = [
+            {
+              speaker: '한나래 교사 (3학년)',
+              text: '"김 선생님, 미술 예체능 보조 재료 구입을 위해 행정실에 올린 30만원 품의가 교감선생님 선에서 반려되었어요. 활용도 소명이 부족하다나... 기안을 또 고치려니 힘드네요." 한 교사가 한숨을 쉽니다.',
+              choices: [
+                {
+                  text: '“교감 선생님은 행정 서류에 예산 낭비 불식 명시를 좋아하세요. 작년에 제가 통과받았던 미술 예산 기안 서식 파일을 보내드릴 테니 고쳐 쓰세요.” (행정 기안 포맷 공유)',
+                  nextStepIndex: 1,
+                  effects: [{ stat: 'colleagueSolidarity', value: 10 }, { stat: 'colleagueRelation', value: 10 }, { stat: 'adminPower', value: 4 }],
+                  resultText: '"세상에, 김 선생님! 기안 통과 족보 파일을 주시다니요! 이 서식의 산출 근거를 벤치마킹하면 바로 승인되겠어요. 너무 감사해요!"'
+                },
+                {
+                  text: '“행정실 승인이 번거롭다면, 시 교육청에서 진행하는 무료 학교 교육용 기자재 무상 대여 사업을 이용해 보시는 게 어때요?” (행정 대안 제안)',
+                  nextStepIndex: 2,
+                  effects: [{ stat: 'adminPower', value: 8 }, { stat: 'burnout', value: -2 }],
+                  resultText: '"아, 그런 복지 사업이 있었군요! 복잡한 품의 기결 없이 교육청 교구 임대로 우회하는 편이 행정 피로가 훨씬 덜하겠어요. 당장 신청할게요!"'
+                }
+              ]
+            },
+            {
+              speaker: '한나래 교사 (3학년)',
+              text: '성공 기안 기결 노하우를 흔쾌히 나눔으로써 동료 관계를 극상으로 향상시키고 행정 실무 상호작용력을 확보했습니다.'
+            },
+            {
+              speaker: '한나래 교사 (3학년)',
+              text: '까다로운 내부 기결 대신 우회적인 무상 대여 제도를 제안하여 행정 수완을 발휘하고 업무 효율을 늘렸습니다.'
+            }
+          ];
+        } else if (npcId === 'colleague_g4_a') {
+          steps = [
+            {
+              speaker: '윤태호 교사 (4학년)',
+              text: '"김 선생님, 4학년 지역 역사 탐방 야외 현장학습 계획서를 수립 중인데, 안전 서류랑 버스 계약 기획이 너무 꼬이네요. 외부 행사 안전 조언 좀 주실 수 있나요?" 윤 교사가 질문합니다.',
+              choices: [
+                {
+                  text: '“현장 체험 학습은 안전 사고 책임 소재가 민감하죠. 시 교육청 안전 연수 자료와 버스 임차 표준 계약서 작성 폴더를 제 클라우드에서 공유할게요.” (체험 학습 노하우 전수)',
+                  nextStepIndex: 1,
+                  effects: [{ stat: 'expert', value: 7 }, { stat: 'colleagueSolidarity', value: 7 }, { stat: 'adminPower', value: 5 }],
+                  resultText: '"역시 실무 경험이 많으셔서 바로 표준 예시 자료를 턱 내주시는군요! 이 안전 지침에 맞춰 쓰면 교육청 지적을 피하겠어요. 최고예요!"'
+                },
+                {
+                  text: '“요즘 외부 차량 계약이나 인솔 안전 리스크가 크니, 억지로 야외로 나가기보다 학교 테블릿을 활용한 메타버스 온라인 가상 역사 답사로 기획해 보세요.” (스마트 답사 대안 제시)',
+                  nextStepIndex: 2,
+                  effects: [{ stat: 'expert', value: 10 }, { stat: 'burnout', value: -4 }],
+                  resultText: '"오, 메타버스 온라인 역사 답사라니! 안전 사고 우려도 원천 제로이고 행정 수고도 급감하겠네요. 혁신적인 대안 수업 기획에 눈을 떴어요!"'
+                }
+              ]
+            },
+            {
+              speaker: '윤태호 교사 (4학년)',
+              text: '야외 안전 서류 철저 보조와 실무 지원을 통해 동료애를 다지고 수업 장인으로서의 역량을 공유했습니다.'
+            },
+            {
+              speaker: '윤태호 교사 (4학년)',
+              text: '에듀테크를 응용한 지능형 메타버스 대체 학습 모델을 제시하여 수업 전문성을 극상으로 늘리고 리스크를 원천 해소했습니다.'
+            }
+          ];
+        } else if (npcId === 'colleague_g4_b') {
+          steps = [
+            {
+              speaker: '신지원 교사 (4학년)',
+              text: '"선생님! 오늘 교내 과학실 약품 유통기한 전수 조사와 보관 시약 인벤토리 작성이 겹쳐서 기재 대장을 뒤지느라 손톱 밑이 새까맣게 탔어요. 행정이 어마어마하네요." 신 교사가 핀셋을 털어냅니다.',
+              choices: [
+                {
+                  text: '“과학실 안전 대장 정리가 유독 번잡하죠. 엑셀 수식으로 일괄 기한 자동 계산이 되는 관리 템플릿을 메신저로 보내드릴게요.” (기획 엑셀 공유)',
+                  nextStepIndex: 1,
+                  effects: [{ stat: 'colleagueSolidarity', value: 10 }, { stat: 'adminPower', value: 6 }],
+                  resultText: '"와, 엑셀 기한 자동 매핑 수식이라니요! 김 선생님 덕분에 하루 종일 타이핑할 노가다 작업을 단 10분 만에 마치겠어요. 고마워요!"'
+                },
+                {
+                  text: '“소모품과 시약 관리를 일일이 대장에 적기보다, 과학실무사님과 업무 분장을 명확히 나눠 책임 대행 처리를 의뢰해 보세요.” (업무 분장 개선 제안)',
+                  nextStepIndex: 2,
+                  effects: [{ stat: 'adminPower', value: 8 }, { stat: 'colleagueSolidarity', value: 4 }],
+                  resultText: '"하긴 실무사의 고유 영역과 분장을 칼같이 정립해 놓는 편이 나중에 업무 차질도 없고 서로 명확하겠네요. 규정대로 분장을 조율할게요."'
+                }
+              ]
+            },
+            {
+              speaker: '신지원 교사 (4학년)',
+              text: '전산 엑셀 포맷 전수를 통해 행정 처리를 획기적으로 개선하며 동료의 전폭적 감사와 신망을 얻었습니다.'
+            },
+            {
+              speaker: '신지원 교사 (4학년)',
+              text: '학교 행정 분장 표준 지침에 맞추어 업무 권한과 책임을 조율하여 행정 마스터로서의 입지를 다졌습니다.'
+            }
+          ];
+        } else if (npcId === 'colleague_g5_a') {
+          steps = [
+            {
+              speaker: '강성훈 교사 (5학년)',
+              text: '"김 선생님, 우리 반 수학 기초 학습에서 분수 통분 개념을 통 이해하지 못하는 녀석이 3명이나 있어요. 보충 지도 교재를 짜야 하는데 고민이네요." 강 교사가 교재를 넘겨봅니다.',
+              choices: [
+                {
+                  text: '“통분은 추상적인 개념이라 그림이 필수예요. 피자 조각 분수 시각화 활동지와 통분 가로축 색칠 연습 자료를 제가 복사해 드릴게요.” (시각화 교구 공유)',
+                  nextStepIndex: 1,
+                  effects: [{ stat: 'colleagueSolidarity', value: 10 }, { stat: 'expert', value: 8 }],
+                  resultText: '"아! 피자 조각 조각으로 분모 통분을 맞추는 시각화 활동이군요! 직관적이라 아이들이 당장 눈을 크게 뜰 것 같아요. 자료 소중히 쓸게요!"'
+                },
+                {
+                  text: '“진도를 따라오지 못하는 녀석들은 방과 후 보충 20분 자습 지도를 통해 기초 계산 문제를 반복 숙달하게 훈련하는 것이 지름길입니다.” (반복 학습 피드백)',
+                  nextStepIndex: 2,
+                  effects: [{ stat: 'educationSoshin', value: 8 }, { stat: 'mental', value: -1 }],
+                  resultText: '"흠, 역시 계산력 자체의 반복 집중 훈련이 기초 구멍을 메우는 가장 원초적인 약이죠. 방과 후 보충 숙제를 부과해서 집중 훈련을 시킬게요!"'
+                }
+              ]
+            },
+            {
+              speaker: '강성훈 교사 (5학년)',
+              text: '피자 조각 시각 교구 나눔으로 수업 기법을 동료와 연대 공유하며 교육 만족과 연대감을 드높였습니다.'
+            },
+            {
+              speaker: '강성훈 교사 (5학년)',
+              text: '기초 계산 능력의 무조건적 복습과 원칙 훈련 기조를 제시해 교사 소신과 책임 훈육을 수호했습니다.'
+            }
+          ];
+        } else if (npcId === 'colleague_g5_b') {
+          steps = [
+            {
+              speaker: '백현우 교사 (5학년)',
+              text: '"김 선생님, 내일 있을 학년 강당 체육 한마당 축제 스태프 조력자가 부족해서 체육 부장으로서 걱정이네요. 혹시 지원 교사가 없을까요?" 백 교사가 호루라기를 만지작거립니다.',
+              choices: [
+                {
+                  text: '“체육 준비로 고생이 많으십니다. 마침 내일 5교시가 제 전담 시간이라 강당에 올라가 라인 마킹과 안전 통제 지도를 직접 도울게요.” (체육 활동 직접 조력)',
+                  nextStepIndex: 1,
+                  effects: [{ stat: 'colleagueSolidarity', value: 10 }, { stat: 'colleagueRelation', value: 5 }, { stat: 'hp', value: -5 }],
+                  resultText: '"정말입니까 김 선생님? 5교시 빈 시간에 강당 통제를 도와주신다니 천군만마를 얻었네요! 행사를 활기차게 마무리하겠어요!"'
+                },
+                {
+                  text: '“체육 행무 처리를 원활히 하려면, 교무실에 지원 인력 지정 요청 기안을 올려 교감 선생님의 공식 지휘 하에 교사를 공식 징집해야 합니다.” (공식 징집 기안 조언)',
+                  nextStepIndex: 2,
+                  effects: [{ stat: 'adminPower', value: 8 }, { stat: 'colleagueRelation', value: -2 }],
+                  resultText: '"그렇네요. 개인의 호의에 기대기보다 기안 결재를 통해 공식 협조 요원을 지정하는 것이 뒤탈 없고 명확한 행정 처리죠. 바로 상신할게요."'
+                }
+              ]
+            },
+            {
+              speaker: '백현우 교사 (5학년)',
+              text: '행사에 직접 몸으로 뛰어들어 협조하며 강력한 동료 신뢰와 연대감을 쟁취하였으나 다소 피로해졌습니다.'
+            },
+            {
+              speaker: '백현우 교사 (5학년)',
+              text: '행정 규정에 입각한 인력 충원 가이드를 피드백하여 교내 행정 실무를 바로잡고 체계를 지켰습니다.'
+            }
+          ];
+        } else if (npcId === 'colleague_g6_a') {
+          steps = [
+            {
+              speaker: '송민지 교사 (6학년)',
+              text: '"김 선생님, 6학년 여자애들 교실 뒤에서 은밀히 파벌을 만들고 뒷담화를 카톡으로 퍼뜨리던 사건을 중재하고 왔는데, 기가 다 빨렸어요. 사춘기 여학생 지도는 너무 어렵네요." 송 교사가 고개를 흔듭니다.',
+              choices: [
+                {
+                  text: '“6학년 관계 지도는 살얼음판이죠. 상담실 Wee 클래스와 연계하여 교우 실태 익명 앙케이트를 먼저 실행해 보시죠.” (상담실 공조 중재)',
+                  nextStepIndex: 1,
+                  effects: [{ stat: 'expert', value: 8 }, { stat: 'colleagueSolidarity', value: 8 }],
+                  resultText: '"상담교사와의 위클래스 연계 공조군요. 학교 전문 상담망의 조력을 받으면 학급 사태를 보다 객관적으로 수습할 수 있겠어요. 당장 신청할게요!"'
+                },
+                {
+                  text: '“교실 분위기를 해치는 일탈 단체 톡방은 폰을 긴급 압수해 조사하고, 가담자 전원 방과후 학급 자치 규정에 따라 공식 반성문을 쓰게 엄단하세요.” (엄격 규율 선언)',
+                  nextStepIndex: 2,
+                  effects: [{ stat: 'educationSoshin', value: 10 }, { stat: 'mental', value: -2 }],
+                  resultText: '"그렇죠. 비밀 험담방은 방임하면 사이버 학폭으로 직결되니, 단호하게 폰 수거 조사를 해 기강을 다잡고 학부모 서명 반성문을 걷겠습니다!"'
+                }
+              ]
+            },
+            {
+              speaker: '송민지 교사 (6학년)',
+              text: 'Wee 클래스 연계 상담 아이디어를 제시해 6학년 갈등 중재 공조를 완성하며 전문성과 연대감을 늘렸습니다.'
+            },
+            {
+              speaker: '송민지 교사 (6학년)',
+              text: '사이버 학폭 예방을 위해 엄격하고 단호한 기율을 부과하는 교육 소신을 견지했습니다.'
+            }
+          ];
+        } else if (npcId === 'colleague_g6_b') {
+          steps = [
+            {
+              speaker: '오윤아 교사 (6학년)',
+              text: '"김 선생님! 이번 주 졸업 앨범용 아이들 개인 프로필 자유 촬영 말이에요. 서로 특이한 유튜브 밈 포즈를 취하겠다고 싸우고 있어 수업 진도가 막혔어요. 어떻게 포즈를 제한할까요?" 오 교사가 앨범 시안을 봅니다.',
+              choices: [
+                {
+                  text: '“평생 갈 졸업 사진이니, 자유 포즈 3가지를 미리 집에서 가족과 협의해 서면으로 적어 오도록 홈룸 과제를 내보세요.” (사전 준비 과제화)',
+                  nextStepIndex: 1,
+                  effects: [{ stat: 'expert', value: 8 }, { stat: 'colleagueSolidarity', value: 8 }],
+                  resultText: '"아! 교실에서 당일 즉흥적으로 정하지 말고, 집에서 학부모 협조 하에 포즈를 확정해 오게 과제를 내면 수업 시간에 다투지 않고 신속히 촬영하겠어요!"'
+                },
+                {
+                  text: '“앨범 편집 일정 마감이 촉박하니, 돌발 밈 포즈는 금지하고 표준 45도 측면 미소 포즈로 전원 통일 통제해 결재 올리세요.” (표준 단일화 지시)',
+                  nextStepIndex: 2,
+                  effects: [{ stat: 'adminPower', value: 8 }, { stat: 'burnout', value: -2 }],
+                  resultText: '"하긴, 통제 불능 자유화보다 표준 앵글로 통일해야 앨범 가공 마감에 차질이 없죠. 단일 통일 지시문을 안내장에 기재해 결재 처리할게요."'
+                }
+              ]
+            },
+            {
+              speaker: '오윤아 교사 (6학년)',
+              text: '학부모 협조 연계 사전 포즈 과제 설계를 가이드하여, 동료 교사의 수업 통제 전문성을 획득하고 연대를 굳혔습니다.'
+            },
+            {
+              speaker: '오윤아 교사 (6학년)',
+              text: '표준 앨범 통일 규격을 지시해 서류 마감 기한을 완수하는 기결 행정 추진력을 확립했습니다.'
+            }
+          ];
+        }
         // 고정 NPC 대화 시나리오들 매핑
         else if (npcId === 'colleague_senior') {
           steps = [
@@ -1606,6 +2023,339 @@ export const useGameStore = create<GameState>()(
             }
           });
         }
+      },
+
+      // [NEW] 매일 아침 각 장소별 등장 캐릭터 일일 셔플링
+      shuffleNpcPlacements: () => {
+        const { students } = get();
+        if (students.length === 0) return;
+
+        // 1. 교실: 우리 반 학생 10명 중 무작위 3명 선별
+        const shuffledClassStudents = [...students];
+        for (let i = shuffledClassStudents.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffledClassStudents[i], shuffledClassStudents[j]] = [shuffledClassStudents[j], shuffledClassStudents[i]];
+        }
+        const classroomNPCs = shuffledClassStudents.slice(0, 3).map(s => ({
+          id: s.id,
+          name: s.name,
+          role: `${s.name} (우리 반 학생)`
+        }));
+
+        // 2. 교무실: 교감선생님, 박교사, 부장선생님 중 무작위 2명
+        const officePool = [
+          { id: 'colleague_senior', name: '김 부장 교사', role: '부장 선생님' },
+          { id: 'colleague_mate', name: '박 교사', role: '옆자리 동료 교사' },
+          { id: 'colleague_vice_principal', name: '교감 선생님', role: '교감 선생님' }
+        ];
+        const shuffledOffice = [...officePool].sort(() => Math.random() - 0.5);
+        const officeNPCs = shuffledOffice.slice(0, 2);
+
+        // 3. 보건실: 보건교사 상주 + 30% 확률로 아픈 학생 1명 추가
+        const healthNPCs = [{ id: 'nurse', name: '보건 선생님', role: '보건 교사' }];
+        if (Math.random() < 0.3) {
+          const sickStudent = students[Math.floor(Math.random() * students.length)];
+          healthNPCs.push({ id: sickStudent.id, name: sickStudent.name, role: `${sickStudent.name} (보건실 안정을 취하는 중)` });
+        }
+
+        // 4. 체육실 (GR): 체육교사 상주 + 30% 확률로 학생 1명
+        const gymRoomNPCs = [{ id: 'gym', name: '체육 선생님', role: '체육 교사' }];
+        if (Math.random() < 0.3) {
+          const student = students[Math.floor(Math.random() * students.length)];
+          gymRoomNPCs.push({ id: student.id, name: student.name, role: `${student.name} (체육 비품실 정리 보조)` });
+        }
+
+        // 5. 체육관 (GY): 운동 조력 학생 1~2명
+        const gymnasiumNPCs: { id: string; name: string; role?: string }[] = [];
+        const student1 = students[Math.floor(Math.random() * students.length)];
+        gymnasiumNPCs.push({ id: student1.id, name: student1.name, role: `${student1.name} (농구 연습 중인 제자)` });
+        if (Math.random() < 0.5) {
+          const student2 = students.filter(s => s.id !== student1.id)[Math.floor(Math.random() * (students.length - 1))];
+          if (student2) {
+            gymnasiumNPCs.push({ id: student2.id, name: student2.name, role: `${student2.name} (강당 배드민턴 연습 중)` });
+          }
+        }
+
+        // 6. 행정실: 행정실장, 행정실무사 중 1~2명
+        const adminPool = [
+          { id: 'staff_admin_chief', name: '행정실장', role: '행정부 부서장' },
+          { id: 'staff_admin_worker', name: '행정 실무사', role: '행정실 실무 담당자' }
+        ];
+        const adminNPCs = [...adminPool].sort(() => Math.random() - 0.5).slice(0, Math.floor(Math.random() * 2) + 1);
+
+        // 7. 급식실: 영양교사, 조리원아주머니 중 1~2명
+        const cookPool = [
+          { id: 'staff_nutritionist', name: '영양 교사', role: '급식 식단 관리자' },
+          { id: 'staff_cook', name: '조리원 아주머니', role: '조리 배식 담당' }
+        ];
+        const cookNPCs = [...cookPool].sort(() => Math.random() - 0.5).slice(0, Math.floor(Math.random() * 2) + 1);
+
+        // 8. 도서실: 사서교사 상주 + 40% 확률로 자습 학생
+        const libraryNPCs = [{ id: 'staff_librarian', name: '사서 교사', role: '도서관 도서 관리자' }];
+        if (Math.random() < 0.4) {
+          const reader = students[Math.floor(Math.random() * students.length)];
+          libraryNPCs.push({ id: reader.id, name: reader.name, role: `${reader.name} (도서 코너 독서 삼매경)` });
+        }
+
+        // 9. 과학실: 과학실무사 상주 + 30% 확률로 조력 학생
+        const scienceNPCs = [{ id: 'staff_science_assistant', name: '과학실무사', role: '과학 교구 관리자' }];
+        if (Math.random() < 0.3) {
+          const assistant = students[Math.floor(Math.random() * students.length)];
+          scienceNPCs.push({ id: assistant.id, name: assistant.name, role: `${assistant.name} (과학실 청소 보조)` });
+        }
+
+        // 10. Wee 클래스: 전문상담교사 상주 + 30% 확률로 상담 학생
+        const weeNPCs = [{ id: 'staff_counselor', name: '전문상담교사', role: '상담실 책임 교사' }];
+        if (Math.random() < 0.3) {
+          const counselStudent = students[Math.floor(Math.random() * students.length)];
+          weeNPCs.push({ id: counselStudent.id, name: counselStudent.name, role: `${counselStudent.name} (Wee클래스 고민 상담 중)` });
+        }
+
+        // 11. 교문: 지킴이보안관 상주 + 40% 확률로 등교 학생
+        const gateNPCs = [{ id: 'staff_guard', name: '배움터지킴이', role: '등교 안전 보안관' }];
+        if (Math.random() < 0.4) {
+          const student = students[Math.floor(Math.random() * students.length)];
+          gateNPCs.push({ id: student.id, name: student.name, role: `${student.name} (지각 면담 지도 중인 학생)` });
+        }
+
+        // 12. 교장실: 교장 선생님 상주
+        const principalNPCs = [{ id: 'principal', name: '교장 선생님', role: '학교 최고 경영자' }];
+
+        // 13. 1~6학년 교실: 각각 2명씩 고유한 가상의 교사 캐릭터 정의하여 1~2명 무작위 배치
+        const gradeTeachers: Record<string, { id: string; name: string; role: string }[]> = {
+          class_grade1: [
+            { id: 'colleague_g1_a', name: '정민우 교사', role: '1학년 1반 담임교사' },
+            { id: 'colleague_g1_b', name: '김영희 교사', role: '1학년 2반 담임교사' }
+          ],
+          class_grade2: [
+            { id: 'colleague_g2_a', name: '박지수 교사', role: '2학년 1반 담임교사' },
+            { id: 'colleague_g2_b', name: '최유진 교사', role: '2학년 2반 담임교사' }
+          ],
+          class_grade3: [
+            { id: 'colleague_g3_a', name: '이성우 교사', role: '3학년 1반 담임교사' },
+            { id: 'colleague_g3_b', name: '한나래 교사', role: '3학년 2반 담임교사' }
+          ],
+          class_grade4: [
+            { id: 'colleague_g4_a', name: '윤태호 교사', role: '4학년 1반 담임교사' },
+            { id: 'colleague_g4_b', name: '신지원 교사', role: '4학년 과학전담교사' }
+          ],
+          class_grade5: [
+            { id: 'colleague_g5_a', name: '강성훈 교사', role: '5학년 1반 담임교사' },
+            { id: 'colleague_g5_b', name: '백현우 교사', role: '5학년 체육전담교사' }
+          ],
+          class_grade6: [
+            { id: 'colleague_g6_a', name: '송민지 교사', role: '6학년 1반 담임교사' },
+            { id: 'colleague_g6_b', name: '오윤아 교사', role: '6학년 영어전담교사' }
+          ]
+        };
+
+        const placement: Record<string, { id: string; name: string; role?: string }[]> = {
+          classroom: classroomNPCs,
+          office: officeNPCs,
+          health_room: healthNPCs,
+          gym_room: gymRoomNPCs,
+          gymnasium: gymnasiumNPCs,
+          admin_office: adminNPCs,
+          cafeteria: cookNPCs,
+          library: libraryNPCs,
+          science_lab: scienceNPCs,
+          wee_class: weeNPCs,
+          school_gate: gateNPCs,
+          principal_room: principalNPCs
+        };
+
+        // 학년별 1~2명 배치 반영
+        Object.keys(gradeTeachers).forEach(grade => {
+          const list = [...gradeTeachers[grade]];
+          placement[grade] = list.sort(() => Math.random() - 0.5).slice(0, Math.floor(Math.random() * 2) + 1);
+        });
+
+        set({ dailyNpcPlacement: placement });
+      },
+
+      // [NEW] 매일 아침 학교 메신저 메시지 일일 생성
+      generateMessengerNotifications: () => {
+        const { day, messengerNotifications } = get();
+        
+        // 기존 메신저 리스트 백업
+        const newNotifs = [...messengerNotifications];
+
+        // 1. 교육청 지침 공문 (35% 확률)
+        if (Math.random() < 0.35) {
+          const id = `msg_edu_${day}_${Math.floor(Math.random() * 1000)}`;
+          newNotifs.push({
+            id,
+            sender: '시교육청 초등교육과',
+            previewText: '디지털 교과서 도입 대비 정보 인프라 활용 실태 긴급 조사 및 취합 지시 건',
+            type: 'messenger_event',
+            targetId: 'messenger_evt_edu_01',
+            isRead: false
+          });
+        }
+
+        // 2. 학교 공식 행사 안내 (35% 확률)
+        if (Math.random() < 0.35) {
+          const id = `msg_school_${day}_${Math.floor(Math.random() * 1000)}`;
+          newNotifs.push({
+            id,
+            sender: '교무부 행사기획계',
+            previewText: '교내 과학 체험 창의 융합 축전 행사용 보조교사(부스 운영 전담) 긴급 자원 요청의 건',
+            type: 'messenger_event',
+            targetId: 'messenger_evt_school_01',
+            isRead: false
+          });
+        }
+
+        // 3. 학부모 주간 상담 (30% 확률)
+        if (Math.random() < 0.30) {
+          const id = `msg_parent_${day}_${Math.floor(Math.random() * 1000)}`;
+          newNotifs.push({
+            id,
+            sender: '학부모 상담 채널',
+            previewText: '민준 어머님: "선생님, 이번 주 민준이의 단원 평가 학습 태도 피드백을 쪽지로 받아보고 싶습니다."',
+            type: 'messenger_event',
+            targetId: 'messenger_evt_parent_01',
+            isRead: false
+          });
+        }
+
+        // 최대 6개까지만 쌓이도록 제한
+        if (newNotifs.length > 6) {
+          set({ messengerNotifications: newNotifs.slice(newNotifs.length - 6) });
+        } else {
+          set({ messengerNotifications: newNotifs });
+        }
+      },
+
+      // [NEW] 학교 메신저 알림 클릭 시 액션
+      triggerMessengerAction: (notificationId: string) => {
+        const { messengerNotifications } = get();
+        const target = messengerNotifications.find(n => n.id === notificationId);
+        if (!target) return;
+
+        // 읽음 처리
+        set({
+          messengerNotifications: messengerNotifications.map(n => 
+            n.id === notificationId ? { ...n, isRead: true } : n
+          )
+        });
+
+        // 1. NPC 대화 연계인 경우
+        if (target.type === 'npc_dialogue') {
+          get().talkToNPC(target.targetId, target.targetName || '동료 교사');
+        } 
+        // 2. 메신저 전용 A/B 선택형 사건인 경우
+        else if (target.type === 'messenger_event') {
+          let eventDetails: MessengerEvent | null = null;
+          
+          if (target.targetId === 'messenger_evt_edu_01') {
+            eventDetails = {
+              id: target.targetId,
+              sender: target.sender,
+              previewText: '교육청 초등교육과에서 온 디지털 교과서 설문 취합 긴급 지침입니다. 오늘 4시까지 전 학년 활용 수치 통계를 보고해야 합니다. 어떻게 행동하시겠습니까?',
+              choices: [
+                {
+                  id: 'choice_edu_01_1',
+                  text: '교실 청소 지도를 자습으로 대체하고 정보실에 올라가 즉각 보고서 취합 기안을 상신한다.',
+                  effects: [{ stat: 'adminPower', value: 8 }, { stat: 'burnout', value: 12 }, { stat: 'mental', value: -8 }, { stat: 'studentTrust', value: -3 }],
+                  resultText: '정보 부서 결재를 안전하게 뚫고 교육청 공문 처리를 완수하여 관리자의 평판이 오르고 행정 역량을 입증했으나, 담임 교실 지도가 누설되고 몸이 극도로 피로해졌습니다.'
+                },
+                {
+                  id: 'choice_edu_01_2',
+                  text: '메신저로 부장님과 행무 실무사님께 사정을 구해 내일 오전 중으로 협조 보고를 늦춰 작성한다.',
+                  effects: [{ stat: 'colleagueSolidarity', value: 10 }, { stat: 'hp', value: -3 }, { stat: 'burnout', value: -5 }],
+                  resultText: '행정 부서 간 조율을 거치며 동료들과 협동적 연대를 다졌고 오늘 밤 야근을 피했습니다. 단, 공문 마감일이 밀려 행정실의 깐깐한 결재 압박은 약간 남아있습니다.'
+                }
+              ]
+            };
+          } else if (target.targetId === 'messenger_evt_school_01') {
+            eventDetails = {
+              id: target.targetId,
+              sender: target.sender,
+              previewText: '교내 과학 창의 융합 축전 행사입니다. 각 학급 부스 운영을 도울 스태프 교사가 부족하여 지원을 바라는 긴급 공고입니다. 어떻게 응대하시겠습니까?',
+              choices: [
+                {
+                  id: 'choice_school_01_1',
+                  text: '적극 지원하여 우주 과학 실험 부스를 책임지고 당당히 종일 운영한다.',
+                  effects: [{ stat: 'expert', value: 10 }, { stat: 'teachingSatisfaction', value: 10 }, { stat: 'hp', value: -10 }, { stat: 'burnout', value: 10 }],
+                  resultText: '과학 부스를 열어 아이들에게 경이로운 실험 체험을 제공하고 수업 전문성과 보람을 드높였습니다. 교무실 평판도 훌륭하지만 체력 소진이 엄청납니다.'
+                },
+                {
+                  id: 'choice_school_01_2',
+                  text: '교실에서 부적응 학생 개별 상담 일정이 밀려 있어 부스 행사 지원을 정중히 양해 구하고 거절한다.',
+                  effects: [{ stat: 'studentTrust', value: 8 }, { stat: 'colleagueSolidarity', value: -5 }, { stat: 'mental', value: 3 }],
+                  resultText: '체육 축제나 과학 행사 동원 대신 교실에서 지현이와 민준이 등 위기 학생과의 밀착 상담에 집중해 학생들의 절대적인 지지와 신뢰를 얻어냈습니다.'
+                }
+              ]
+            };
+          } else if (target.targetId === 'messenger_evt_parent_01') {
+            eventDetails = {
+              id: target.targetId,
+              sender: target.sender,
+              previewText: '학부모 민준 어머님의 개인적인 메신저 쪽지입니다. "우리 민준이가 지난번 단원평가에서 틀린 오답 문항들에 대한 오답 원인 피드백 노트를 메신저로 꼼꼼히 정리해 보내주세요."',
+              choices: [
+                {
+                  id: 'choice_parent_01_1',
+                  text: '민원 최소화와 신뢰 구축을 위해, 퇴근 후 시험지를 분석해 민준이 전용 오답 피드백 3단 노트를 전송한다.',
+                  effects: [{ stat: 'parentTrust', value: 10 }, { stat: 'parentComplaint', value: -10 }, { stat: 'hp', value: -6 }, { stat: 'burnout', value: 8 }],
+                  resultText: '학부모가 감동하여 감사 인사를 보내며 학부모 신뢰가 크게 쌓이고 민원 위험성이 낮아졌습니다. 대신 개인 사생활 시간의 침해로 약간의 스트레스가 유발됩니다.'
+                },
+                {
+                  id: 'choice_parent_01_2',
+                  text: '학급 전체 단원평가 공통 오답 분석지만 메신저로 전송하고, 개별 피드백은 교실 방과후 지도로 조율한다.',
+                  effects: [{ stat: 'educationSoshin', value: 10 }, { stat: 'familySatisfaction', value: 10 }, { stat: 'parentTrust', value: -5 }],
+                  resultText: '개인 맞춤형 초과 요구에 선을 긋고 공통 교육안을 제시하여 소신을 확립하고 워라밸을 지켰으나, 학부모의 섭섭함이 교장실 간접 불만으로 누적될 수 있습니다.'
+                }
+              ]
+            };
+          }
+
+          if (eventDetails) {
+            set({ activeMessengerEvent: eventDetails });
+          }
+        }
+      },
+
+      // [NEW] 학교 메신저 선택지 클릭 시 스탯 적용 및 피드백 출력
+      selectMessengerChoice: (_choiceId: string, effects: StatEffect[], resultText: string) => {
+        const { stats, recentLogs, day } = get();
+        
+        // 스탯 변동 적용
+        const newStats = { ...stats };
+        effects.forEach((eff: StatEffect) => {
+          newStats[eff.stat] = clamp(
+            newStats[eff.stat] + eff.value, 
+            eff.stat === 'burnout' ? 0 : 0, 
+            100
+          );
+        });
+
+        const logMsg = `[메신저 처리] ${resultText.slice(0, 30)}...`;
+        const updatedLogs = [
+          `[${day}일차] 메신저 응답: ${logMsg}`,
+          ...recentLogs.slice(0, 19)
+        ];
+
+        // 팝업 내부 피드백 상태 반영
+        const { activeMessengerEvent } = get();
+        if (activeMessengerEvent) {
+          set({
+            stats: newStats,
+            recentLogs: updatedLogs,
+            activeMessengerEvent: {
+              ...activeMessengerEvent,
+              previewText: resultText,
+              choices: [] // 선택지 배열을 지워서 확인 버튼만 띄우게 함
+            }
+          });
+        }
+        
+        get().checkFailureConditions();
+      },
+
+      // [NEW] 메신저 팝업 닫기
+      closeMessengerEvent: () => {
+        set({ activeMessengerEvent: null });
       }
     }),
     {

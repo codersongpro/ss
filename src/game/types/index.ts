@@ -69,7 +69,15 @@ export type LocationType =
   | 'library' 
   | 'wee_class' 
   | 'science_lab' 
-  | 'school_gate';
+  | 'school_gate'
+  | 'gym_room'
+  | 'gymnasium'
+  | 'class_grade1'
+  | 'class_grade2'
+  | 'class_grade3'
+  | 'class_grade4'
+  | 'class_grade5'
+  | 'class_grade6';
 
 // 이벤트 구조
 export interface GameEvent {
@@ -171,4 +179,15 @@ export interface DialogueSession {
   steps: DialogueStep[];         // 전체 대화 스텝 시나리오
   activeFeedbackText: string | null;     // 선택한 답변에 대한 NPC의 즉각 반응 텍스트
   activeFeedbackEffects: StatEffect[] | null; // 피드백 수반 스탯 효과
+}
+
+// 학교 메신저 쪽지/알림 구조 정의
+export interface MessengerNotification {
+  id: string;
+  sender: string;       // 발신인/발신기관 (예: '교육청', '교감 선생님')
+  previewText: string;  // 본문 요약
+  type: 'npc_dialogue' | 'messenger_event';
+  targetId: string;     // npcId 또는 messenger_event_id
+  targetName?: string;  // 대화 연동용 이름
+  isRead: boolean;      // 읽음 여부
 }

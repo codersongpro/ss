@@ -56,17 +56,29 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
     
     npcDialogueSession,
     selectDialogueChoice,
-    advanceDialogueStep
+    advanceDialogueStep,
+
+    dailyNpcPlacement,
+    completedNpcDialoguesToday,
+    completedDialogueHistory,
+    messengerNotifications,
+    activeMessengerEvent,
+    triggerMessengerAction,
+    selectMessengerChoice,
+    closeMessengerEvent
   } = useGameStore();
 
   // 모바일 화면용 탭 상태 ('center' = 교실/사건, 'left' = 학급현황, 'right' = 스마트폰/업무)
   const [activeTab, setActiveTab] = useState<'center' | 'left' | 'right'>('center');
   
+  // 층간 상태 (1층 ⇄ 2층)
+  const [currentFloor, setCurrentFloor] = useState<1 | 2>(1);
+
   // 장소별 한글 명칭 및 테마 스타일 설정 헬퍼
   const getLocationTheme = (loc: string) => {
     switch (loc) {
       case 'classroom':
-        return { name: '교실', color: 'bg-emerald-900 border-emerald-500 text-white', desc: '아이들의 열기와 소음이 가득한 교실입니다. 학생 지도를 할 수 있습니다.' };
+        return { name: '우리 반 교실', color: 'bg-emerald-900 border-emerald-500 text-white', desc: '아이들의 열기와 소음이 가득한 우리 반 교실입니다. 학급 조회를 하거나 학생 지도를 할 수 있습니다.' };
       case 'office':
         return { name: '교무실', color: 'bg-slate-800 border-slate-500 text-white', desc: '밀린 공문과 전화벨 소리가 요란한 행정의 요람입니다. 행정 처리가 가능합니다.' };
       case 'health_room':
@@ -74,7 +86,35 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
       case 'playground':
         return { name: '운동장', color: 'bg-orange-950 border-orange-600 text-white', desc: '푸른 잔디와 트랙이 시원하게 뻗어 있습니다. 기초 체력을 단련하기 좋습니다.' };
       case 'principal_room':
-        return { name: '교장실', color: 'bg-amber-950 border-amber-600 text-white', desc: '묵직하고 조용한 회의실입니다. 관리자들과 면담하고 소신을 피력하세요.' };
+        return { name: '교장실', color: 'bg-amber-950 border-amber-600 text-white', desc: '묵직하고 조용한 차실입니다. 관리자들과 면담하고 소신을 피력하세요.' };
+      case 'admin_office':
+        return { name: '행정실', color: 'bg-cyan-900 border-cyan-600 text-white', desc: '학교의 예산과 시설 기획 처리가 진행되는 곳입니다. 재무 협조를 요청하세요.' };
+      case 'cafeteria':
+        return { name: '급식실', color: 'bg-yellow-950 border-yellow-600 text-white', desc: '고소한 냄새가 진동하는 조리실 앞입니다. 급식 지도 및 배식 봉사를 도우세요.' };
+      case 'library':
+        return { name: '도서실', color: 'bg-blue-950 border-blue-600 text-white', desc: '차분한 정적이 흐르는 지식의 보고입니다. 신간 정리나 도서 지도 노하우를 얻으세요.' };
+      case 'wee_class':
+        return { name: '상담실(Wee 클래스)', color: 'bg-pink-900 border-pink-500 text-white', desc: '위기 학생의 쉼터와 심리 상담이 연동되는 상담 교실입니다.' };
+      case 'science_lab':
+        return { name: '과학실', color: 'bg-violet-950 border-violet-600 text-white', desc: '현미경과 온갖 실험 용액이 가득한 연구실입니다. 안전 수칙을 면밀히 관리하세요.' };
+      case 'school_gate':
+        return { name: '교문', color: 'bg-stone-900 border-stone-500 text-white', desc: '학생들이 활기차게 등교하는 학교의 입구입니다. 등교 안전 지도를 할 수 있습니다.' };
+      case 'gym_room':
+        return { name: '체육실', color: 'bg-emerald-950 border-emerald-600 text-white', desc: '체육 전담 교사가 상주하는 교구 비품실 성격의 공간입니다.' };
+      case 'gymnasium':
+        return { name: '체육관', color: 'bg-teal-950 border-teal-600 text-white', desc: '넓은 실내 농구 골대와 강당이 갖춰진 넓은 체육관입니다. 안전 점검이 필요합니다.' };
+      case 'class_grade1':
+        return { name: '1학년 교실', color: 'bg-red-950 border-red-600 text-white', desc: '파릇파릇한 1학년 꼬마들이 있는 곳입니다. 기초 한글 낱말 지도를 관찰 연구하세요.' };
+      case 'class_grade2':
+        return { name: '2학년 교실', color: 'bg-amber-900 border-amber-500 text-white', desc: '구구단을 외우는 초등 2학년 교실입니다. 기초 학습 보충 가이드가 필요합니다.' };
+      case 'class_grade3':
+        return { name: '3학년 교실', color: 'bg-yellow-900 border-yellow-500 text-white', desc: '말대답이 늘기 시작하고 사춘기에 접어드는 3학년 교실입니다.' };
+      case 'class_grade4':
+        return { name: '4학년 교실', color: 'bg-lime-950 border-lime-600 text-white', desc: '디지털 기기 활용과 역사 야외 답사 기획이 융합된 4학년 교실입니다.' };
+      case 'class_grade5':
+        return { name: '5학년 교실', color: 'bg-indigo-950 border-indigo-600 text-white', desc: '통분 수학 보충 지도가 필요한 고학년 진입반 5학년 교실입니다.' };
+      case 'class_grade6':
+        return { name: '6학년 교실', color: 'bg-purple-950 border-purple-600 text-white', desc: '은밀한 카톡 파벌 갈등과 졸업 앨범 촬영 포즈 다툼이 있는 6학년 교실입니다.' };
       default:
         return { name: '학교', color: 'bg-slate-900 border-slate-500 text-white', desc: '학교 내부 공간입니다.' };
     }
@@ -84,20 +124,35 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
 
   // 격자 지도 좌표 상태 및 맵 데이터 선언
-  const [charPos, setCharPos] = useState({ x: 4, y: 4 });
+  const [charPos, setCharPos] = useState({ x: 4, y: 3 }); // 1층중앙계단(4,4) 앞 안전 복도로 초기화
   
-  // W: 벽, P: 길/복도, CR: 교실, OF: 교무실, HR: 보건실, PG: 운동장, PR: 교장실
-  const SHIELD_MAP = [
-    ['W', 'W',  'W', 'W',  'W',  'W', 'W',  'W',  'W'],
-    ['W', 'CR', 'P', 'P',  'PR', 'P', 'P',  'HR', 'W'],
-    ['W', 'P',  'W', 'W',  'P',  'W', 'W',  'P',  'W'],
-    ['W', 'P',  'W', 'W',  'P',  'W', 'W',  'P',  'W'],
-    ['W', 'P',  'P', 'P',  'P',  'P', 'P',  'P',  'W'],
-    ['W', 'P',  'W', 'W',  'P',  'W', 'W',  'P',  'W'],
-    ['W', 'P',  'W', 'W',  'P',  'W', 'W',  'P',  'W'],
-    ['W', 'OF', 'P', 'P',  'P',  'P', 'P',  'PG', 'W'],
-    ['W', 'W',  'W', 'W',  'W',  'W', 'W',  'W',  'W']
+  // 1층(1F) 맵 구성: G1, G2, G3 (1~3학년 교실), PR (교장실), CF (급식실), AD (행정실), HR (보건실), GR (체육실), PG (운동장), ST (중앙 계단)
+  const SHIELD_MAP_1F = [
+    ['W', 'W',  'W',  'W',  'W',  'W',  'W',  'W',  'W'],
+    ['W', 'G1', 'P',  'G2', 'PR', 'G3', 'P',  'CF', 'W'],
+    ['W', 'P',  'W',  'W',  'P',  'W',  'W',  'P',  'W'],
+    ['W', 'P',  'W',  'W',  'P',  'W',  'W',  'P',  'W'],
+    ['W', 'AD', 'P',  'P',  'ST', 'P',  'P',  'HR', 'W'],
+    ['W', 'P',  'W',  'W',  'P',  'W',  'W',  'P',  'W'],
+    ['W', 'P',  'W',  'W',  'P',  'W',  'W',  'P',  'W'],
+    ['W', 'GR', 'P',  'P',  'P',  'P',  'P',  'PG', 'W'],
+    ['W', 'W',  'W',  'W',  'W',  'W',  'W',  'W',  'W']
   ];
+
+  // 2층(2F) 맵 구성: G4, G5, G6 (4~6학년 교실), OF (교무실), CR (우리반 교실), LB (도서실), SC (과학실), GY (체육관), ST (중앙 계단)
+  const SHIELD_MAP_2F = [
+    ['W', 'W',  'W',  'W',  'W',  'W',  'W',  'W',  'W'],
+    ['W', 'G4', 'P',  'G5', 'OF', 'G6', 'P',  'CR', 'W'],
+    ['W', 'P',  'W',  'W',  'P',  'W',  'W',  'P',  'W'],
+    ['W', 'P',  'W',  'W',  'P',  'W',  'W',  'P',  'W'],
+    ['W', 'LB', 'P',  'P',  'ST', 'P',  'P',  'SC', 'W'],
+    ['W', 'P',  'W',  'W',  'P',  'W',  'W',  'P',  'W'],
+    ['W', 'P',  'W',  'W',  'P',  'W',  'W',  'P',  'W'],
+    ['W', 'GY', 'P',  'P',  'P',  'P',  'P',  'P',  'W'],
+    ['W', 'W',  'W',  'W',  'W',  'W',  'W',  'W',  'W']
+  ];
+
+  const currentMap = currentFloor === 1 ? SHIELD_MAP_1F : SHIELD_MAP_2F;
 
   // 캐릭터 이동 제어 헬퍼 함수
   const moveChar = React.useCallback((dx: number, dy: number) => {
@@ -112,7 +167,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
       if (newX < 0 || newX >= 9 || newY < 0 || newY >= 9) return prev;
       
       // 가려는 타일의 성격 파악
-      const tile = SHIELD_MAP[newY][newX];
+      const tile = currentMap[newY][newX];
       if (tile === 'W') return prev; // 벽은 통과할 수 없습니다.
       
       // 장소 포탈 타일 도달 시 처리 (react batch 및 state 타이밍 보호를 위해 setTimeout으로 지연 격발)
@@ -126,11 +181,41 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
         setTimeout(() => moveToLocation('playground'), 50);
       } else if (tile === 'PR') {
         setTimeout(() => moveToLocation('principal_room'), 50);
+      } else if (tile === 'AD') {
+        setTimeout(() => moveToLocation('admin_office'), 50);
+      } else if (tile === 'CF') {
+        setTimeout(() => moveToLocation('cafeteria'), 50);
+      } else if (tile === 'LB') {
+        setTimeout(() => moveToLocation('library'), 50);
+      } else if (tile === 'SC') {
+        setTimeout(() => moveToLocation('science_lab'), 50);
+      } else if (tile === 'GR') {
+        setTimeout(() => moveToLocation('gym_room'), 50);
+      } else if (tile === 'GY') {
+        setTimeout(() => moveToLocation('gymnasium'), 50);
+      } else if (tile === 'G1') {
+        setTimeout(() => moveToLocation('class_grade1'), 50);
+      } else if (tile === 'G2') {
+        setTimeout(() => moveToLocation('class_grade2'), 50);
+      } else if (tile === 'G3') {
+        setTimeout(() => moveToLocation('class_grade3'), 50);
+      } else if (tile === 'G4') {
+        setTimeout(() => moveToLocation('class_grade4'), 50);
+      } else if (tile === 'G5') {
+        setTimeout(() => moveToLocation('class_grade5'), 50);
+      } else if (tile === 'G6') {
+        setTimeout(() => moveToLocation('class_grade6'), 50);
+      } else if (tile === 'ST') {
+        setTimeout(() => {
+          setCurrentFloor((prevFloor) => (prevFloor === 1 ? 2 : 1));
+          setCharPos({ x: 4, y: 3 }); // 층간 전환 후 바로 위 복도 안전 리스폰
+          useGameStore.getState().showToast(`[층간 이동] ${currentFloor === 1 ? '2층' : '1층'}으로 이동했습니다.`);
+        }, 50);
       }
       
       return { x: newX, y: newY };
     });
-  }, [moveToLocation]);
+  }, [moveToLocation, currentFloor, currentMap]);
 
   // 키보드 입력(WASD, 방향키) 리스너
   React.useEffect(() => {
@@ -177,18 +262,61 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
   // 캐릭터가 다시 포탈 위에 스폰되어 방에 무한 진입하는 루프 버그를 방지하기 위해 
   // 방에서 나오는 순간 해당 포탈 바로 앞의 안전한 'P'(복도/길) 타일로 캐릭터 위치를 변경합니다.
   const handleBackToMap = () => {
-    if (currentLocation === 'classroom') {
-      setCharPos({ x: 2, y: 1 }); // 교실(1,1) -> 오른쪽 복도(2,1)
-    } else if (currentLocation === 'office') {
-      setCharPos({ x: 2, y: 7 }); // 교무실(1,7) -> 오른쪽 복도(2,7)
-    } else if (currentLocation === 'health_room') {
-      setCharPos({ x: 6, y: 1 }); // 보건실(7,1) -> 왼쪽 복도(6,1)
-    } else if (currentLocation === 'playground') {
-      setCharPos({ x: 6, y: 7 }); // 운동장(7,7) -> 왼쪽 복도(6,7)
+    if (currentLocation === 'class_grade1') {
+      setCurrentFloor(1);
+      setCharPos({ x: 2, y: 1 }); // 1학년 교실(1,1) -> 오른쪽 복도(2,1)
+    } else if (currentLocation === 'class_grade2') {
+      setCurrentFloor(1);
+      setCharPos({ x: 2, y: 1 });
     } else if (currentLocation === 'principal_room') {
+      setCurrentFloor(1);
       setCharPos({ x: 4, y: 2 }); // 교장실(4,1) -> 아래쪽 복도(4,2)
+    } else if (currentLocation === 'class_grade3') {
+      setCurrentFloor(1);
+      setCharPos({ x: 6, y: 1 });
+    } else if (currentLocation === 'cafeteria') {
+      setCurrentFloor(1);
+      setCharPos({ x: 6, y: 1 }); // 급식실(7,1) -> 왼쪽 복도(6,1)
+    } else if (currentLocation === 'admin_office') {
+      setCurrentFloor(1);
+      setCharPos({ x: 2, y: 4 }); // 행정실(1,4) -> 오른쪽 복도(2,4)
+    } else if (currentLocation === 'health_room') {
+      setCurrentFloor(1);
+      setCharPos({ x: 6, y: 4 }); // 보건실(7,4) -> 왼쪽 복도(6,4)
+    } else if (currentLocation === 'gym_room') {
+      setCurrentFloor(1);
+      setCharPos({ x: 2, y: 7 }); // 체육실(1,7) -> 오른쪽 복도(2,7)
+    } else if (currentLocation === 'playground') {
+      setCurrentFloor(1);
+      setCharPos({ x: 6, y: 7 }); // 운동장(7,7) -> 왼쪽 복도(6,7)
+    }
+    // 2층 복귀 좌표
+    else if (currentLocation === 'class_grade4') {
+      setCurrentFloor(2);
+      setCharPos({ x: 2, y: 1 }); // 4학년 교실(1,1) -> 오른쪽 복도(2,1)
+    } else if (currentLocation === 'class_grade5') {
+      setCurrentFloor(2);
+      setCharPos({ x: 2, y: 1 });
+    } else if (currentLocation === 'office') {
+      setCurrentFloor(2);
+      setCharPos({ x: 4, y: 2 }); // 교무실(4,1) -> 아래쪽 복도(4,2)
+    } else if (currentLocation === 'class_grade6') {
+      setCurrentFloor(2);
+      setCharPos({ x: 6, y: 1 });
+    } else if (currentLocation === 'classroom') {
+      setCurrentFloor(2);
+      setCharPos({ x: 6, y: 1 }); // 우리반 교실(7,1) -> 왼쪽 복도(6,1)
+    } else if (currentLocation === 'library') {
+      setCurrentFloor(2);
+      setCharPos({ x: 2, y: 4 }); // 도서실(1,4) -> 오른쪽 복도(2,4)
+    } else if (currentLocation === 'science_lab') {
+      setCurrentFloor(2);
+      setCharPos({ x: 6, y: 4 }); // 과학실(7,4) -> 왼쪽 복도(6,4)
+    } else if (currentLocation === 'gymnasium') {
+      setCurrentFloor(2);
+      setCharPos({ x: 2, y: 7 }); // 체육관(1,7) -> 오른쪽 복도(2,7)
     } else {
-      setCharPos({ x: 4, y: 4 }); // 디폴트 중앙 스폰
+      setCharPos({ x: 4, y: 3 }); // 디폴트 중앙 복도 스폰
     }
     moveToLocation(null);
   };
@@ -631,7 +759,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                         {/* 격자 기반 2D 학교 맵 */}
                         <div className="flex flex-col items-center justify-center bg-slate-100 rounded-xl p-4 border border-slate-200">
                           <div className="w-full max-w-[360px] aspect-square bg-slate-800 border-4 border-slate-950 rounded-xl p-1.5 shadow-inner grid grid-cols-9 gap-1">
-                            {SHIELD_MAP.flatMap((row, y) => 
+                            {currentMap.flatMap((row, y) => 
                               row.map((tile, x) => {
                                 const isChar = charPos.x === x && charPos.y === y;
                                 
@@ -640,39 +768,55 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                                 let content: React.ReactNode = null;
                                 
                                 if (tile === 'W') {
-                                  // 벽: 짙은 대리석 무늬 느낌
                                   bgClass = "bg-slate-750 border-slate-800 rounded-md opacity-90 cursor-not-allowed";
                                   content = <span className="text-[10px] text-slate-600 font-extrabold select-none">🧱</span>;
                                 } else if (tile === 'P') {
-                                  // 일반 이동 통로: 나무 복도 느낌
                                   bgClass = "bg-[#FAF7EE] border-amber-100 rounded-md hover:bg-amber-50/80 cursor-pointer transition-colors";
                                 } else if (tile === 'CR') {
-                                  // 교실 (1,1)
                                   bgClass = "bg-emerald-100 border-emerald-400 rounded-md cursor-pointer hover:bg-emerald-200 text-emerald-800 font-bold flex items-center justify-center shadow-sm";
-                                  content = <span className="text-sm select-none" title="교실">🏫</span>;
+                                  content = <span className="text-sm select-none" title="우리반교실">🏫</span>;
                                 } else if (tile === 'OF') {
-                                  // 교무실 (1,7)
                                   bgClass = "bg-indigo-100 border-indigo-400 rounded-md cursor-pointer hover:bg-indigo-200 text-indigo-800 font-bold flex items-center justify-center shadow-sm";
                                   content = <span className="text-sm select-none" title="교무실">💼</span>;
                                 } else if (tile === 'HR') {
-                                  // 보건실 (7,1)
                                   bgClass = "bg-teal-100 border-teal-400 rounded-md cursor-pointer hover:bg-teal-200 text-teal-800 font-bold flex items-center justify-center shadow-sm";
                                   content = <span className="text-sm select-none" title="보건실">🏥</span>;
                                 } else if (tile === 'PG') {
-                                  // 운동장 (7,7)
                                   bgClass = "bg-orange-100 border-orange-400 rounded-md cursor-pointer hover:bg-orange-200 text-orange-850 font-bold flex items-center justify-center shadow-sm";
                                   content = <span className="text-sm select-none" title="운동장">🏃‍♂️</span>;
                                 } else if (tile === 'PR') {
-                                  // 교장실 (4,1)
                                   bgClass = "bg-amber-100 border-amber-400 rounded-md cursor-pointer hover:bg-amber-200 text-amber-900 font-bold flex items-center justify-center shadow-sm";
                                   content = <span className="text-sm select-none" title="교장실">🍵</span>;
+                                } else if (tile === 'AD') {
+                                  bgClass = "bg-cyan-100 border-cyan-400 rounded-md cursor-pointer hover:bg-cyan-200 text-cyan-800 font-bold flex items-center justify-center shadow-sm";
+                                  content = <span className="text-sm select-none" title="행정실">📂</span>;
+                                } else if (tile === 'CF') {
+                                  bgClass = "bg-yellow-100 border-yellow-400 rounded-md cursor-pointer hover:bg-yellow-200 text-yellow-900 font-bold flex items-center justify-center shadow-sm";
+                                  content = <span className="text-sm select-none" title="급식실">🍱</span>;
+                                } else if (tile === 'LB') {
+                                  bgClass = "bg-blue-100 border-blue-400 rounded-md cursor-pointer hover:bg-blue-200 text-blue-800 font-bold flex items-center justify-center shadow-sm";
+                                  content = <span className="text-sm select-none" title="도서실">📚</span>;
+                                } else if (tile === 'SC') {
+                                  bgClass = "bg-violet-100 border-violet-400 rounded-md cursor-pointer hover:bg-violet-200 text-violet-800 font-bold flex items-center justify-center shadow-sm";
+                                  content = <span className="text-sm select-none" title="과학실">🧪</span>;
+                                } else if (tile === 'GR') {
+                                  bgClass = "bg-emerald-50 border-emerald-300 rounded-md cursor-pointer hover:bg-emerald-100 text-emerald-950 font-bold flex items-center justify-center shadow-sm";
+                                  content = <span className="text-sm select-none" title="체육실">👟</span>;
+                                } else if (tile === 'GY') {
+                                  bgClass = "bg-teal-50 border-teal-300 rounded-md cursor-pointer hover:bg-teal-100 text-teal-950 font-bold flex items-center justify-center shadow-sm";
+                                  content = <span className="text-sm select-none" title="체육관">🏟️</span>;
+                                } else if (tile === 'ST') {
+                                  bgClass = "bg-slate-200 border-slate-400 rounded-md cursor-pointer hover:bg-slate-300 text-slate-900 font-bold flex items-center justify-center shadow-sm animate-pulse";
+                                  content = <span className="text-sm select-none" title="중앙 계단">🪜</span>;
+                                } else if (tile.startsWith('G')) {
+                                  bgClass = "bg-rose-100 border-rose-300 rounded-md cursor-pointer hover:bg-rose-200 text-rose-800 font-bold flex items-center justify-center shadow-sm";
+                                  content = <span className="text-xs select-none" title={`${tile[1]}학년 교실`}>{tile[1]}🎒</span>;
                                 }
                                 
                                 return (
                                   <div 
                                     key={`${y}-${x}`} 
                                     onClick={() => {
-                                      // 벽이 아닌 경우 클릭 터치식 텔레포트 이동 허용
                                       if (tile !== 'W') {
                                         setCharPos({ x, y });
                                         if (tile === 'CR') moveToLocation('classroom');
@@ -680,6 +824,23 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                                         else if (tile === 'HR') moveToLocation('health_room');
                                         else if (tile === 'PG') moveToLocation('playground');
                                         else if (tile === 'PR') moveToLocation('principal_room');
+                                        else if (tile === 'AD') moveToLocation('admin_office');
+                                        else if (tile === 'CF') moveToLocation('cafeteria');
+                                        else if (tile === 'LB') moveToLocation('library');
+                                        else if (tile === 'SC') moveToLocation('science_lab');
+                                        else if (tile === 'GR') moveToLocation('gym_room');
+                                        else if (tile === 'GY') moveToLocation('gymnasium');
+                                        else if (tile === 'G1') moveToLocation('class_grade1');
+                                        else if (tile === 'G2') moveToLocation('class_grade2');
+                                        else if (tile === 'G3') moveToLocation('class_grade3');
+                                        else if (tile === 'G4') moveToLocation('class_grade4');
+                                        else if (tile === 'G5') moveToLocation('class_grade5');
+                                        else if (tile === 'G6') moveToLocation('class_grade6');
+                                        else if (tile === 'ST') {
+                                          setCurrentFloor(prev => prev === 1 ? 2 : 1);
+                                          setCharPos({ x: 4, y: 3 });
+                                          useGameStore.getState().showToast(`[층간 이동] ${currentFloor === 1 ? '2층' : '1층'}으로 이동했습니다.`);
+                                        }
                                       }
                                     }}
                                     className={`relative aspect-square border flex items-center justify-center transition-all duration-100 ${bgClass}`}
@@ -731,11 +892,20 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                       
                       {/* 포탈 설명 레전드 */}
                       <div className="mt-4 flex flex-wrap gap-2 justify-center text-[10px] font-semibold text-slate-600 bg-slate-50 border border-slate-200 p-2 rounded-lg">
-                        <span className="flex items-center gap-0.5">🏫 교실</span>
+                        <span className="bg-slate-200 px-1.5 py-0.5 rounded font-extrabold text-slate-700">현재 {currentFloor}층</span>
+                        <span className="flex items-center gap-0.5">🏫 우리반</span>
                         <span className="flex items-center gap-0.5">💼 교무실</span>
                         <span className="flex items-center gap-0.5">🏥 보건실</span>
                         <span className="flex items-center gap-0.5">🏃‍♂️ 운동장</span>
                         <span className="flex items-center gap-0.5">🍵 교장실</span>
+                        <span className="flex items-center gap-0.5">📂 행정실</span>
+                        <span className="flex items-center gap-0.5">🍱 급식실</span>
+                        <span className="flex items-center gap-0.5">📚 도서실</span>
+                        <span className="flex items-center gap-0.5">🧪 과학실</span>
+                        <span className="flex items-center gap-0.5">👟 체육실</span>
+                        <span className="flex items-center gap-0.5">🏟️ 체육관</span>
+                        <span className="flex items-center gap-0.5">🪜 계단</span>
+                        <span className="flex items-center gap-0.5">🎒 1~6학년교실</span>
                       </div>
                     </div>
                   ) : (
@@ -767,68 +937,37 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                               <div>
                                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5">👥 상주하는 인물과 대화 (AP 소모 없음)</h4>
                                 <div className="flex flex-wrap gap-2.5">
-                                  {currentLocation === 'classroom' && (
-                                    <>
-                                      <button
-                                        onClick={() => talkToNPC('student_jihun', '박지훈')}
-                                        className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 border-2 border-black rounded-xl text-xs font-bold active:translate-y-0.5 text-slate-800 shadow-school-press transition-all"
-                                      >
-                                        💬 박지훈 (장난꾸러기)
-                                      </button>
-                                      <button
-                                        onClick={() => talkToNPC('student_minjun', '최민준')}
-                                        className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 border-2 border-black rounded-xl text-xs font-bold active:translate-y-0.5 text-slate-800 shadow-school-press transition-all"
-                                      >
-                                        💬 최민준 (모범생)
-                                      </button>
-                                      <button
-                                        onClick={() => talkToNPC('student_jihyun', '이지현')}
-                                        className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 border-2 border-black rounded-xl text-xs font-bold active:translate-y-0.5 text-slate-800 shadow-school-press transition-all"
-                                      >
-                                        💬 이지현 (관찰자)
-                                      </button>
-                                    </>
-                                  )}
-                                  {currentLocation === 'office' && (
-                                    <>
-                                      <button
-                                        onClick={() => talkToNPC('colleague_senior', '부장 선생님')}
-                                        className="px-3 py-2 bg-slate-100 hover:bg-slate-200 border-2 border-black rounded-xl text-xs font-bold active:translate-y-0.5 text-slate-800 shadow-school-press transition-all"
-                                      >
-                                        💬 김 부장 교사
-                                      </button>
-                                      <button
-                                        onClick={() => talkToNPC('colleague_mate', '옆자리 박선생님')}
-                                        className="px-3 py-2 bg-slate-100 hover:bg-slate-200 border-2 border-black rounded-xl text-xs font-bold active:translate-y-0.5 text-slate-800 shadow-school-press transition-all"
-                                      >
-                                        💬 박 교사 (동료)
-                                      </button>
-                                    </>
-                                  )}
-                                  {currentLocation === 'health_room' && (
-                                    <button
-                                      onClick={() => talkToNPC('nurse', '보건 선생님')}
-                                      className="px-3 py-2 bg-teal-50 hover:bg-teal-100 border-2 border-black rounded-xl text-xs font-bold active:translate-y-0.5 text-slate-800 shadow-school-press transition-all"
-                                    >
-                                      💬 보건 교사
-                                    </button>
-                                  )}
-                                  {currentLocation === 'playground' && (
-                                    <button
-                                      onClick={() => talkToNPC('gym', '체육 선생님')}
-                                      className="px-3 py-2 bg-orange-50 hover:bg-orange-100 border-2 border-black rounded-xl text-xs font-bold active:translate-y-0.5 text-slate-800 shadow-school-press transition-all"
-                                    >
-                                      💬 체육 교사
-                                    </button>
-                                  )}
-                                  {currentLocation === 'principal_room' && (
-                                    <button
-                                      onClick={() => talkToNPC('principal', '교장 선생님')}
-                                      className="px-3 py-2 bg-amber-50 hover:bg-amber-100 border-2 border-black rounded-xl text-xs font-bold active:translate-y-0.5 text-slate-800 shadow-school-press transition-all"
-                                    >
-                                      💬 교장 선생님
-                                    </button>
-                                  )}
+                                  {(() => {
+                                    const npcs = dailyNpcPlacement[currentLocation || ''] || [];
+                                    if (npcs.length === 0) {
+                                      return (
+                                        <p className="text-xs text-slate-400 italic bg-slate-100/50 p-2.5 rounded-lg border border-dashed border-slate-200">
+                                          현재 이 장소에 대화할 수 있는 인물이 없습니다.
+                                        </p>
+                                      );
+                                    }
+                                    return npcs.map((npc) => {
+                                      const isTodayDone = completedNpcDialoguesToday.includes(npc.id);
+                                      const isHistoryDone = completedDialogueHistory.includes(npc.id);
+                                      const isDone = isTodayDone || isHistoryDone;
+                                      
+                                      return (
+                                        <button
+                                          key={npc.id}
+                                          onClick={() => talkToNPC(npc.id, npc.name)}
+                                          disabled={isDone}
+                                          className={`px-3 py-2 border-2 border-black rounded-xl text-xs font-bold active:translate-y-0.5 shadow-school-press transition-all flex items-center gap-1 ${
+                                            isDone
+                                              ? 'bg-slate-200 text-slate-400 cursor-not-allowed border-slate-350 shadow-none transform-none'
+                                              : 'bg-emerald-50 hover:bg-emerald-100 text-slate-800'
+                                          }`}
+                                        >
+                                          <span>💬 {npc.name} {npc.role ? `(${npc.role})` : ''}</span>
+                                          {isDone && <span className="text-[8px] bg-slate-300 text-slate-600 px-1 rounded font-normal">대화완료</span>}
+                                        </button>
+                                      );
+                                    });
+                                  })()}
                                 </div>
                               </div>
 
@@ -874,6 +1013,70 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                                       className="w-full py-2.5 px-4 bg-amber-600 hover:bg-amber-500 text-white font-bold border-2 border-black rounded-xl text-xs text-center transition-all active:translate-y-0.5 shadow-school-press"
                                     >
                                       🍵 관리자 면담 및 차담 건의
+                                    </button>
+                                  )}
+                                  {currentLocation === 'admin_office' && (
+                                    <button
+                                      onClick={() => executeLocationAction('admin_cooperate')}
+                                      className="w-full py-2.5 px-4 bg-cyan-600 hover:bg-cyan-500 text-white font-bold border-2 border-black rounded-xl text-xs text-center transition-all active:translate-y-0.5 shadow-school-press"
+                                    >
+                                      📂 행정 품의서 지출 기안 조율
+                                    </button>
+                                  )}
+                                  {currentLocation === 'cafeteria' && (
+                                    <button
+                                      onClick={() => executeLocationAction('cafeteria_guide')}
+                                      className="w-full py-2.5 px-4 bg-yellow-600 hover:bg-yellow-500 text-white font-bold border-2 border-black rounded-xl text-xs text-center transition-all active:translate-y-0.5 shadow-school-press"
+                                    >
+                                      🍱 급식실 줄서기 및 위생 지도
+                                    </button>
+                                  )}
+                                  {currentLocation === 'library' && (
+                                    <button
+                                      onClick={() => executeLocationAction('library_organize')}
+                                      className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-500 text-white font-bold border-2 border-black rounded-xl text-xs text-center transition-all active:translate-y-0.5 shadow-school-press"
+                                    >
+                                      📚 도서 정리 및 자습 환경 감독
+                                    </button>
+                                  )}
+                                  {currentLocation === 'wee_class' && (
+                                    <button
+                                      onClick={() => executeLocationAction('wee_counsel')}
+                                      className="w-full py-2.5 px-4 bg-pink-600 hover:bg-pink-500 text-white font-bold border-2 border-black rounded-xl text-xs text-center transition-all active:translate-y-0.5 shadow-school-press"
+                                    >
+                                      💗 Wee 클래스 1:1 심층 우울 상담
+                                    </button>
+                                  )}
+                                  {currentLocation === 'science_lab' && (
+                                    <button
+                                      onClick={() => executeLocationAction('science_safety')}
+                                      className="w-full py-2.5 px-4 bg-violet-600 hover:bg-violet-500 text-white font-bold border-2 border-black rounded-xl text-xs text-center transition-all active:translate-y-0.5 shadow-school-press"
+                                    >
+                                      🧪 과학 실험용 소독 및 시약 안전관리
+                                    </button>
+                                  )}
+                                  {currentLocation === 'gym_room' && (
+                                    <button
+                                      onClick={() => executeLocationAction('gym_room_organize')}
+                                      className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold border-2 border-black rounded-xl text-xs text-center transition-all active:translate-y-0.5 shadow-school-press"
+                                    >
+                                      👟 체육실 비품 보관함 수납 정리
+                                    </button>
+                                  )}
+                                  {currentLocation === 'gymnasium' && (
+                                    <button
+                                      onClick={() => executeLocationAction('gym_safety')}
+                                      className="w-full py-2.5 px-4 bg-teal-600 hover:bg-teal-500 text-white font-bold border-2 border-black rounded-xl text-xs text-center transition-all active:translate-y-0.5 shadow-school-press"
+                                    >
+                                      🏟️ 체육 강당 시설 안전 모니터링
+                                    </button>
+                                  )}
+                                  {currentLocation?.startsWith('class_grade') && (
+                                    <button
+                                      onClick={() => executeLocationAction('grade_class_inspect')}
+                                      className="w-full py-2.5 px-4 bg-rose-600 hover:bg-rose-500 text-white font-bold border-2 border-black rounded-xl text-xs text-center transition-all active:translate-y-0.5 shadow-school-press"
+                                    >
+                                      🎒 동료 교사 수업 환경 교실 참관
                                     </button>
                                   )}
                                 </div>
@@ -967,12 +1170,24 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
             </h3>
             
             <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-              {dayEffectsTriggered.length > 0 ? (
-                dayEffectsTriggered.map((msg, i) => (
-                  <div key={i} className="bg-indigo-50 border border-indigo-200 rounded-xl p-2 text-[10px] text-indigo-900 flex items-start gap-1.5">
-                    <AlertCircle className="w-3.5 h-3.5 text-indigo-500 mt-0.5 flex-shrink-0" />
-                    <p className="leading-snug">{msg}</p>
-                  </div>
+              {messengerNotifications.length > 0 ? (
+                messengerNotifications.map((notif) => (
+                  <button
+                    key={notif.id}
+                    onClick={() => triggerMessengerAction(notif.id)}
+                    className={`w-full text-left p-2.5 rounded-xl border-2 border-black text-xs transition-all active:translate-y-0.5 shadow-school-press flex items-start gap-2 ${
+                      notif.isRead ? 'bg-slate-50 border-slate-300 shadow-none' : 'bg-sky-50 border-sky-500 font-bold'
+                    }`}
+                  >
+                    <AlertCircle className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${notif.isRead ? 'text-slate-400' : 'text-sky-600 animate-pulse'}`} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-center text-[9px] text-slate-500 mb-0.5">
+                        <span className="font-extrabold">{notif.sender}</span>
+                        {!notif.isRead && <span className="bg-sky-600 text-white text-[8px] px-1 rounded font-normal">NEW</span>}
+                      </div>
+                      <p className="leading-snug truncate text-slate-800 text-[10px]">{notif.previewText}</p>
+                    </div>
+                  </button>
                 ))
               ) : (
                 <div className="text-slate-400 text-[11px] text-center p-4 italic bg-slate-50 rounded-lg">
@@ -1211,6 +1426,55 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
         <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white border-2 border-black rounded-xl py-3 px-5 shadow-school-deep text-xs font-bold animate-fade-in-up flex items-center gap-2">
           <AlertCircle className="w-4 h-4 text-amber-400" />
           <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* 6. 스마트폰 메신저 선택형 이벤트 모달 (오버레이) */}
+      {activeMessengerEvent && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-slate-900 border-4 border-sky-500 rounded-2xl p-6 max-w-md w-full shadow-school-deep text-white relative">
+            <div className="border-b border-sky-500/30 pb-3 mb-4 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-sky-400 flex items-center gap-2">
+                <Smartphone className="w-5 h-5 animate-pulse" />
+                학교 메신저 긴급 수신
+              </h3>
+              <span className="text-[10px] bg-sky-950 text-sky-300 border border-sky-700 px-2 py-0.5 rounded">
+                발신: {activeMessengerEvent.sender}
+              </span>
+            </div>
+
+            <div className="bg-slate-950/80 border border-sky-900/50 rounded-xl p-4 mb-5 text-xs md:text-sm leading-relaxed text-slate-100 whitespace-pre-line font-light font-school">
+              {activeMessengerEvent.previewText}
+            </div>
+
+            {/* 선택지 혹은 확인 버튼 */}
+            <div className="space-y-3">
+              {activeMessengerEvent.choices.length > 0 ? (
+                activeMessengerEvent.choices.map((choice) => (
+                  <button
+                    key={choice.id}
+                    onClick={() => selectMessengerChoice(choice.id, choice.effects, choice.resultText)}
+                    className="w-full text-left p-3.5 rounded-xl border border-sky-500/40 bg-sky-950/20 hover:bg-sky-900/30 active:bg-sky-900/50 transition-all font-semibold text-xs md:text-sm text-slate-200 flex items-start gap-3 group animate-fade-in"
+                  >
+                    <div className="flex-1 leading-snug">
+                      {choice.text}
+                    </div>
+                  </button>
+                ))
+              ) : (
+                <button
+                  onClick={closeMessengerEvent}
+                  className="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold border border-black rounded-xl py-3 active:translate-y-0.5 shadow-school-press text-xs md:text-sm transition-all animate-fade-in"
+                >
+                  확인 및 닫기
+                </button>
+              )}
+            </div>
+            
+            <div className="mt-5 text-[9px] text-slate-400 text-center">
+              ⚠️ 메신저 대응 선택에 따른 스탯 변화가 시스템에 즉각 반영되었습니다.
+            </div>
+          </div>
         </div>
       )}
     </div>

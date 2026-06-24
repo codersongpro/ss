@@ -5,18 +5,21 @@ import { BookOpen, Play, RotateCcw, Award } from 'lucide-react';
 interface TitleScreenProps {
   onStartNewGame: () => void;
   onOpenGallery: () => void;
+  onContinueGame: () => void;
 }
 
 export const TitleScreen: React.FC<TitleScreenProps> = ({
   onStartNewGame,
   onOpenGallery,
+  onContinueGame,
 }) => {
   const { gameStarted, resetGame } = useGameStore();
 
   // 기존 저장 데이터 여부 확인 (Zustand persist 스토어에서 읽어옴)
   const handleContinue = () => {
-    // 이미 스토어가 로컬스토리지에서 자동 복원되었으므로, 상위 렌더러에서 gameStarted가 true면 바로 대시보드를 그리게 됨
-    if (!gameStarted) {
+    if (gameStarted) {
+      onContinueGame();
+    } else {
       alert('저장된 게임이 없습니다. 새 게임을 시작해 주세요!');
     }
   };
@@ -33,11 +36,11 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
         <BookOpen className="w-16 h-16 text-emerald-300 mb-4 animate-float" />
 
         {/* 대문 타이틀 */}
-        <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white mb-3 chalk-text">
+        <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white mb-3 chalk-text leading-tight">
           티처 메이커
         </h1>
-        <p className="text-lg md:text-2xl text-emerald-200 mb-8 font-school font-light tracking-wide">
-          90일 동안 교사로 살아남기
+        <p className="text-base md:text-xl text-emerald-200 mb-8 font-school font-bold tracking-wide">
+          90일동안 교사로 살아남는 로그라이크 게임
         </p>
 
         {/* 서브 설명글 */}
