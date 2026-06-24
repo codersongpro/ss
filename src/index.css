@@ -1,0 +1,217 @@
+@import "tailwindcss";
+
+@theme {
+  /* 학교 감성을 담은 테마 색상 정의 (v4 형식) */
+  --color-school-chalkboard: #1e3f35;
+  --color-school-chalkboard-dark: #142b24;
+  --color-school-chalkboard-light: #2a5547;
+  
+  --color-school-postit-yellow: #fef08a;
+  --color-school-postit-pink: #fecdd3;
+  --color-school-postit-blue: #bae6fd;
+  --color-school-postit-green: #bbf7d0;
+  
+  --color-school-paper: #FAF8F5;
+  --color-school-paper-dark: #0f172a;
+  
+  --color-school-wood-light: #d97706;
+  --color-school-wood: #b45309;
+  --color-school-wood-dark: #78350f;
+
+  /* 글꼴 정의 */
+  --font-sans: 'Pretendard', 'Inter', 'system-ui', 'sans-serif';
+  --font-school: 'GmarketSansMedium', 'Comic Sans MS', 'Pretendard', sans-serif;
+
+  /* 그림자 정의 */
+  --shadow-school-flat: 4px 4px 0px 0px rgba(0, 0, 0, 0.15);
+  --shadow-school-press: 2px 2px 0px 0px rgba(0, 0, 0, 0.15);
+  --shadow-school-deep: 8px 8px 0px 0px rgba(0, 0, 0, 0.15);
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+
+  /* 애니메이션 및 키프레임 */
+  --animate-fade-in-up: fadeInUp 0.4s ease-out forwards;
+  --animate-fade-in: fadeIn 0.3s ease-out forwards;
+  --animate-bounce-subtle: bounceSubtle 2s infinite ease-in-out;
+  --animate-pulse-subtle: pulseSubtle 2s infinite ease-in-out;
+  --animate-float: float 3s ease-in-out infinite;
+
+  @keyframes fadeInUp {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes bounceSubtle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+  @keyframes pulseSubtle {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.85; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-6px); }
+  }
+}
+
+/* 글로벌 기본 스타일 */
+body {
+  background-color: var(--color-school-paper);
+  color: #1e293b; /* slate-800 */
+  font-family: var(--font-sans);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  transition: color 0.3s, background-color 0.3s;
+}
+
+/* 커스텀 스크롤바 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9; /* slate-100 */
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1; /* slate-300 */
+  border-radius: 9999px;
+  transition: background-color 0.2s;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8; /* slate-400 */
+}
+
+/* 프리미엄 비주얼 컴포넌트 스타일 */
+
+/* 종이 질감 카드 */
+.paper-card {
+  background-color: #ffffff;
+  background-image: radial-gradient(#e2e8f0 0.5px, transparent 0.5px), radial-gradient(#e2e8f0 0.5px, #ffffff 0.5px);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+  border: 2px solid #000000;
+  box-shadow: var(--shadow-school-flat);
+  border-radius: 0.75rem; /* 12px */
+  padding: 1.5rem;
+  transition: all 0.2s ease-in-out;
+}
+.paper-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-school-deep);
+}
+
+/* 칠판 배경 */
+.chalkboard-bg {
+  background: linear-gradient(135deg, #1e3f35 0%, #152c25 100%);
+  border: 12px solid #b45309; /* 나무 프레임 */
+  border-radius: 8px;
+  box-shadow: 
+    inset 0 0 40px rgba(0,0,0,0.6), 
+    4px 4px 20px rgba(0,0,0,0.3);
+  position: relative;
+}
+
+/* 칠판 분필 텍스트 */
+.chalk-text {
+  font-family: var(--font-school);
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 
+    0 0 2px rgba(255, 255, 255, 0.3),
+    1px 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+/* 포스트잇 카드 */
+.postit-card {
+  border: 2px solid #0f172a;
+  border-radius: 0.125rem;
+  padding: 1rem;
+  box-shadow: var(--shadow-school-flat);
+  transition: all 0.2s ease-in-out;
+}
+.postit-card:hover {
+  transform: rotate(0deg) scale(1.02);
+  box-shadow: var(--shadow-school-deep);
+}
+
+/* 스마트폰 전면 */
+.phone-screen {
+  border: 8px solid #0f172a;
+  border-radius: 2.5rem;
+  background-color: #020617; /* slate-950 */
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 9 / 19;
+}
+
+/* 글래스모피즘 */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: var(--shadow-glass);
+}
+
+/* 커스텀 버튼들 */
+.btn-school-primary {
+  background-color: var(--color-school-chalkboard);
+  color: #ffffff;
+  font-weight: 700;
+  border: 2px solid #000000;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-school-flat);
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+}
+.btn-school-primary:hover {
+  background-color: var(--color-school-chalkboard-light);
+}
+.btn-school-primary:active {
+  transform: translate(1px, 1px);
+  box-shadow: var(--shadow-school-press);
+}
+
+.btn-school-secondary {
+  background-color: #ffffff;
+  color: #1e293b;
+  font-weight: 700;
+  border: 2px solid #000000;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-school-flat);
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+}
+.btn-school-secondary:hover {
+  background-color: #f8fafc;
+}
+.btn-school-secondary:active {
+  transform: translate(1px, 1px);
+  box-shadow: var(--shadow-school-press);
+}
+
+.btn-school-accent {
+  background-color: #f59e0b; /* amber-500 */
+  color: #ffffff;
+  font-weight: 700;
+  border: 2px solid #000000;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-school-flat);
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+}
+.btn-school-accent:hover {
+  background-color: #fbbf24; /* amber-400 */
+}
+.btn-school-accent:active {
+  transform: translate(1px, 1px);
+  box-shadow: var(--shadow-school-press);
+}
