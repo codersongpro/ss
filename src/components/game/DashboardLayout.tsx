@@ -392,7 +392,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                 <Heart className="w-4 h-4 text-rose-600 fill-rose-600" />
               </div>
               <div className="w-24 md:w-32">
-                <div className="flex justify-between text-[11px] font-bold mb-0.5">
+                <div className="flex justify-between text-xs font-bold mb-0.5">
                   <span>체력</span>
                   <span>{stats.hp}</span>
                 </div>
@@ -408,7 +408,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                 <Brain className="w-4 h-4 text-sky-600 fill-sky-600" />
               </div>
               <div className="w-24 md:w-32">
-                <div className="flex justify-between text-[11px] font-bold mb-0.5">
+                <div className="flex justify-between text-xs font-bold mb-0.5">
                   <span>멘탈</span>
                   <span>{stats.mental}</span>
                 </div>
@@ -424,7 +424,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                 <Flame className="w-4 h-4 text-amber-600 fill-amber-600" />
               </div>
               <div className="w-24 md:w-32">
-                <div className="flex justify-between text-[11px] font-bold mb-0.5">
+                <div className="flex justify-between text-xs font-bold mb-0.5">
                   <span>번아웃</span>
                   <span className={stats.burnout > 75 ? 'text-red-600 font-extrabold animate-pulse' : ''}>
                     {stats.burnout}
@@ -491,7 +491,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
               <Users className="w-5 h-5 text-emerald-600" />
               학급 교무수첩 (학생 현황)
             </h3>
-            <p className="text-[11px] text-slate-500 mb-3 font-medium">이름을 누르면 상세 성향/상태 카드를 확인합니다.</p>
+            <p className="text-xs text-slate-500 mb-3 font-medium">이름을 누르면 상세 성향/상태 카드를 확인합니다.</p>
             <div className="space-y-2">
               {students.map(stud => (
                 <button
@@ -502,11 +502,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                   <div>
                     <div className="font-bold text-sm text-slate-900 flex items-center gap-1.5">
                       {stud.name}
-                      <span className="text-[9px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-normal">
+                      <span className="text-xs bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-normal">
                         {stud.traits[0]}
                       </span>
                     </div>
-                    <div className="text-[10px] text-slate-500 mt-0.5 font-medium truncate max-w-[150px]">
+                    <div className="text-xs text-slate-500 mt-0.5 font-medium truncate max-w-[200px]">
                       이슈: {stud.currentIssues[0] || '특이사항 없음'}
                     </div>
                   </div>
@@ -700,7 +700,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                         )}
 
                         {selectedChoice?.delayedEffects && selectedChoice.delayedEffects.length > 0 && (
-                          <div className="text-[10px] text-yellow-300 font-medium italic flex items-center gap-1">
+                          <div className="text-xs text-yellow-300 font-medium italic flex items-center gap-1">
                             <AlertCircle className="w-3.5 h-3.5" />
                             <span>시간 흐름에 따른 지연된 후속 효과가 조용히 예약되었습니다.</span>
                           </div>
@@ -739,7 +739,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                             </span>
                             <div className="flex-1">
                               <p className="font-medium text-white/95 leading-snug">{choice.text}</p>
-                              <span className="text-[10px] text-white/50 font-mono mt-1 block">
+                              <span className="text-xs text-white/50 font-mono mt-1 block">
                                 [의도: {choice.intent}]
                               </span>
                             </div>
@@ -758,7 +758,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                       <div>
                         <div className="flex justify-between items-center border-b-2 border-slate-900 pb-3 mb-4">
                           <h2 className="text-xl font-school font-bold text-slate-900 flex items-center gap-1.5">
-                            🏫 가상의 학교 지도 (School Map)
+                            🏫 학교 지도 (School Map)
                           </h2>
                           <button
                             onClick={progressTime}
@@ -787,7 +787,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                                 
                                 if (tile === 'W') {
                                   bgClass = "bg-slate-750 border-slate-800 rounded-md opacity-90 cursor-not-allowed";
-                                  content = <span className="text-[10px] text-slate-600 font-extrabold select-none">🧱</span>;
+                                  content = <span className="text-xs text-slate-600 font-extrabold select-none">🧱</span>;
                                 } else if (tile === 'P') {
                                   bgClass = "bg-[#FAF7EE] border-amber-100 rounded-md hover:bg-amber-50/80 cursor-pointer transition-colors";
                                 } else if (tile === 'CR') {
@@ -876,7 +876,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
 
                           {/* D-Pad 조작 인터페이스 */}
                           <div className="flex flex-col items-center gap-1 mt-4">
-                            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1">D-PAD 조작 (마우스/터치 지원)</span>
+                            <span className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">D-PAD 조작</span>
                             
                             <button 
                               onClick={() => moveChar(0, -1)}
@@ -909,7 +909,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                       </div>
                       
                       {/* 포탈 설명 레전드 */}
-                      <div className="mt-4 flex flex-wrap gap-2 justify-center text-[10px] font-semibold text-slate-600 bg-slate-50 border border-slate-200 p-2 rounded-lg">
+                      <div className="mt-4 flex flex-wrap gap-2 justify-center text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-200 p-2 rounded-lg">
                         <span className="bg-slate-200 px-1.5 py-0.5 rounded font-extrabold text-slate-700">현재 {currentFloor}층</span>
                         <span className="flex items-center gap-0.5">🏫 우리반</span>
                         <span className="flex items-center gap-0.5">💼 교무실</span>
@@ -981,7 +981,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                                           }`}
                                         >
                                           <span>💬 {npc.name} {npc.role ? `(${npc.role})` : ''}</span>
-                                          {isDone && <span className="text-[8px] bg-slate-300 text-slate-600 px-1 rounded font-normal">대화완료</span>}
+                                          {isDone && <span className="text-xs bg-slate-300 text-slate-600 px-1 rounded font-normal">완료</span>}
                                         </button>
                                       );
                                     });
@@ -1143,11 +1143,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                     <div>
                       <div className="font-bold text-slate-900 leading-tight mb-1 flex items-start gap-1 justify-between">
                         <span>{task.title}</span>
-                        <span className="text-[9px] bg-red-100 text-red-700 px-1 py-0.5 rounded flex-shrink-0 font-normal">
+                        <span className="text-xs bg-red-100 text-red-700 px-1 py-0.5 rounded flex-shrink-0 font-normal">
                           기한 {task.deadlineDay}일차
                         </span>
                       </div>
-                      <div className="flex gap-2 text-[10px] text-slate-500 font-semibold mb-2">
+                      <div className="flex gap-2 text-xs text-slate-500 font-semibold mb-2">
                         <span>요구 AP: {task.estimatedTime}</span>
                         <span>피로도: +{task.stressCost}</span>
                       </div>
@@ -1156,14 +1156,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                     <div className="flex gap-1.5">
                       <button
                         onClick={() => completeTask(task.id)}
-                        className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold border border-black rounded p-1 text-[10px] transition-colors active:translate-y-0.5 shadow-school-press"
+                        className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold border border-black rounded p-1 text-xs transition-colors active:translate-y-0.5 shadow-school-press"
                       >
                         직접 결재 처리
                       </button>
                       {task.canDelegate && (
                         <button
                           onClick={() => delegateTask(task.id)}
-                          className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold border border-black rounded p-1 text-[10px] transition-colors active:translate-y-0.5 shadow-school-press"
+                          className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold border border-black rounded p-1 text-xs transition-colors active:translate-y-0.5 shadow-school-press"
                         >
                           선배위임
                         </button>
@@ -1199,24 +1199,24 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                   >
                     <AlertCircle className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${notif.isRead ? 'text-slate-400' : 'text-sky-600 animate-pulse'}`} />
                     <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-center text-[9px] text-slate-500 mb-0.5">
+                      <div className="flex justify-between items-center text-xs text-slate-500 mb-0.5">
                         <span className="font-extrabold">{notif.sender}</span>
-                        {!notif.isRead && <span className="bg-sky-600 text-white text-[8px] px-1 rounded font-normal">NEW</span>}
+                        {!notif.isRead && <span className="bg-sky-600 text-white text-xs px-1 rounded font-normal">NEW</span>}
                       </div>
-                      <p className="leading-snug truncate text-slate-800 text-[10px]">{notif.previewText}</p>
+                      <p className="leading-snug truncate text-slate-800 text-xs">{notif.previewText}</p>
                     </div>
                   </button>
                 ))
               ) : (
-                <div className="text-slate-400 text-[11px] text-center p-4 italic bg-slate-50 rounded-lg">
+                <div className="text-slate-400 text-xs text-center p-4 italic bg-slate-50 rounded-lg">
                   메신저에 새로운 알림이 없습니다.
                 </div>
               )}
 
               {/* 최근 역사 로그 간이 표출 */}
               <div className="border-t border-slate-200 pt-3 mt-2">
-                <h4 className="font-bold text-[10px] text-slate-400 uppercase tracking-wider mb-1.5">최근 교직 행동 이력</h4>
-                <div className="space-y-1 font-mono text-[9px] text-slate-500 overflow-y-auto max-h-[80px]">
+                <h4 className="font-bold text-xs text-slate-400 uppercase tracking-wider mb-1.5">최근 행동 이력</h4>
+                <div className="space-y-1 font-mono text-xs text-slate-500 overflow-y-auto max-h-[80px]">
                   {recentLogs.slice(0, 5).map((log, i) => (
                     <div key={i} className="truncate">{log}</div>
                   ))}
@@ -1313,7 +1313,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
               </p>
             </div>
 
-            <div className="text-[10px] text-slate-500 font-medium">
+            <div className="text-xs text-slate-500 font-medium">
               💡 위 수치는 교사의 개별 상담과 대응 방식에 따라 실시간으로 변동합니다.
             </div>
           </div>
@@ -1348,13 +1348,13 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                   {/* 피드백 스탯 변화 브리핑 */}
                   {npcDialogueSession.activeFeedbackEffects && npcDialogueSession.activeFeedbackEffects.length > 0 && (
                     <div className="flex flex-wrap gap-2 items-center bg-slate-100 border border-slate-300 p-2.5 rounded-lg">
-                      <span className="text-[10px] font-bold text-slate-500">효과 변동:</span>
+                      <span className="text-xs font-bold text-slate-500">효과 변동:</span>
                       {npcDialogueSession.activeFeedbackEffects.map((eff, i) => {
                         const isPositive = eff.value > 0;
                         return (
                           <span 
                             key={i} 
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
+                            className={`text-xs font-bold px-2 py-0.5 rounded border ${
                               isPositive 
                                 ? 'bg-emerald-100 text-emerald-700 border-emerald-400' 
                                 : 'bg-rose-100 text-rose-700 border-rose-400'
@@ -1456,7 +1456,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                 <Smartphone className="w-5 h-5 animate-pulse" />
                 학교 메신저 긴급 수신
               </h3>
-              <span className="text-[10px] bg-sky-950 text-sky-300 border border-sky-700 px-2 py-0.5 rounded">
+              <span className="text-xs bg-sky-950 text-sky-300 border border-sky-700 px-2 py-0.5 rounded">
                 발신: {activeMessengerEvent.sender}
               </span>
             </div>
@@ -1489,7 +1489,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
               )}
             </div>
             
-            <div className="mt-5 text-[9px] text-slate-400 text-center">
+            <div className="mt-5 text-xs text-slate-400 text-center">
               ⚠️ 메신저 대응 선택에 따른 스탯 변화가 시스템에 즉각 반영되었습니다.
             </div>
           </div>
