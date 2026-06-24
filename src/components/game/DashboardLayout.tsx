@@ -44,11 +44,41 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
     progressTime,
     completeTask,
     delegateTask,
-    clearToast
+    clearToast,
+    
+    currentLocation,
+    moveToLocation,
+    executeLocationAction,
+    talkToNPC,
+    clearNpcDialogue,
+    exploreLocation,
+    closeEventResult,
+    
+    npcDialogueSession,
+    selectDialogueChoice,
+    advanceDialogueStep
   } = useGameStore();
 
   // 모바일 화면용 탭 상태 ('center' = 교실/사건, 'left' = 학급현황, 'right' = 스마트폰/업무)
   const [activeTab, setActiveTab] = useState<'center' | 'left' | 'right'>('center');
+  
+  // 장소별 한글 명칭 및 테마 스타일 설정 헬퍼
+  const getLocationTheme = (loc: string) => {
+    switch (loc) {
+      case 'classroom':
+        return { name: '교실', color: 'bg-emerald-900 border-emerald-500 text-white', desc: '아이들의 열기와 소음이 가득한 교실입니다. 학생 지도를 할 수 있습니다.' };
+      case 'office':
+        return { name: '교무실', color: 'bg-slate-800 border-slate-500 text-white', desc: '밀린 공문과 전화벨 소리가 요란한 행정의 요람입니다. 행정 처리가 가능합니다.' };
+      case 'health_room':
+        return { name: '보건실', color: 'bg-teal-900 border-teal-500 text-white', desc: '아늑하고 조용한 쉼터입니다. 지친 피로와 스트레스를 충전하세요.' };
+      case 'playground':
+        return { name: '운동장', color: 'bg-orange-950 border-orange-600 text-white', desc: '푸른 잔디와 트랙이 시원하게 뻗어 있습니다. 기초 체력을 단련하기 좋습니다.' };
+      case 'principal_room':
+        return { name: '교장실', color: 'bg-amber-950 border-amber-600 text-white', desc: '묵직하고 조용한 회의실입니다. 관리자들과 면담하고 소신을 피력하세요.' };
+      default:
+        return { name: '학교', color: 'bg-slate-900 border-slate-500 text-white', desc: '학교 내부 공간입니다.' };
+    }
+  };
   
   // 학생 프로필 모달을 띄우기 위한 상태
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
@@ -276,7 +306,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
           </div>
         </section>
 
-        {/* ================= 중앙 패널 (lg:col-span-6): 메인 사건 극장 ================= */}
+        {/* ================= 중앙 패널 (lg:col-span-6): 메인 사건 극장 및 학교 맵 ================= */}
         <section className={`lg:col-span-6 space-y-4 ${activeTab === 'center' ? 'block' : 'hidden lg:block'}`}>
           {/* 시간대 레이블 안내 */}
           <div className={`p-2.5 rounded-xl border-2 border-black font-bold text-center text-xs flex items-center justify-center gap-1.5 shadow-school-press ${timeStyle.color}`}>
@@ -345,11 +375,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
               </button>
             </div>
           ) : (
-            /* 일반 이벤트 칠판 극장 */
-            <div className="chalkboard-bg p-6 text-white min-h-[400px] flex flex-col justify-between">
+            /* RPG 공간 탐색 및 이벤트 처리 영역 */
+            <>
               {currentEvent ? (
-                <>
-                  {/* 이벤트 기본 타이틀 및 장소 */}
+                /* 상황 A. 퀴즈 이벤트 진행 중일 때 (칠판 극장) */
+                <div className="chalkboard-bg p-6 text-white min-h-[400px] flex flex-col justify-between rounded-2xl border-4 border-slate-900 shadow-school-deep">
                   <div>
                     <div className="flex items-center justify-between border-b border-white/20 pb-3 mb-4">
                       <span className="text-xs font-bold tracking-widest uppercase bg-emerald-700/60 px-2.5 py-1 rounded-full text-emerald-200">
@@ -374,16 +404,16 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                     </div>
                   </div>
 
-                  {/* 선택지 또는 결과 피드백 분기 */}
+                  {/* 선택지 혹은 결과 노출 */}
                   <div className="space-y-3 mt-4">
                     {eventResultText ? (
-                      /* 3.1 선택 후의 결과문 노출 */
+                      /* 결과 피드백 창 */
                       <div className="bg-black/35 border-2 border-dashed border-emerald-400 rounded-xl p-4 animate-fade-in space-y-4">
                         <div className="text-sm md:text-base leading-relaxed font-light text-emerald-100 whitespace-pre-line">
                           {eventResultText}
                         </div>
                         
-                        {/* 스탯 변동 브리핑 뱃지 */}
+                        {/* 스탯 변동 브리핑 */}
                         {selectedChoice && selectedChoice.immediateEffects.length > 0 && (
                           <div className="flex flex-wrap gap-2 items-center">
                             <span className="text-xs font-bold text-white/50">즉각 변동 지표:</span>
@@ -420,17 +450,27 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                           </div>
                         )}
 
-                        {/* 다음 사건으로 시간 전진 버튼 */}
-                        <button
-                          onClick={progressTime}
-                          className="w-full btn-school-accent flex items-center justify-center gap-1 py-2 text-sm"
-                        >
-                          다음 일과 진행하기
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
+                        {/* 복귀/진행 버튼 분기 */}
+                        {timeOfDay === 'evening' ? (
+                          <button
+                            onClick={progressTime}
+                            className="w-full btn-school-accent flex items-center justify-center gap-1 py-2 text-sm"
+                          >
+                            하루 정리하러 가기
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={closeEventResult}
+                            className="w-full btn-school-accent flex items-center justify-center gap-1 py-2 text-sm"
+                          >
+                            장소로 돌아가기
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     ) : (
-                      /* 3.2 일반 선택지 카드 나열 */
+                      /* 일반 선택지 목록 */
                       <div className="space-y-2.5">
                         {currentEvent.choices.map((choice, index) => (
                           <button
@@ -452,26 +492,253 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                       </div>
                     )}
                   </div>
-                </>
-              ) : (
-                /* 이벤트가 없는 특수한 자습/휴식 상태 */
-                <div className="flex flex-col items-center justify-center text-center p-8 flex-1">
-                  <Sparkles className="w-12 h-12 text-emerald-400 mb-3 animate-pulse-subtle" />
-                  <h3 className="text-xl font-bold chalk-text mb-2">교탁의 정적</h3>
-                  <p className="text-sm text-white/70 max-w-sm">
-                    지금은 학급 아이들이 조용히 독서나 자습을 하거나, 행정 업무를 정리하는 고요한 시간대입니다. 우측의 행정 업무 보드를 보거나 학급 정리를 진행하세요.
-                  </p>
-                  
-                  {/* 자습으로 시간 강제 전진 버튼 */}
-                  <button
-                    onClick={progressTime}
-                    className="mt-6 btn-school-accent py-2 px-6"
-                  >
-                    일과 시간 보내기 (다음으로)
-                  </button>
                 </div>
+              ) : (
+                /* 상황 B. 대기 중일 때 (지도 또는 개별 장소 뷰) */
+                <>
+                  {currentLocation === null ? (
+                    /* 1) 학교 지도 (School Map) */
+                    <div className="paper-card bg-white p-6 border-4 border-slate-900 shadow-school-deep flex flex-col justify-between min-h-[450px]">
+                      <div>
+                        <div className="flex justify-between items-center border-b-2 border-slate-900 pb-3 mb-4">
+                          <h2 className="text-xl font-school font-bold text-slate-900 flex items-center gap-1.5">
+                            🏫 가상의 학교 지도 (School Map)
+                          </h2>
+                          <button
+                            onClick={progressTime}
+                            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold border-2 border-black rounded-lg active:translate-y-0.5 shadow-school-press text-xs transition-colors flex items-center gap-1"
+                          >
+                            <span>{timeOfDay === 'morning' ? '오후 일과로 전진' : '퇴근/방과후로 전진'}</span>
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        <p className="text-xs text-slate-500 mb-6 font-medium">
+                          가고 싶은 학교 장소를 선택해 이동하세요. 각 장소마다 만날 수 있는 인물(NPC)과 수행할 수 있는 행동이 다릅니다. (탐색 및 행동 시 AP 소모)
+                        </p>
+
+                        {/* 학교 건물 평면도풍 그리드 레이아웃 */}
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                          {/* 교실 */}
+                          <button
+                            onClick={() => moveToLocation('classroom')}
+                            className="border-2 border-black rounded-xl p-4 bg-emerald-50 hover:bg-emerald-100 active:translate-y-0.5 shadow-school-press text-left transition-all group"
+                          >
+                            <span className="text-2xl mb-2 block group-hover:scale-110 transition-transform">👩‍🏫</span>
+                            <h4 className="font-bold text-sm text-slate-800">교실 (Classroom)</h4>
+                            <p className="text-[10px] text-slate-500 mt-1">우리 반 학생들을 지도하고 조회합니다.</p>
+                          </button>
+
+                          {/* 교무실 */}
+                          <button
+                            onClick={() => moveToLocation('office')}
+                            className="border-2 border-black rounded-xl p-4 bg-slate-50 hover:bg-slate-100 active:translate-y-0.5 shadow-school-press text-left transition-all group"
+                          >
+                            <span className="text-2xl mb-2 block group-hover:scale-110 transition-transform">💼</span>
+                            <h4 className="font-bold text-sm text-slate-800">교무실 (Staff Office)</h4>
+                            <p className="text-[10px] text-slate-500 mt-1">동료 교사와 대화하고 서류 처리를 보강합니다.</p>
+                          </button>
+
+                          {/* 보건실 */}
+                          <button
+                            onClick={() => moveToLocation('health_room')}
+                            className="border-2 border-black rounded-xl p-4 bg-teal-50 hover:bg-teal-100 active:translate-y-0.5 shadow-school-press text-left transition-all group"
+                          >
+                            <span className="text-2xl mb-2 block group-hover:scale-110 transition-transform">🏥</span>
+                            <h4 className="font-bold text-sm text-slate-800">보건실 (Infirmary)</h4>
+                            <p className="text-[10px] text-slate-500 mt-1">지친 체력과 멘탈을 회복할 수 있는 쉼터.</p>
+                          </button>
+
+                          {/* 운동장 */}
+                          <button
+                            onClick={() => moveToLocation('playground')}
+                            className="border-2 border-black rounded-xl p-4 bg-orange-50 hover:bg-orange-100 active:translate-y-0.5 shadow-school-press text-left transition-all group"
+                          >
+                            <span className="text-2xl mb-2 block group-hover:scale-110 transition-transform">🏃‍♂️</span>
+                            <h4 className="font-bold text-sm text-slate-800">운동장 (Playground)</h4>
+                            <p className="text-[10px] text-slate-500 mt-1">체력을 보강하고 맑은 공기를 쐽니다.</p>
+                          </button>
+
+                          {/* 교장실 */}
+                          <button
+                            onClick={() => moveToLocation('principal_room')}
+                            className="border-2 border-black rounded-xl p-4 bg-amber-50 hover:bg-amber-100 active:translate-y-0.5 shadow-school-press text-left transition-all group"
+                          >
+                            <span className="text-2xl mb-2 block group-hover:scale-110 transition-transform">🍵</span>
+                            <h4 className="font-bold text-sm text-slate-800">교장실 (Principal Office)</h4>
+                            <p className="text-[10px] text-slate-500 mt-1">학교 관리자들과 깊은 자문과 차담을 합니다.</p>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="mt-8 bg-slate-50 border border-slate-200 p-3 rounded-lg text-[10px] text-slate-400">
+                        💡 <b>가이드:</b> 장소를 탐색하거나 고유 행동을 하면 행동 포인트(AP)가 소모됩니다. AP를 다 썼거나 다음 일과로 넘어가고 싶으시다면 상단의 [일과 전진]을 눌러 다음 시간대로 가세요.
+                      </div>
+                    </div>
+                  ) : (
+                    /* 2) 개별 장소 뷰 */
+                    (() => {
+                      const theme = getLocationTheme(currentLocation);
+                      return (
+                        <div className={`paper-card p-6 border-4 border-slate-900 shadow-school-deep flex flex-col justify-between min-h-[450px] text-slate-800 bg-[#FAF9F6]`}>
+                          <div>
+                            {/* 장소 헤더 */}
+                            <div className="flex justify-between items-center border-b-2 border-slate-900 pb-3 mb-4">
+                              <h2 className="text-xl font-school font-bold text-slate-900 flex items-center gap-1.5">
+                                📍 {theme.name} 내부
+                              </h2>
+                              <button
+                                onClick={() => moveToLocation(null)}
+                                className="px-3 py-1.5 bg-slate-100 text-slate-800 hover:bg-slate-200 font-bold border-2 border-black rounded-lg active:translate-y-0.5 shadow-school-press text-xs transition-colors"
+                              >
+                                ◀ 지도로 돌아가기
+                              </button>
+                            </div>
+                            
+                            <p className="text-xs text-slate-500 mb-6 italic leading-relaxed font-medium bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                              {theme.desc}
+                            </p>
+
+                            <div className="space-y-6">
+                              {/* 1. 상주 NPC 구역 */}
+                              <div>
+                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5">👥 상주하는 인물과 대화 (AP 소모 없음)</h4>
+                                <div className="flex flex-wrap gap-2.5">
+                                  {currentLocation === 'classroom' && (
+                                    <>
+                                      <button
+                                        onClick={() => talkToNPC('student_jihun', '박지훈')}
+                                        className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 border-2 border-black rounded-xl text-xs font-bold active:translate-y-0.5 text-slate-800 shadow-school-press transition-all"
+                                      >
+                                        💬 박지훈 (장난꾸러기)
+                                      </button>
+                                      <button
+                                        onClick={() => talkToNPC('student_minjun', '최민준')}
+                                        className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 border-2 border-black rounded-xl text-xs font-bold active:translate-y-0.5 text-slate-800 shadow-school-press transition-all"
+                                      >
+                                        💬 최민준 (모범생)
+                                      </button>
+                                      <button
+                                        onClick={() => talkToNPC('student_jihyun', '이지현')}
+                                        className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 border-2 border-black rounded-xl text-xs font-bold active:translate-y-0.5 text-slate-800 shadow-school-press transition-all"
+                                      >
+                                        💬 이지현 (관찰자)
+                                      </button>
+                                    </>
+                                  )}
+                                  {currentLocation === 'office' && (
+                                    <>
+                                      <button
+                                        onClick={() => talkToNPC('colleague_senior', '부장 선생님')}
+                                        className="px-3 py-2 bg-slate-100 hover:bg-slate-200 border-2 border-black rounded-xl text-xs font-bold active:translate-y-0.5 text-slate-800 shadow-school-press transition-all"
+                                      >
+                                        💬 김 부장 교사
+                                      </button>
+                                      <button
+                                        onClick={() => talkToNPC('colleague_mate', '옆자리 박선생님')}
+                                        className="px-3 py-2 bg-slate-100 hover:bg-slate-200 border-2 border-black rounded-xl text-xs font-bold active:translate-y-0.5 text-slate-800 shadow-school-press transition-all"
+                                      >
+                                        💬 박 교사 (동료)
+                                      </button>
+                                    </>
+                                  )}
+                                  {currentLocation === 'health_room' && (
+                                    <button
+                                      onClick={() => talkToNPC('nurse', '보건 선생님')}
+                                      className="px-3 py-2 bg-teal-50 hover:bg-teal-100 border-2 border-black rounded-xl text-xs font-bold active:translate-y-0.5 text-slate-800 shadow-school-press transition-all"
+                                    >
+                                      💬 보건 교사
+                                    </button>
+                                  )}
+                                  {currentLocation === 'playground' && (
+                                    <button
+                                      onClick={() => talkToNPC('gym', '체육 선생님')}
+                                      className="px-3 py-2 bg-orange-50 hover:bg-orange-100 border-2 border-black rounded-xl text-xs font-bold active:translate-y-0.5 text-slate-800 shadow-school-press transition-all"
+                                    >
+                                      💬 체육 교사
+                                    </button>
+                                  )}
+                                  {currentLocation === 'principal_room' && (
+                                    <button
+                                      onClick={() => talkToNPC('principal', '교장 선생님')}
+                                      className="px-3 py-2 bg-amber-50 hover:bg-amber-100 border-2 border-black rounded-xl text-xs font-bold active:translate-y-0.5 text-slate-800 shadow-school-press transition-all"
+                                    >
+                                      💬 교장 선생님
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* 2. 장소 고유 행동 & 돌발 사건 구역 */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-200 pt-4">
+                                <div>
+                                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">⚡ 장소 고유 행동 (AP 1 소모)</h4>
+                                  {currentLocation === 'classroom' && (
+                                    <button
+                                      onClick={() => executeLocationAction('classroom_lead')}
+                                      className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold border-2 border-black rounded-xl text-xs text-center transition-all active:translate-y-0.5 shadow-school-press"
+                                    >
+                                      📢 학급 조회 및 밀착 생활 지도
+                                    </button>
+                                  )}
+                                  {currentLocation === 'office' && (
+                                    <button
+                                      onClick={() => executeLocationAction('office_work')}
+                                      className="w-full py-2.5 px-4 bg-slate-600 hover:bg-slate-500 text-white font-bold border-2 border-black rounded-xl text-xs text-center transition-all active:translate-y-0.5 shadow-school-press"
+                                    >
+                                      ✍️ 행정 나이스(NEIS) 공문 기안 처리
+                                    </button>
+                                  )}
+                                  {currentLocation === 'health_room' && (
+                                    <button
+                                      onClick={() => executeLocationAction('health_rest')}
+                                      className="w-full py-2.5 px-4 bg-teal-600 hover:bg-teal-500 text-white font-bold border-2 border-black rounded-xl text-xs text-center transition-all active:translate-y-0.5 shadow-school-press"
+                                    >
+                                      🛌 보건실 침대에서 간이 낮잠 휴식
+                                    </button>
+                                  )}
+                                  {currentLocation === 'playground' && (
+                                    <button
+                                      onClick={() => executeLocationAction('playground_train')}
+                                      className="w-full py-2.5 px-4 bg-orange-600 hover:bg-orange-500 text-white font-bold border-2 border-black rounded-xl text-xs text-center transition-all active:translate-y-0.5 shadow-school-press"
+                                    >
+                                      🏃 운동장 조깅 및 기초 체력 훈련
+                                    </button>
+                                  )}
+                                  {currentLocation === 'principal_room' && (
+                                    <button
+                                      onClick={() => executeLocationAction('principal_chat')}
+                                      className="w-full py-2.5 px-4 bg-amber-600 hover:bg-amber-500 text-white font-bold border-2 border-black rounded-xl text-xs text-center transition-all active:translate-y-0.5 shadow-school-press"
+                                    >
+                                      🍵 관리자 면담 및 차담 건의
+                                    </button>
+                                  )}
+                                </div>
+
+                                <div>
+                                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">🔍 돌발 사건 탐색 (AP 1 소모)</h4>
+                                  {currentLocation === 'health_room' ? (
+                                    <p className="text-xs text-slate-400 italic mt-2 bg-slate-50 p-3 rounded-lg border border-slate-200 text-center font-medium">
+                                      보건실은 회복 전용 구역이므로 사건이 일어나지 않습니다.
+                                    </p>
+                                  ) : (
+                                    <button
+                                      onClick={exploreLocation}
+                                      className="w-full py-2.5 px-4 bg-amber-500 hover:bg-amber-400 text-slate-900 font-extrabold border-2 border-black rounded-xl text-xs text-center transition-all active:translate-y-0.5 shadow-school-press"
+                                    >
+                                      🔎 주변 탐색 (이벤트/민원 마주치기)
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()
+                  )}
+                </>
               )}
-            </div>
+            </>
           )}
         </section>
 
@@ -651,6 +918,125 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
 
             <div className="text-[10px] text-slate-500 font-medium">
               💡 위 수치는 교사의 개별 상담과 대응 방식에 따라 실시간으로 변동합니다.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. RPG 캐릭터 멀티턴 대화 모달 (오버레이) */}
+      {npcDialogueSession && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in animate-duration-200">
+          <div className="bg-[#FAF9F6] border-4 border-black rounded-2xl p-6 max-w-lg w-full shadow-school-deep relative flex flex-col justify-between min-h-[340px] text-slate-800">
+            <div>
+              {/* 스피커 이름 헤더 */}
+              <div className="border-b-2 border-slate-900 pb-2 mb-4 flex items-center justify-between">
+                <span className="text-sm font-bold bg-slate-900 text-white px-3 py-1 rounded-lg border border-black flex items-center gap-1.5 shadow-school-press">
+                  🗣️ {npcDialogueSession.npcName}
+                </span>
+                <button
+                  onClick={clearNpcDialogue}
+                  className="text-xs font-bold text-slate-400 hover:text-slate-950 transition-colors"
+                >
+                  대화 스킵(X)
+                </button>
+              </div>
+
+              {/* 피드백 리액션 노출 분기 */}
+              {npcDialogueSession.activeFeedbackText !== null ? (
+                <div className="space-y-4 animate-fade-in">
+                  <div className="text-base font-medium leading-relaxed bg-emerald-50 border-2 border-emerald-500 p-4 rounded-xl text-emerald-950 font-school italic">
+                    {npcDialogueSession.activeFeedbackText}
+                  </div>
+                  
+                  {/* 피드백 스탯 변화 브리핑 */}
+                  {npcDialogueSession.activeFeedbackEffects && npcDialogueSession.activeFeedbackEffects.length > 0 && (
+                    <div className="flex flex-wrap gap-2 items-center bg-slate-100 border border-slate-300 p-2.5 rounded-lg">
+                      <span className="text-[10px] font-bold text-slate-500">효과 변동:</span>
+                      {npcDialogueSession.activeFeedbackEffects.map((eff, i) => {
+                        const isPositive = eff.value > 0;
+                        return (
+                          <span 
+                            key={i} 
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
+                              isPositive 
+                                ? 'bg-emerald-100 text-emerald-700 border-emerald-400' 
+                                : 'bg-rose-100 text-rose-700 border-rose-400'
+                            }`}
+                          >
+                            {eff.stat === 'hp' ? '체력' :
+                             eff.stat === 'mental' ? '멘탈' :
+                             eff.stat === 'burnout' ? '번아웃' :
+                             eff.stat === 'expert' ? '전문성' :
+                             eff.stat === 'studentTrust' ? '학생신뢰' :
+                             eff.stat === 'parentTrust' ? '학부모신뢰' :
+                             eff.stat === 'colleagueRelation' ? '동료관계' :
+                             eff.stat === 'adminTrust' ? '관리자신뢰' :
+                             eff.stat === 'familySatisfaction' ? '가정만족' : '소신'} {isPositive ? '+' : ''}{eff.value}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* 일반 대사 및 선택지 분기 */
+                <div className="space-y-4 animate-fade-in">
+                  <div className="text-base font-semibold leading-relaxed bg-white border-2 border-black p-4 rounded-xl text-slate-800 shadow-school-press min-h-[90px]">
+                    {npcDialogueSession.steps[npcDialogueSession.currentStepIndex].text}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 하단 컨트롤 영역 (대화 닫기 / 전진 / 선택지) */}
+            <div className="mt-6 border-t border-slate-200 pt-4">
+              {npcDialogueSession.activeFeedbackText !== null ? (
+                /* 피드백 대사 노출 시에는 클릭해 다음 대사나 종료로 이동 */
+                <button
+                  onClick={advanceDialogueStep}
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold border-2 border-black rounded-xl py-3 active:translate-y-0.5 shadow-school-press text-sm transition-all flex items-center justify-center gap-1"
+                >
+                  <span>계속하기 ➔</span>
+                </button>
+              ) : (
+                /* 일반 단계 */
+                (() => {
+                  const currentStep = npcDialogueSession.steps[npcDialogueSession.currentStepIndex];
+                  
+                  if (currentStep.choices && currentStep.choices.length > 0) {
+                    /* 선택지가 있는 경우 리스트 나열 */
+                    return (
+                      <div className="space-y-2">
+                        {currentStep.choices.map((choice, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => selectDialogueChoice(choice)}
+                            className="w-full text-left p-3.5 rounded-xl border-2 border-black bg-white hover:bg-amber-50 active:bg-amber-100 transition-all font-semibold text-xs md:text-sm text-slate-800 shadow-school-press flex items-start gap-2.5 group"
+                          >
+                            <span className="bg-slate-900 text-white border border-slate-900 rounded-full w-5 h-5 flex items-center justify-center font-bold text-xs flex-shrink-0 group-hover:bg-amber-600 transition-colors">
+                              {idx + 1}
+                            </span>
+                            <span className="flex-1 leading-snug">{choice.text}</span>
+                          </button>
+                        ))}
+                      </div>
+                    );
+                  } else {
+                    /* 선택지가 없는 단방향 대사일 때 */
+                    const isLast = currentStep.nextStepIndex === null || 
+                                   (currentStep.nextStepIndex === undefined && 
+                                    npcDialogueSession.currentStepIndex === npcDialogueSession.steps.length - 1);
+                    return (
+                      <button
+                        onClick={advanceDialogueStep}
+                        className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold border-2 border-black rounded-xl py-3 active:translate-y-0.5 shadow-school-press text-sm transition-all flex items-center justify-center gap-1"
+                      >
+                        <span>{isLast ? '대화 마치기' : '다음 대사 ➔'}</span>
+                      </button>
+                    );
+                  }
+                })()
+              )}
             </div>
           </div>
         </div>

@@ -54,6 +54,9 @@ export interface GameChoice {
   riskText?: string;          // 선택 시 동반되는 부작용에 대한 경고 메시지
 }
 
+// 학교 내부의 공간 정의
+export type LocationType = 'classroom' | 'office' | 'health_room' | 'playground' | 'principal_room';
+
 // 이벤트 구조
 export interface GameEvent {
   id: string;
@@ -61,6 +64,7 @@ export interface GameEvent {
   title: string;              // 이벤트 제목
   category: 'student' | 'parent' | 'colleague' | 'admin' | 'family' | 'career' | 'random'; // 카테고리
   situation: string;          // 상황 설명 (예: "교실", "교무실")
+  location?: LocationType;    // (추가) 이벤트가 발생할 학교 내부의 특정 장소
   narratorText: string;       // 내레이션 및 묘사 텍스트
   choices: GameChoice[];      // 선택할 수 있는 지문들 (3~5개)
   prerequisites?: string[];   // 발동을 위해 미리 켜져있어야 하는 hiddenFlags
@@ -127,4 +131,30 @@ export interface HiddenTendencies {
   selfSacrifice: number;      // 자기희생
   familyFirst: number;        // 가정 우선
   leadership: number;         // 리더십
+}
+
+// NPC 대화 시 선택 가능한 교사의 반응
+export interface DialogueChoice {
+  text: string;                  // 선택지 텍스트
+  nextStepIndex: number | null;  // 선택 후 이어질 단계 인덱스 (null이면 대화 종료)
+  effects?: StatEffect[];        // 선택 시 변동 스탯 목록
+  resultText?: string;           // 대답 후 NPC가 보일 피드백 대사 (있을 경우 팝업 처리)
+}
+
+// NPC 대화의 한 단계(Turn)
+export interface DialogueStep {
+  speaker: string;               // 대사를 말하는 사람 이름
+  text: string;                  // 대사 본문
+  choices?: DialogueChoice[];    // (선택) 교사가 고를 답변들
+  nextStepIndex?: number | null; // (선택) 선택지가 없을 때 클릭하여 넘어갈 다음 단계 (null이면 대화 종료)
+}
+
+// 진행 중인 NPC 대화 세션 정보
+export interface DialogueSession {
+  npcId: string;                 // 대화 상대의 ID
+  npcName: string;               // 대화 상대의 이름
+  currentStepIndex: number;      // 현재 진행 중인 대사 스텝 인덱스
+  steps: DialogueStep[];         // 전체 대화 스텝 시나리오
+  activeFeedbackText: string | null;     // 선택한 답변에 대한 NPC의 즉각 반응 텍스트
+  activeFeedbackEffects: StatEffect[] | null; // 피드백 수반 스탯 효과
 }
