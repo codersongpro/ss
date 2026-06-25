@@ -22,6 +22,21 @@ import { colleagueDialogueEvents, studentDialogueEvents } from '@/data/npcDialog
 import { parentMessengerEvents, colleaguePrivateEvents } from '@/data/parentMessengerData';
 import { positiveEvents } from '@/data/positiveEventsData';
 
+// 전역 BGM 오디오 싱글톤 객체 및 볼륨 조절 헬퍼 [NEW]
+let globalBgm: HTMLAudioElement | null = null;
+
+const mapVolumeStepToValue = (step: number): number => {
+  switch (step) {
+    case 0: return 0.0;
+    case 1: return 0.15;
+    case 2: return 0.30;
+    case 3: return 0.50;
+    case 4: return 0.75;
+    case 5: return 1.0;
+    default: return 0.50;
+  }
+};
+
 // 시간대 정의
 export type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'night' | 'summary';
 
@@ -139,6 +154,8 @@ interface GameState {
     actionType: 'empathy' | 'rational' | 'strict' | 'strength' | 'mentoring'
   ) => { feedbackText: string; effectsText: string } | null;
   overtimeWork: () => void; // 야근 선택: 업무능력 +10 대신 건강/멘탈/번아웃 패널티
+  bgmVolume: number; // 배경음 볼륨 단계 (0: off, 1~5) [NEW]
+  setBgmVolume: (volume: number) => void; // 배경음 볼륨 단계 변경 [NEW]
 }
 
 // 0 ~ 100 범위 강제 헬퍼
@@ -447,6 +464,7 @@ export const useGameStore = create<GameState>()(
       
       recentLogs: [],
       toastMessage: null,
+      bgmVolume: 3, // 기본 배경음 볼륨 단계 3 [NEW]
 
       // 알림 표출
       showToast: (msg: string) => set({ toastMessage: msg }),
@@ -3459,11 +3477,51 @@ export const useGameStore = create<GameState>()(
           get().generatePhoneAndTextNotifications();
           get().checkFailureConditions();
         }
+      },
+
+      // [NEW] BGM 볼륨 세팅 및 동적 재생/멈춤 제어
+      setBgmVolume: (volume: number) => {
+        const val = Math.max(0, Math.min(5, volume));
+        set({ bgmVolume: val });
+
+        if (typeof window !== 'undefined') {
+          if (!globalBgm) {
+            globalBgm = new Audio('/Chalk_and_Coffee.mp4');
+            globalBgm.loop = true;
+          }
+
+          globalBgm.volume = mapVolumeStepToValue(val);
+
+          if (val > 0) {
+            globalBgm.play().catch(err => {
+              console.log('Autoplay blocked. Waiting for user interaction.', err);
+            });
+          } else {
+            globalBgm.pause();
+          }
+        }
       }
     }),
     {
       name: 'teacher-maker-save-v1', // 로컬스토리지 저장 키
       storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: () => (state) => {
+        if (state && typeof window !== 'undefined') {
+          // 저장된 BGM 볼륨 수치를 Audio 객체 볼륨과 안전하게 연동 동기화합니다.
+          const savedVol = state.bgmVolume !== undefined ? state.bgmVolume : 3;
+          if (!globalBgm) {
+            globalBgm = new Audio('/Chalk_and_Coffee.mp4');
+            globalBgm.loop = true;
+          }
+          globalBgm.volume = mapVolumeStepToValue(savedVol);
+          if (savedVol > 0) {
+            // 브라우저 최초 클릭 시 재생될 수 있으므로 예외는 안전하게 삼킵니다.
+            globalBgm.play().catch(() => {});
+          } else {
+            globalBgm.pause();
+          }
+        }
+      }
     }
   )
 );

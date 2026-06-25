@@ -1,6 +1,6 @@
 import React from 'react';
 import { useGameStore } from '@/store/useGameStore';
-import { BookOpen, Play, RotateCcw, Award } from 'lucide-react';
+import { BookOpen, Play, RotateCcw, Award, Volume2, VolumeX, Volume1 } from 'lucide-react';
 
 interface TitleScreenProps {
   onStartNewGame: () => void;
@@ -13,15 +13,33 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
   onOpenGallery,
   onContinueGame,
 }) => {
-  const { gameStarted, resetGame } = useGameStore();
+  const { gameStarted, resetGame, bgmVolume, setBgmVolume } = useGameStore();
 
   // 기존 저장 데이터 여부 확인 (Zustand persist 스토어에서 읽어옴)
   const handleContinue = () => {
+    // Autoplay 정책 우회를 위해 사용자 인터랙션 발생 시 볼륨을 명시적으로 기동
+    setBgmVolume(bgmVolume);
     if (gameStarted) {
       onContinueGame();
     } else {
       alert('저장된 게임이 없습니다. 새 게임을 시작해 주세요!');
     }
+  };
+
+  const handleStartNew = () => {
+    setBgmVolume(bgmVolume);
+    onStartNewGame();
+  };
+
+  const toggleVolume = () => {
+    const nextVolume = (bgmVolume + 1) % 6;
+    setBgmVolume(nextVolume);
+  };
+
+  const getVolumeIcon = () => {
+    if (bgmVolume === 0) return <VolumeX className="w-4 h-4 text-red-400" />;
+    if (bgmVolume <= 2) return <Volume1 className="w-4 h-4 text-slate-300" />;
+    return <Volume2 className="w-4 h-4 text-emerald-300" />;
   };
 
   return (
@@ -31,6 +49,20 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
         {/* 분필 장식 라인 */}
         <div className="absolute top-4 left-4 right-4 h-1 border-t border-dashed border-white/30" />
         <div className="absolute bottom-4 left-4 right-4 h-1 border-b border-dashed border-white/30" />
+
+        {/* 볼륨 컨트롤 컴포넌트 [NEW] */}
+        <div className="absolute top-6 right-6 z-50 flex items-center gap-1 bg-black/45 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20 text-white text-xs select-none">
+          <button 
+            onClick={toggleVolume}
+            className="hover:text-emerald-300 transition-colors flex items-center gap-1.5 focus:outline-none cursor-pointer"
+            title="배경음 볼륨 조절"
+          >
+            {getVolumeIcon()}
+            <span className="font-mono font-bold">
+              {bgmVolume === 0 ? 'OFF' : `LV.${bgmVolume}`}
+            </span>
+          </button>
+        </div>
         
         {/* 장식용 아이콘 */}
         <BookOpen className="w-16 h-16 text-emerald-300 mb-4 animate-float" />
@@ -62,7 +94,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
             </button>
           ) : (
             <button
-              onClick={onStartNewGame}
+              onClick={handleStartNew}
               className="flex-1 min-w-[140px] btn-school-primary flex items-center justify-center gap-2 py-3 px-6 text-lg whitespace-nowrap"
             >
               <Play className="w-5 h-5" />
@@ -75,7 +107,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
               onClick={() => {
                 if (confirm('진행 중인 모든 기록이 초기화됩니다. 정말 새 게임을 시작할까요?')) {
                   resetGame();
-                  onStartNewGame();
+                  handleStartNew();
                 }
               }}
               className="flex-1 min-w-[160px] btn-school-secondary flex items-center justify-center gap-2 py-3 px-6 text-lg text-slate-700 whitespace-nowrap"

@@ -14,7 +14,10 @@ import {
   HelpCircle,
   LogOut,
   Sparkles,
-  Info
+  Info,
+  Volume2,
+  VolumeX,
+  Volume1
 } from 'lucide-react';
 import type { Student } from '@/game/types';
 
@@ -129,8 +132,21 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
     closePhoneAndTextEvent,
     clearDayEffects,
     counselStudent,
-    overtimeWork
+    overtimeWork,
+    bgmVolume,
+    setBgmVolume
   } = useGameStore();
+
+  const toggleVolume = () => {
+    const nextVolume = (bgmVolume + 1) % 6;
+    setBgmVolume(nextVolume);
+  };
+
+  const getVolumeIcon = () => {
+    if (bgmVolume === 0) return <VolumeX className="w-4 h-4 text-red-500" />;
+    if (bgmVolume <= 2) return <Volume1 className="w-4 h-4 text-slate-500 font-bold" />;
+    return <Volume2 className="w-4 h-4 text-emerald-600 font-bold" />;
+  };
 
   // 모바일 화면용 탭 상태 ('center' = 교실/사건, 'left' = 학급현황, 'right' = 스마트폰/업무)
   const [activeTab, setActiveTab] = useState<'center' | 'left' | 'right'>('center');
@@ -519,6 +535,18 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
               </div>
             </div>
             
+            {/* 배경음 BGM 볼륨 조작 버튼 [NEW] */}
+            <button
+              onClick={toggleVolume}
+              className={`p-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg border-2 border-black active:translate-y-0.5 shadow-school-press transition-opacity duration-300 flex items-center gap-1 text-xs font-bold text-slate-800 focus:outline-none cursor-pointer ${
+                isTutorialActive && tutorialStep === 1 ? 'opacity-30 pointer-events-none' : ''
+              }`}
+              title="배경음 볼륨 조절 (0~5)"
+            >
+              {getVolumeIcon()}
+              <span className="font-mono">{bgmVolume === 0 ? 'OFF' : `LV.${bgmVolume}`}</span>
+            </button>
+
             {/* 타이틀 복귀 (1단계 가이드 중 비타겟이므로 흐리게 처리) */}
             <button
               onClick={onExitGame}
