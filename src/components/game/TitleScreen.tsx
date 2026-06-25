@@ -40,7 +40,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
           티처 메이커
         </h1>
         <p className="text-base md:text-xl text-emerald-200 mb-8 font-school font-bold tracking-wide">
-          90일동안 교사로 살아남는 로그라이크 게임
+          30일 동안 교사로 살아남는 로그라이크 게임
         </p>
 
         {/* 서브 설명글 */}
@@ -95,20 +95,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
         </div>
 
 
-        {/* 칠판 내부 포스트잇 장식 (2장) — 버튼 아래 하단 영역에 배치 */}
-        <div className="mt-6 w-full grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
-          {/* 포스트잇 1: 교무수첩 꿀팁 (노란색) */}
-          <div className="bg-school-postit-yellow border-2 border-black p-3 shadow-school-flat text-xs text-slate-700 rotate-1 hover:rotate-0 transition-transform">
-            <h4 className="font-bold border-b border-black/30 pb-1 mb-1">💡 교무수첩 꿀팁</h4>
-            체력과 멘탈 관리가 핵심입니다. 번아웃이 80을 넘어가면 행동을 실패합니다!
-          </div>
 
-          {/* 포스트잇 2: 경고 사항 (분홍색) */}
-          <div className="bg-school-postit-pink border-2 border-black p-3 shadow-school-flat text-xs text-slate-700 -rotate-1 hover:rotate-0 transition-transform">
-            <h4 className="font-bold border-b border-black/30 pb-1 mb-1">📌 경고 사항</h4>
-            실제 학생의 개인정보나 학교 정보는 입력하지 마십시오!
-          </div>
-        </div>
         {/* 개발 정보 및 가상 이야기 고지 */}
         <div className="mt-8 text-center text-slate-500 text-xs md:text-sm max-w-xl space-y-1.5 select-none font-sans font-medium">
           <p className="font-extrabold text-slate-700 text-sm">개발: Dustin</p>

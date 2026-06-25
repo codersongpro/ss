@@ -34,48 +34,48 @@ const TUTORIAL_STEPS: TutorialStepData[] = [
     title: "👨‍🏫 티처 메이커에 오신 것을 환영합니다!",
     desc: "신임 교사로서 앞으로 30일간 학급을 이끌고 생존하기 위한 기본적인 규칙과 UI 사용법을 안내해 드릴게요. 1분만 투자해 가이드를 따라와 보세요!",
     targetId: "",
-    positionClass: "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+    positionClass: "bottom-6 left-1/2 -translate-x-1/2 lg:top-1/2 lg:left-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2"
   },
   {
     title: "⚡ 우주 최강의 에너지: 교사력 (TP - Teacher Power)",
     desc: "가장 중요한 '교사력' 표시등입니다. 매일 아침 5TP의 교사력이 기본으로 주어집니다.\n\n여기서 TP(Teacher Power)란 교사로서 발휘할 수 있는 '교직 생존력'이자 '기안 결재력', '진상 대항력'을 한데 모은 초인적인 교사 에너지입니다! 위치 이동, 대화, 업무, 학생 개별 지도 등 하나의 이벤트가 실행될 때마다 소중한 1TP가 소모됩니다.",
     targetId: "tutorial-hp-bar",
-    positionClass: "fixed top-24 right-4 lg:right-[150px]"
+    positionClass: "bottom-6 left-1/2 -translate-x-1/2 lg:top-28 lg:right-6 lg:left-auto lg:translate-x-0"
   },
   {
-    title: "🌟 5대 핵심 교사 역량 스탯",
-    desc: "교사로서 지닌 5가지 핵심 역량(업무능력, 인간관계, 가족관계, 학급운영, 수업연구능력)입니다. 각 게이지에 마우스를 올리거나 터치하면 어떠한 행동에 의해 상승/하락하는지 공식과 근거를 볼 수 있습니다. 이 스탯 중 단 하나라도 0이 되면 즉시 게임오버가 되니 늘 집중관리해야 합니다!",
+    title: "📊 8대 핵심 교직 스탯 (생존 및 역량)",
+    desc: "교사로서 지닌 8가지 핵심 상태 지표(건강, 멘탈, 번아웃 및 5대 업무 역량)입니다. 각 게이지에 마우스를 올리거나 터치하면 어떠한 행동에 의해 상승/하락하는지 공식과 근거를 볼 수 있습니다. 이 스탯 중 건강/멘탈이 0이 되거나 번아웃이 100%가 되면 즉시 게임오버가 되니 늘 집중관리해야 합니다!",
     targetId: "tutorial-stats-panel",
     forcedTab: "left",
-    positionClass: "fixed bottom-10 left-4 lg:left-[26%] lg:bottom-auto lg:top-[50%]"
+    positionClass: "bottom-6 left-1/2 -translate-x-1/2 lg:top-[30%] lg:left-[28%] lg:translate-x-0"
   },
   {
     title: "📋 학급 교무수첩 (학생 명단)",
     desc: "선생님이 담당하는 우리 반 학생 10명의 목록입니다. 학생의 이름을 누르면 상세 정보와 숨겨진 성향 카드가 열립니다. 여기서 학생에게 꼭 맞는 지도 방침(💬공감, 💡이성, 🛡️훈육, 🎨강점, 🤝멘토링)을 선택해 교사력 1TP를 소모하고 개별 지도를 진행할 수 있습니다. 학생의 숨겨진 특성과의 상성에 따라 반응이 극명히 엇갈립니다.",
     targetId: "tutorial-students-panel",
     forcedTab: "left",
-    positionClass: "fixed top-1/3 left-4 lg:left-[26%]"
+    positionClass: "bottom-6 left-1/2 -translate-x-1/2 lg:top-[45%] lg:left-[28%] lg:translate-x-0"
   },
   {
     title: "📂 미결 행정 업무 리스트",
     desc: "교사에게 부여된 공문 및 행정 업무들입니다. 요구되는 교사력을 소모하여 결재 처리하거나 선배에게 위임할 수 있습니다. 마감일 이전에 해결하지 않고 방치한 채 퇴근하여 날을 넘기면, 다음 날 아침 강력한 업무 해태 패널티(스탯 대폭 차감)가 찾아옵니다.",
     targetId: "tutorial-tasks-panel",
     forcedTab: "right",
-    positionClass: "fixed top-1/3 right-4 lg:right-[26%]"
+    positionClass: "bottom-6 left-1/2 -translate-x-1/2 lg:top-[30%] lg:right-[28%] lg:left-auto lg:translate-x-0"
   },
   {
     title: "🏫 학교 메신저 및 스마트폰 연락",
     desc: "교육청/교감선생님이 보낸 공적 연락과 학부모 민원, 동료 교사의 사적 문자가 들어옵니다. 확인하지 않고 날을 넘기면 소통 방치에 따른 막대한 스탯 감소와 민원 급증 패널티를 받게 됩니다. 하루가 지나기 전 잊지 말고 꼭 확인해서 답장하세요!",
     targetId: "tutorial-alerts-panel",
     forcedTab: "right",
-    positionClass: "fixed bottom-10 right-4 lg:right-[26%] lg:bottom-auto lg:top-[55%]"
+    positionClass: "bottom-6 left-1/2 -translate-x-1/2 lg:top-[50%] lg:right-[28%] lg:left-auto lg:translate-x-0"
   },
   {
     title: "🏃‍♂️ 2D 학교 맵 (장소 이동)",
     desc: "교사력(TP)이 남아 있다면 학교 지도를 보고 캐릭터(👨‍🏫)를 교실, 교무실, 행정실 등으로 움직여 원하는 장소로 가세요. 각 장소에 있는 다양한 인물들과 대화하거나, 장소별 조사를 통해 예기치 못한 돌발 사건을 맞이하고 이를 극복해 나갑니다.",
     targetId: "tutorial-navigation-panel",
     forcedTab: "center",
-    positionClass: "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 lg:left-[35%] lg:-translate-x-0"
+    positionClass: "bottom-6 left-1/2 -translate-x-1/2 lg:top-[30%] lg:left-[38%] lg:translate-x-0"
   }
 ];
 
@@ -473,11 +473,15 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
 
   return (
     <div className="min-h-screen bg-[#F0ECE3] flex flex-col text-slate-800 transition-colors duration-300">
-      {/* 1. 상단 바: 핵심 지표 */}
-      <header className="bg-white border-b-4 border-slate-900 px-4 py-3 sticky top-0 z-30 shadow-md">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          {/* 날짜, 신상 정보 */}
-          <div className="flex items-center gap-3">
+      {/* 1. 상단 바: 날짜 및 교사력 (체력/멘탈/번아웃은 8대 통합 스탯으로 이동) */}
+      <header className={`bg-white border-b-4 border-slate-900 px-4 py-3 sticky top-0 shadow-md transition-all duration-300 ${
+        isTutorialActive && tutorialStep === 1 ? 'z-[1001] relative' : 'z-30'
+      }`}>
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          {/* 날짜, 신상 정보 (1단계 가이드 중 비타겟이므로 흐리게 처리) */}
+          <div className={`flex items-center gap-3 transition-opacity duration-300 ${
+            isTutorialActive && tutorialStep === 1 ? 'opacity-30 pointer-events-none' : ''
+          }`}>
             <div className="bg-slate-900 text-white rounded-xl px-4 py-2 border-2 border-black flex items-center gap-2 shadow-school-press">
               <Calendar className="w-5 h-5 text-amber-400" />
               <span className="font-school font-bold text-lg">{day}일 차</span>
@@ -485,7 +489,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
             <div>
               <h1 className="font-bold text-base text-slate-900 flex items-center gap-1.5">
                 <span>{playerInfo?.name} 교사</span>
-                <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full border border-slate-300">
+                <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full border border-slate-300 whitespace-nowrap">
                   {playerInfo?.grade}학년 담임
                 </span>
               </h1>
@@ -493,59 +497,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
             </div>
           </div>
 
-          {/* 스탯 바 그룹 (체력, 멘탈, 번아웃) */}
-          <div className="flex flex-wrap items-center gap-4 md:gap-6">
-            {/* 체력 */}
-            <div className="flex items-center gap-2">
-              <div className="bg-rose-100 p-1.5 rounded-lg border-2 border-black shadow-school-press">
-                <Heart className="w-4 h-4 text-rose-600 fill-rose-600" />
-              </div>
-              <div className="w-24 md:w-32">
-                <div className="flex justify-between text-xs font-bold mb-0.5">
-                  <span>건강</span>
-                  <span>{stats.hp}</span>
-                </div>
-                <div className="w-full bg-slate-200 h-2.5 rounded-full border border-black overflow-hidden">
-                  <div className="bg-rose-500 h-full rounded-full transition-all duration-300" style={{ width: `${stats.hp}%` }} />
-                </div>
-              </div>
-            </div>
-
-            {/* 멘탈 */}
-            <div className="flex items-center gap-2">
-              <div className="bg-sky-100 p-1.5 rounded-lg border-2 border-black shadow-school-press">
-                <Brain className="w-4 h-4 text-sky-600 fill-sky-600" />
-              </div>
-              <div className="w-24 md:w-32">
-                <div className="flex justify-between text-xs font-bold mb-0.5">
-                  <span>멘탈</span>
-                  <span>{stats.mental}</span>
-                </div>
-                <div className="w-full bg-slate-200 h-2.5 rounded-full border border-black overflow-hidden">
-                  <div className="bg-sky-400 h-full rounded-full transition-all duration-300" style={{ width: `${stats.mental}%` }} />
-                </div>
-              </div>
-            </div>
-
-            {/* 번아웃 */}
-            <div className="flex items-center gap-2">
-              <div className="bg-amber-100 p-1.5 rounded-lg border-2 border-black shadow-school-press">
-                <Flame className="w-4 h-4 text-amber-600 fill-amber-600" />
-              </div>
-              <div className="w-24 md:w-32">
-                <div className="flex justify-between text-xs font-bold mb-0.5">
-                  <span>번아웃</span>
-                  <span className={stats.burnout > 75 ? 'text-red-600 font-extrabold animate-pulse' : ''}>
-                    {stats.burnout}
-                  </span>
-                </div>
-                <div className="w-full bg-slate-200 h-2.5 rounded-full border border-black overflow-hidden">
-                  <div className="bg-amber-500 h-full rounded-full transition-all duration-300" style={{ width: `${stats.burnout}%` }} />
-                </div>
-              </div>
-            </div>
-
-            {/* 교사력 (TP) */}
+          {/* 교사력 및 나가기 버튼 */}
+          <div className="flex items-center gap-4 justify-between sm:justify-end">
+            {/* 교사력 (TP) - 1단계 하이라이트 */}
             <div 
               id="tutorial-hp-bar"
               className={`flex items-center gap-1.5 bg-yellow-100 border-2 border-yellow-400 rounded-xl px-3 py-1.5 shadow-school-press relative group cursor-help transition-all duration-300 ${
@@ -554,23 +508,25 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                   : ''
               }`}
             >
-              <Clock className="w-4 h-4 text-yellow-700" />
-              <span className="text-xs font-bold text-yellow-800">
+              <Clock className="w-4 h-4 text-yellow-700 animate-pulse" />
+              <span className="text-xs font-bold text-yellow-800 whitespace-nowrap">
                 교사력 {actionPoints} / {maxActionPoints} TP
               </span>
               
               {/* 마우스오버 규칙 설명 툴팁 */}
-              <div className="absolute top-full right-0 mt-2 w-72 bg-slate-900 text-white text-xs p-3.5 rounded-xl border border-slate-700 shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 z-[1050] leading-relaxed font-semibold">
+              <div className="absolute top-full right-0 mt-2 w-72 bg-slate-900 text-white text-xs p-3.5 rounded-xl border border-slate-700 shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 z-[1050] leading-relaxed font-semibold break-keep text-left">
                 <span className="font-extrabold text-yellow-400 flex items-center gap-1 mb-1">⚡ 교사력 (Teacher Power) 관리 규칙:</span>
                 <p>• 매일 아침 교사에게는 5TP의 교사력이 기본으로 주어집니다.</p>
                 <p className="mt-1">• 위치 이동, 대화, 업무, 학생 개별 지도 등 하나의 이벤트가 발생할 때마다 교사력 1TP가 소모됩니다.</p>
               </div>
             </div>
             
-            {/* 타이틀 복귀 */}
+            {/* 타이틀 복귀 (1단계 가이드 중 비타겟이므로 흐리게 처리) */}
             <button
               onClick={onExitGame}
-              className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg border-2 border-black active:translate-y-0.5 shadow-school-press"
+              className={`p-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg border-2 border-black active:translate-y-0.5 shadow-school-press transition-opacity duration-300 ${
+                isTutorialActive && tutorialStep === 1 ? 'opacity-30 pointer-events-none' : ''
+              }`}
               title="게임 저장 후 타이틀로"
             >
               <LogOut className="w-4 h-4 text-slate-700" />
@@ -608,16 +564,175 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6 relative">
         
         {/* ================= 좌측 패널 (lg:col-span-3): 학급현황 ================= */}
-        <section className={`lg:col-span-3 space-y-4 ${activeTab === 'left' ? 'block' : 'hidden lg:block'}`}>
+        <section className={`lg:col-span-3 space-y-4 ${activeTab === 'left' ? 'block' : 'hidden lg:block'} transition-all duration-300 ${
+          isTutorialActive && (tutorialStep === 2 || tutorialStep === 3) ? 'z-[1001] relative' : ''
+        }`}>
+          {/* 1. [상단 배치] 8대 핵심 교직 스탯 (생존 및 역량 스탯 통합) */}
+          <div 
+            id="tutorial-stats-panel"
+            className={`paper-card bg-white p-4 space-y-3.5 transition-all duration-300 ${
+              isTutorialActive && tutorialStep === 2 
+                ? 'z-[1000] relative ring-4 ring-[#FF007F] ring-offset-4 ring-offset-slate-900 animate-pulse border-[#FF007F]' 
+                : isTutorialActive 
+                  ? 'opacity-30 pointer-events-none' 
+                  : ''
+            }`}
+          >
+            <h3 className="font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-2 flex items-center gap-1.5 text-base">
+              <span>📊 주인공 교사 스탯 (8대 핵심 지표)</span>
+            </h3>
+            <p className="text-xs text-slate-400 font-medium">항목별 터치/마우스 오버 시 세부 정보와 생존 조건이 표시됩니다.</p>
+            
+            <div className="space-y-3.5">
+              {/* [생존 스탯 1] 건강 */}
+              <div className="relative group cursor-help">
+                <div className="flex justify-between text-sm font-bold mb-1">
+                  <span className="text-slate-700 flex items-center gap-1">🏥 건강 (물리 체력)</span>
+                  <span className={`font-mono ${stats.hp < 30 ? 'text-red-600 font-extrabold animate-pulse' : 'text-rose-600'}`}>{stats.hp} / 100</span>
+                </div>
+                <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
+                  <div className="bg-rose-500 h-full rounded-full transition-all duration-300" style={{ width: `${stats.hp}%` }} />
+                </div>
+                {/* 건강 툴팁 */}
+                <div className="absolute left-0 bottom-full mb-2 w-72 bg-slate-900 text-white text-xs rounded-xl p-3.5 shadow-xl hidden group-hover:block z-50 border border-slate-700 leading-relaxed pointer-events-none animate-fade-in font-normal break-keep text-left">
+                  <p className="font-bold text-rose-300 mb-1 text-sm">🏥 건강 (Health Points)</p>
+                  <p className="text-slate-200">교사의 육체적 에너지입니다. 출퇴근 거리, 피로 축적, 일부 사건 해결 및 업무 과중에 따라 하락합니다. 보건실에서 요양하거나 정시 퇴근하면 충전됩니다. <strong className="text-red-400 font-extrabold">0이 되면 번아웃 병가로 실직(게임 오버)합니다.</strong></p>
+                </div>
+              </div>
+
+              {/* [생존 스탯 2] 멘탈 */}
+              <div className="relative group cursor-help">
+                <div className="flex justify-between text-sm font-bold mb-1">
+                  <span className="text-slate-700 flex items-center gap-1">🧠 멘탈 (정신력)</span>
+                  <span className={`font-mono ${stats.mental < 30 ? 'text-red-600 font-extrabold animate-pulse' : 'text-sky-650'}`}>{stats.mental} / 100</span>
+                </div>
+                <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
+                  <div className="bg-sky-400 h-full rounded-full transition-all duration-300" style={{ width: `${stats.mental}%` }} />
+                </div>
+                {/* 멘탈 툴팁 */}
+                <div className="absolute left-0 bottom-full mb-2 w-72 bg-slate-900 text-white text-xs rounded-xl p-3.5 shadow-xl hidden group-hover:block z-50 border border-slate-700 leading-relaxed pointer-events-none animate-fade-in font-normal break-keep text-left">
+                  <p className="font-bold text-sky-300 mb-1 text-sm">🧠 멘탈 (Mental Balance)</p>
+                  <p className="text-slate-200">정신적 평정심과 정신력입니다. 학부모 민원 폭탄, 교실 난동 사건, 동료와의 불화 시 크게 깎입니다. 상담, 휴식, 긍정적인 메시지 확인 등으로 복구할 수 있습니다. <strong className="text-red-400 font-extrabold">0이 되면 번아웃 휴직(게임 오버)합니다.</strong></p>
+                </div>
+              </div>
+
+              {/* [생존 스탯 3] 번아웃 */}
+              <div className="relative group cursor-help">
+                <div className="flex justify-between text-sm font-bold mb-1">
+                  <span className="text-slate-700 flex items-center gap-1">🔥 번아웃 (피로도)</span>
+                  <span className={`font-mono ${stats.burnout > 70 ? 'text-red-600 font-extrabold animate-pulse' : 'text-amber-600'}`}>{stats.burnout} %</span>
+                </div>
+                <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
+                  <div className="bg-amber-500 h-full rounded-full transition-all duration-300" style={{ width: `${stats.burnout}%` }} />
+                </div>
+                {/* 번아웃 툴팁 */}
+                <div className="absolute left-0 bottom-full mb-2 w-72 bg-slate-900 text-white text-xs rounded-xl p-3.5 shadow-xl hidden group-hover:block z-50 border border-slate-700 leading-relaxed pointer-events-none animate-fade-in font-normal break-keep text-left">
+                  <p className="font-bold text-amber-300 mb-1 text-sm">🔥 번아웃 지표 (Burnout Rate)</p>
+                  <p className="text-slate-200">일과 후 누적되는 극심한 피로도 비율입니다. 미결 업무 방치, 밤샘 야근, 주말 당직 시 상승합니다. 칼퇴근 및 적당한 위임으로 누적을 늦출 수 있습니다. <strong className="text-red-400 font-extrabold">100%에 도달하면 탈진 퇴직(게임 오버)합니다.</strong></p>
+                </div>
+              </div>
+
+              <div className="border-t border-slate-200 my-2 pt-2" />
+
+              {/* [역량 스탯 1] 업무능력 */}
+              <div className="relative group cursor-help">
+                <div className="flex justify-between text-sm font-bold mb-1">
+                  <span className="text-slate-700">💼 업무능력</span>
+                  <span className="text-indigo-700 font-mono">{stats.workCapacity} / 100</span>
+                </div>
+                <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
+                  <div className="bg-indigo-500 h-full rounded-full transition-all duration-300" style={{ width: `${stats.workCapacity}%` }} />
+                </div>
+                {/* 툴팁 */}
+                <div className="absolute left-0 bottom-full mb-2 w-72 bg-slate-900 text-white text-xs rounded-xl p-3.5 shadow-xl hidden group-hover:block z-50 border border-slate-700 leading-relaxed pointer-events-none animate-fade-in font-normal break-keep text-left">
+                  <p className="font-bold text-indigo-300 mb-1 text-sm">💼 업무능력 (Work Capacity)</p>
+                  <p className="mb-1 text-slate-300 font-mono text-[10.5px]">공식: 전문성 40% + 행정 40% + 관리자신뢰 20%</p>
+                  <p className="text-slate-200">공문 기안 완수, 행정 예산 협조, 미결 업무의 당일 결재 완료 시 <strong className="text-emerald-400">상승</strong>합니다. 미결 업무나 메신저를 방치하고 날을 넘길 시 <strong className="text-rose-400">급격히 하락</strong>합니다.</p>
+                </div>
+              </div>
+
+              {/* [역량 스탯 2] 인간관계 */}
+              <div className="relative group cursor-help">
+                <div className="flex justify-between text-sm font-bold mb-1">
+                  <span className="text-slate-700">🤝 인간관계</span>
+                  <span className="text-emerald-700 font-mono">{stats.interpersonal} / 100</span>
+                </div>
+                <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
+                  <div className="bg-emerald-500 h-full rounded-full transition-all duration-300" style={{ width: `${stats.interpersonal}%` }} />
+                </div>
+                {/* 툴팁 */}
+                <div className="absolute left-0 bottom-full mb-2 w-72 bg-slate-900 text-white text-xs rounded-xl p-3.5 shadow-xl hidden group-hover:block z-50 border border-slate-700 leading-relaxed pointer-events-none animate-fade-in font-normal break-keep text-left">
+                  <p className="font-bold text-emerald-300 mb-1 text-sm">🤝 인간관계 (Interpersonal)</p>
+                  <p className="mb-1 text-slate-300 font-mono text-[10.5px]">공식: 동료관계 30% + 학생신뢰 30% + 학부모신뢰 30% + 동료연대감 10%</p>
+                  <p className="text-slate-200">동료들과의 사교, 학생/학부모 개별 상담, 스마트폰 감사 연락 답장 시 <strong className="text-emerald-400">상승</strong>합니다. 전화/문자 민원이나 연락을 방치할 시 <strong className="text-rose-400">급격히 하락</strong>합니다.</p>
+                </div>
+              </div>
+
+              {/* [역량 스탯 3] 가족관계 */}
+              <div className="relative group cursor-help">
+                <div className="flex justify-between text-sm font-bold mb-1">
+                  <span className="text-slate-700">❤️ 가족관계</span>
+                  <span className="text-rose-700 font-mono">{stats.familyRelation} / 100</span>
+                </div>
+                <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
+                  <div className="bg-rose-400 h-full rounded-full transition-all duration-300" style={{ width: `${stats.familyRelation}%` }} />
+                </div>
+                {/* 툴팁 */}
+                <div className="absolute left-0 bottom-full mb-2 w-72 bg-slate-900 text-white text-xs rounded-xl p-3.5 shadow-xl hidden group-hover:block z-50 border border-slate-700 leading-relaxed pointer-events-none animate-fade-in font-normal break-keep text-left">
+                  <p className="font-bold text-rose-300 mb-1 text-sm">❤️ 가족관계 (Family Relation)</p>
+                  <p className="mb-1 text-slate-300 font-mono text-[10.5px]">공식: 가정만족도와 1:1 비례</p>
+                  <p className="text-slate-200">칼퇴근 고수, 주말 사적인 동원 거절, 스마트폰 격려 연락 답장 시 <strong className="text-emerald-400">상승</strong>합니다. 야근 수행, 주말 친목 모임 강제 참석 시 <strong className="text-rose-400">하락</strong>합니다.</p>
+                </div>
+              </div>
+
+              {/* [역량 스탯 4] 학급운영 */}
+              <div className="relative group cursor-help">
+                <div className="flex justify-between text-sm font-bold mb-1">
+                  <span className="text-slate-700">🎒 학급운영</span>
+                  <span className="text-amber-700 font-mono">{stats.classManagement} / 100</span>
+                </div>
+                <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
+                  <div className="bg-amber-500 h-full rounded-full transition-all duration-300" style={{ width: `${stats.classManagement}%` }} />
+                </div>
+                {/* 툴팁 */}
+                <div className="absolute left-0 bottom-full mb-2 w-72 bg-slate-900 text-white text-xs rounded-xl p-3.5 shadow-xl hidden group-hover:block z-50 border border-slate-700 leading-relaxed pointer-events-none animate-fade-in font-normal break-keep text-left">
+                  <p className="font-bold text-amber-300 mb-1 text-sm">🎒 학급운영 (Class Management)</p>
+                  <p className="mb-1 text-slate-300 font-mono text-[10.5px]">공식: 학생신뢰 50% + 학부모신뢰 30% + 교육소신 20%</p>
+                  <p className="text-slate-200">아침 교실 조회, 급식 지도, 교문 등교 안전 지도, 책임 훈육 실천 시 <strong className="text-emerald-400">상승</strong>합니다. 학부모 민원을 방임하거나 학생 갈등을 씹고 날을 넘길 시 <strong className="text-rose-400">하락</strong>합니다.</p>
+                </div>
+              </div>
+
+              {/* [역량 스탯 5] 수업연구능력 */}
+              <div className="relative group cursor-help">
+                <div className="flex justify-between text-sm font-bold mb-1">
+                  <span className="text-slate-700">💡 수업연구능력</span>
+                  <span className="text-sky-700 font-mono">{stats.teachingResearch} / 100</span>
+                </div>
+                <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
+                  <div className="bg-sky-500 h-full rounded-full transition-all duration-300" style={{ width: `${stats.teachingResearch}%` }} />
+                </div>
+                {/* 툴팁 */}
+                <div className="absolute left-0 bottom-full mb-2 w-72 bg-slate-900 text-white text-xs rounded-xl p-3.5 shadow-xl hidden group-hover:block z-50 border border-slate-700 leading-relaxed pointer-events-none animate-fade-in font-normal break-keep text-left">
+                  <p className="font-bold text-sky-300 mb-1 text-sm">💡 수업연구능력 (Teaching Research)</p>
+                  <p className="mb-1 text-slate-300 font-mono text-[10.5px]">공식: 수업전문성 70% + 교육적보람 30%</p>
+                  <p className="text-slate-200">타 교실 수업 참관, 도서실 교안 정리, 과학실 안전 점검 시 <strong className="text-emerald-400">상승</strong>합니다. 업무 미결 방치 및 수업 준비 미흡 시 <strong className="text-rose-400">하락</strong>합니다.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. 학급 교무수첩 (학생 현황) - 3단계 하이라이트 */}
           <div 
             id="tutorial-students-panel"
             className={`paper-card bg-white p-4 transition-all duration-300 ${
               isTutorialActive && tutorialStep === 3 
                 ? 'z-[1000] relative ring-4 ring-[#FF007F] ring-offset-4 ring-offset-slate-900 animate-pulse border-[#FF007F]' 
-                : ''
+                : isTutorialActive 
+                  ? 'opacity-30 pointer-events-none' 
+                  : ''
             }`}
           >
-            <h3 className="font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-2 mb-3 flex items-center gap-1.5">
+            <h3 className="font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-2 mb-3 flex items-center gap-1.5 text-base">
               <Users className="w-5 h-5 text-emerald-600" />
               학급 교무수첩 (학생 현황)
             </h3>
@@ -646,116 +761,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
             </div>
           </div>
 
-          {/* 5대 핵심 교사 역량 지표 (마우스 오버 툴팁 지원) */}
-          <div 
-            id="tutorial-stats-panel"
-            className={`paper-card bg-white p-4 space-y-3 transition-all duration-300 ${
-              isTutorialActive && tutorialStep === 2 
-                ? 'z-[1000] relative ring-4 ring-[#FF007F] ring-offset-4 ring-offset-slate-900 animate-pulse border-[#FF007F]' 
-                : ''
-            }`}
-          >
-            <h3 className="font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-2 flex items-center gap-1.5 text-base">
-              <span>🌟 5대 핵심 교사 역량</span>
-            </h3>
-            <p className="text-xs text-slate-400 font-medium">마우스 오버 시 스탯 영향 인과 가이드가 표시됩니다.</p>
-            
-            <div className="space-y-3.5">
-              {/* 업무능력 */}
-              <div className="relative group cursor-help">
-                <div className="flex justify-between text-sm font-bold mb-1">
-                  <span className="text-slate-700">💼 업무능력</span>
-                  <span className="text-indigo-700 font-mono">{stats.workCapacity} / 100</span>
-                </div>
-                <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
-                  <div className="bg-indigo-500 h-full rounded-full transition-all duration-300" style={{ width: `${stats.workCapacity}%` }} />
-                </div>
-                
-                {/* 툴팁 */}
-                <div className="absolute left-0 bottom-full mb-2 w-72 bg-slate-900 text-white text-xs rounded-xl p-3.5 shadow-xl hidden group-hover:block z-50 border border-slate-700 leading-relaxed pointer-events-none animate-fade-in font-normal">
-                  <p className="font-bold text-indigo-300 mb-1 text-sm">💼 업무능력 (Work Capacity)</p>
-                  <p className="mb-1 text-slate-300 font-mono text-[10.5px]">공식: 전문성 40% + 행정 40% + 관리자신뢰 20%</p>
-                  <p className="text-slate-200">공문 기안 완수, 행정 예산 협조, 미결 업무의 당일 결재 완료 시 <strong className="text-emerald-400">상승</strong>합니다. 미결 업무나 메신저를 방치하고 날을 넘길 시 <strong className="text-rose-400">급격히 하락</strong>합니다.</p>
-                </div>
-              </div>
-
-              {/* 인간관계 */}
-              <div className="relative group cursor-help">
-                <div className="flex justify-between text-sm font-bold mb-1">
-                  <span className="text-slate-700">🤝 인간관계</span>
-                  <span className="text-emerald-700 font-mono">{stats.interpersonal} / 100</span>
-                </div>
-                <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
-                  <div className="bg-emerald-500 h-full rounded-full transition-all duration-300" style={{ width: `${stats.interpersonal}%` }} />
-                </div>
-                
-                {/* 툴팁 */}
-                <div className="absolute left-0 bottom-full mb-2 w-72 bg-slate-900 text-white text-xs rounded-xl p-3.5 shadow-xl hidden group-hover:block z-50 border border-slate-700 leading-relaxed pointer-events-none animate-fade-in font-normal">
-                  <p className="font-bold text-emerald-300 mb-1 text-sm">🤝 인간관계 (Interpersonal)</p>
-                  <p className="mb-1 text-slate-300 font-mono text-[10.5px]">공식: 동료관계 30% + 학생신뢰 30% + 학부모신뢰 30% + 동료연대감 10%</p>
-                  <p className="text-slate-200">동료들과의 사교, 학생/학부모 개별 상담, 스마트폰 감사 연락 답장 시 <strong className="text-emerald-400">상승</strong>합니다. 전화/문자 민원이나 연락을 방치할 시 <strong className="text-rose-400">급격히 하락</strong>합니다.</p>
-                </div>
-              </div>
-
-              {/* 가족관계 */}
-              <div className="relative group cursor-help">
-                <div className="flex justify-between text-sm font-bold mb-1">
-                  <span className="text-slate-700">❤️ 가족관계</span>
-                  <span className="text-rose-700 font-mono">{stats.familyRelation} / 100</span>
-                </div>
-                <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
-                  <div className="bg-rose-400 h-full rounded-full transition-all duration-300" style={{ width: `${stats.familyRelation}%` }} />
-                </div>
-                
-                {/* 툴팁 */}
-                <div className="absolute left-0 bottom-full mb-2 w-72 bg-slate-900 text-white text-xs rounded-xl p-3.5 shadow-xl hidden group-hover:block z-50 border border-slate-700 leading-relaxed pointer-events-none animate-fade-in font-normal">
-                  <p className="font-bold text-rose-300 mb-1 text-sm">❤️ 가족관계 (Family Relation)</p>
-                  <p className="mb-1 text-slate-300 font-mono text-[10.5px]">공식: 가정만족도와 1:1 비례</p>
-                  <p className="text-slate-200">칼퇴근 고수, 주말 사적인 동원 거절, 스마트폰 격려 연락 답장 시 <strong className="text-emerald-400">상승</strong>합니다. 야근 수행, 주말 친목 모임 강제 참석 시 <strong className="text-rose-400">하락</strong>합니다.</p>
-                </div>
-              </div>
-
-              {/* 학급운영 */}
-              <div className="relative group cursor-help">
-                <div className="flex justify-between text-sm font-bold mb-1">
-                  <span className="text-slate-700">🎒 학급운영</span>
-                  <span className="text-amber-700 font-mono">{stats.classManagement} / 100</span>
-                </div>
-                <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
-                  <div className="bg-amber-500 h-full rounded-full transition-all duration-300" style={{ width: `${stats.classManagement}%` }} />
-                </div>
-                
-                {/* 툴팁 */}
-                <div className="absolute left-0 bottom-full mb-2 w-72 bg-slate-900 text-white text-xs rounded-xl p-3.5 shadow-xl hidden group-hover:block z-50 border border-slate-700 leading-relaxed pointer-events-none animate-fade-in font-normal">
-                  <p className="font-bold text-amber-300 mb-1 text-sm">🎒 학급운영 (Class Management)</p>
-                  <p className="mb-1 text-slate-300 font-mono text-[10.5px]">공식: 학생신뢰 50% + 학부모신뢰 30% + 교육소신 20%</p>
-                  <p className="text-slate-200">아침 교실 조회, 급식 지도, 교문 등교 안전 지도, 책임 훈육 실천 시 <strong className="text-emerald-400">상승</strong>합니다. 학부모 민원을 방임하거나 학생 갈등을 씹고 날을 넘길 시 <strong className="text-rose-400">하락</strong>합니다.</p>
-                </div>
-              </div>
-
-              {/* 수업연구능력 */}
-              <div className="relative group cursor-help">
-                <div className="flex justify-between text-sm font-bold mb-1">
-                  <span className="text-slate-700">💡 수업연구능력</span>
-                  <span className="text-sky-700 font-mono">{stats.teachingResearch} / 100</span>
-                </div>
-                <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
-                  <div className="bg-sky-500 h-full rounded-full transition-all duration-300" style={{ width: `${stats.teachingResearch}%` }} />
-                </div>
-                
-                {/* 툴팁 */}
-                <div className="absolute left-0 bottom-full mb-2 w-72 bg-slate-900 text-white text-xs rounded-xl p-3.5 shadow-xl hidden group-hover:block z-50 border border-slate-700 leading-relaxed pointer-events-none animate-fade-in font-normal">
-                  <p className="font-bold text-sky-300 mb-1 text-sm">💡 수업연구능력 (Teaching Research)</p>
-                  <p className="mb-1 text-slate-300 font-mono text-[10.5px]">공식: 수업전문성 70% + 교육적보람 30%</p>
-                  <p className="text-slate-200">타 교실 수업 참관, 도서실 교안 정리, 과학실 안전 점검 시 <strong className="text-emerald-400">상승</strong>합니다. 업무 미결 방치 및 수업 준비 미흡 시 <strong className="text-rose-400">하락</strong>합니다.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 스탯 상세 지표 모음 */}
-          <div className="paper-card bg-white p-4">
-            <h3 className="font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-2 mb-3">
+          {/* 3. 누적 교육 신뢰 지표 모음 카드 */}
+          <div className={`paper-card bg-white p-4 transition-all duration-300 ${
+            isTutorialActive ? 'opacity-30 pointer-events-none' : ''
+          }`}>
+            <h3 className="font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-2 mb-3 text-base">
               🏫 누적 교육 신뢰 지표
             </h3>
             <div className="space-y-2 text-xs font-semibold">
@@ -1236,7 +1246,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                               {/* 2. 장소 고유 행동 & 돌발 사건 구역 */}
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-200 pt-4">
                                 <div>
-                                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">⚡ 장소 고유 행동 (AP 1 소모)</h4>
+                                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">⚡ 장소 고유 행동 (TP 1 소모)</h4>
                                   {currentLocation === 'classroom' && (
                                     <button
                                       onClick={() => executeLocationAction('classroom_lead')}
@@ -1344,7 +1354,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                                 </div>
 
                                 <div>
-                                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">🔍 돌발 사건 탐색 (AP 1 소모)</h4>
+                                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">🔍 돌발 사건 탐색 (TP 1 소모)</h4>
                                   {currentLocation === 'health_room' ? (
                                     <p className="text-xs text-slate-400 italic mt-2 bg-slate-50 p-3 rounded-lg border border-slate-200 text-center font-medium">
                                       보건실은 회복 전용 구역이므로 사건이 일어나지 않습니다.
@@ -1372,14 +1382,18 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
         </section>
 
         {/* ================= 우측 패널 (lg:col-span-3): 업무보드 & 스마트폰 ================= */}
-        <section className={`lg:col-span-3 space-y-4 ${activeTab === 'right' ? 'block' : 'hidden lg:block'}`}>
+        <section className={`lg:col-span-3 space-y-4 ${activeTab === 'right' ? 'block' : 'hidden lg:block'} transition-all duration-300 ${
+          isTutorialActive && (tutorialStep === 4 || tutorialStep === 5) ? 'z-[1001] relative' : ''
+        }`}>
           {/* 업무 보드 */}
           <div 
             id="tutorial-tasks-panel"
             className={`paper-card bg-white p-4 transition-all duration-300 ${
               isTutorialActive && tutorialStep === 4 
                 ? 'z-[1000] relative ring-4 ring-[#FF007F] ring-offset-4 ring-offset-slate-900 animate-pulse border-[#FF007F]' 
-                : ''
+                : isTutorialActive 
+                  ? 'opacity-30 pointer-events-none' 
+                  : ''
             }`}
           >
             <h3 className="font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-2 mb-3 flex items-center gap-1.5">
@@ -1437,7 +1451,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
             className={`paper-card bg-white p-4 transition-all duration-300 ${
               isTutorialActive && tutorialStep === 5 
                 ? 'z-[1000] relative ring-4 ring-[#FF007F] ring-offset-4 ring-offset-slate-900 animate-pulse border-[#FF007F]' 
-                : ''
+                : isTutorialActive 
+                  ? 'opacity-30 pointer-events-none' 
+                  : ''
             }`}
           >
             <h3 className="font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-2 mb-3 flex items-center gap-1.5">

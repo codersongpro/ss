@@ -221,6 +221,23 @@ const getInitialStats = (difficulty: 'warm' | 'realistic' | 'hard', traits: stri
   if (traits.includes('칼퇴 수호자')) {
     baseStats.familySatisfaction += 20;
   }
+  // 신규 특성 4종 보너스 연동 적용 [한글 주석 포함]
+  if (traits.includes('강철 멘탈')) {
+    baseStats.mental += 15;
+    baseStats.hp += 5;
+  }
+  if (traits.includes('인싸 교사')) {
+    baseStats.colleagueRelation += 15;
+    baseStats.colleagueSolidarity += 15;
+  }
+  if (traits.includes('학부모 카운셀러')) {
+    baseStats.parentTrust += 15;
+    baseStats.parentComplaint = Math.max(0, baseStats.parentComplaint - 10);
+  }
+  if (traits.includes('열혈 멘토')) {
+    baseStats.studentTrust += 10;
+    baseStats.teachingSatisfaction += 15;
+  }
 
   // 5대 핵심 교사 역량 동기화 반영 후 반환
   return syncNewStats(baseStats);
@@ -486,7 +503,7 @@ export const useGameStore = create<GameState>()(
           dayEffectsTriggered: [],
           actionPoints: maxAP,
           maxActionPoints: maxAP,
-          recentLogs: ['새 학기 첫 출근을 시작했습니다. 90일 교사 서사가 막을 올립니다.']
+          recentLogs: ['새 학기 첫 출근을 시작했습니다. 30일 교사 서사가 막을 올립니다.']
         });
 
         // [NEW] 캐릭터 배치 셔플 및 메신저 생성
@@ -3208,12 +3225,27 @@ export const useGameStore = create<GameState>()(
           );
         });
 
-        // 긍정 이벤트일 땐 교사력 소모 0, 부정일 땐 교사력 1TP 감원
-        const apChange = isPositive ? 0 : -1;
-        const logActionType = isPositive ? '스마트폰 격려' : '스마트폰 대응';
-        const apMsg = isPositive ? '교사력 소모 없음' : '교사력 1TP 소모';
+        // 긍정 이벤트일 때 15% 확률로 힐링 커피/차 기프티콘 보너스 (교사력 1TP 충전) [한글 주석 포함]
+        let apChange = -1;
+        let logActionType = '스마트폰 대응';
+        let apMsg = '교사력 1TP 소모';
+        let finalResultText = resultText;
 
-        const logMsg = `[폰 연락 처리] ${resultText.slice(0, 30)}...`;
+        if (isPositive) {
+          logActionType = '스마트폰 격려';
+          // 15% 확률로 TP 1 회복 보너스 당첨
+          const isTpBonus = Math.random() < 0.15;
+          if (isTpBonus) {
+            apChange = 1;
+            apMsg = '선물 힐링으로 교사력 1TP 회복!';
+            finalResultText = `${resultText}\n\n🎁 [힐링 보너스] 학부모 또는 동료 교사의 따뜻한 감사 선물(기프티콘/매실차 등) 덕분에 힘이 납니다! (교사력(TP) +1 회복!)`;
+          } else {
+            apChange = 0;
+            apMsg = '교사력 소모 없음';
+          }
+        }
+
+        const logMsg = `[폰 연락 처리] ${finalResultText.slice(0, 30)}...`;
         const updatedLogs = [
           `[${day}일차] ${logActionType} (${apMsg}): ${logMsg}`,
           ...recentLogs.slice(0, 19)
@@ -3250,7 +3282,7 @@ export const useGameStore = create<GameState>()(
           completedPositiveEvents: updatedCompletedPositiveEvents,
           activePhoneAndTextEvent: {
             ...activePhoneAndTextEvent,
-            previewText: resultText,
+            previewText: finalResultText,
             choices: [] // 선택지 배열을 지워서 확인 버튼만 띄우게 함
           }
         });
