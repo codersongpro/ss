@@ -137,6 +137,79 @@ export const colleagueDialogueEvents: DialogueEvent[] = Array.from({ length: 150
     "학교 보안 서약서 미제출 교사 연락 대조", "교내 소방 기재 작동 여부 전수 점검 날인", "학생 결석계 증빙서 미비자 보완 요구 연락", "체육실 매트 보관대 바퀴 균열 보수 신청"
   ];
 
+  // 말투 다변화를 위한 다양한 대사 조합 파츠들 [NEW]
+  const PREFIX_TEMPLATES = [
+    "선생님, 바쁘신 와중에 정말 죄송하지만...",
+    "저기, 혹시 아주 잠깐만 이야기 나눌 수 있을까요?",
+    "선생님, 이건 다소 시급하고 민감한 건인데요...",
+    "다른 게 아니라 조금 곤란한 상황이 생겨서 도움을 청해요.",
+    "휴, 매번 이런 식으로 일이 진행되니 참 머리가 지끈거리네요.",
+    "선생님, 혹시 이 건에 대해 미리 전해 들으신 이야기가 있으신지...",
+    "어머나 선생님! 지금 메신저 돌아가는 상황 보셨나요?",
+    "이 안건 때문에 지금 행정실 쪽 분위기가 영 심상치 않네요.",
+    "저... 실례가 되지 않는다면 비공식적으로 긴급히 나눌 이야기가 있습니다.",
+    "교직 생활 동안 매년 겪지만 이건 참 적응이 안 되네요.",
+    "선생님, 이번 결재 안건은 아무래도 다들 기피하는 눈치예요.",
+    "오늘 갑자기 이런 공문 협조가 떨어져서 당황스러우시죠?",
+    "선생님도 아시겠지만, 이 건이 생각보다 복잡하게 얽혀서요.",
+    "죄송해요, 퇴근 시간 앞두고 이런 골치 아픈 얘기를 꺼내서...",
+    "선생님, 긴급하게 조율이 필요한 사항이 있어서 찾아왔습니다."
+  ];
+
+  const TASK_TEMPLATES = [
+    "이번에 내려온 \"{task}\"에 관한 긴급 협조 및 결재가 밀려왔는데,",
+    "당장 기한이 코앞인 \"{task}\" 건을 얼른 조율해야 하는데,",
+    "행정실에서 급하게 넘긴 \"{task}\" 서류가 아직도 묶여 있어서,",
+    "부서 간 폭탄 돌리기가 한창인 \"{task}\" 안건을 두고 다들 눈치만 보네요.",
+    "실무 부서와 의견 대립이 있는 \"{task}\" 일정 조율이 시급한 상황인데,",
+    "다들 자기 일이 아니라며 손놓고 있는 \"{task}\" 처리가 완전히 붕 떴습니다.",
+    "기획 단계부터 말썽이었던 \"{task}\" 결재 라인에 이상 기류가 흐르고 있어요.",
+    "교무실과 행정실 사이에 낀 \"{task}\" 협조 서명이 완전히 멈춰 서서,",
+    "이거 까딱하면 독박 쓰기 딱 좋은 \"{task}\" 건이 닥쳐왔습니다.",
+    "기한 내에 꼭 협조를 받아내야 하는 \"{task}\" 서명이 표류 중인데,",
+    "원래 저희 부서 소관이 아니었음에도 떠맡게 된 \"{task}\" 때문에,",
+    "오늘 중으로 무조건 마쳐야 하는 \"{task}\" 서류를 두고,",
+    "행정실장님과 부장 선생님들의 갈등이 폭발하기 직전인 \"{task}\" 건인데,",
+    "의견 합치가 전혀 되지 않아 겉돌고만 있는 \"{task}\" 계획서 문제로,",
+    "서로 꼬투리를 잡으며 질질 끌고 있는 \"{task}\" 기안 처리를 두고"
+  ];
+
+  const CONFLICT_TEMPLATES = [
+    "행정실이나 동료 부서 간에 협조 서명 기한을 두고 보이지 않는 미묘한 갈등이 존재합니다.",
+    "행정실과 실무 교사들 사이에 보이지 않는 팽팽한 신경전이 계속되고 있어요.",
+    "다들 면피할 궁리만 하느라 결재 칸이 며칠째 빈칸으로 방치되어 있습니다.",
+    "이것 때문에 오늘 아침부터 부장님들 표정이 아주 굳어 있네요.",
+    "이대로 잘못 결재를 올렸다간 나중에 교육청 감사 때 큰 책임을 질 게 뻔하거든요.",
+    "자기 부서 일이 아니라며 다들 결재를 미루는 바람에 아주 난처하게 되었습니다.",
+    "정작 실무선에서는 불만이 턱끝까지 차올라 폭발하기 직전의 분위기예요.",
+    "서로 책임을 전가하며 기한 내 서명을 미루고 있어 차가운 공기가 흐릅니다.",
+    "결국 힘없는 평교사들이 독박을 써야 하는 구조라 다들 소극적으로 대처하고 있네요.",
+    "각 부서 부장님들이 단톡방에서 대답도 안 하시고 다들 입을 다물고 계십니다.",
+    "자존심 싸움을 하느라 결재 기한이 지나면 학교 평가 감점이 예상되는 상황이에요.",
+    "행정실에서는 규정만 내세우고 교사들은 현실을 무시한다며 대립이 커지고 있습니다.",
+    "정작 책임질 부장님은 출장을 핑계로 자리를 비운 채 방치하고 있네요.",
+    "서로 흠집을 잡으려고 서류 문장 하나하나에 토를 달며 기 싸움 중입니다.",
+    "누가 먼저 총대를 멜지 눈빛 교환만 치열하게 벌어지는 곤욕스러운 기류예요."
+  ];
+
+  const ACTION_TEMPLATES = [
+    "교무 수첩을 가리키며 긴밀히 조언합니다.",
+    "주변을 힐끗 살피며 나지막한 목소리로 은밀하게 귀띔합니다.",
+    "한숨을 푹 쉬고는 기안서 결재란을 짚으며 조언을 구합니다.",
+    "기안판을 두 손으로 꼭 쥔 채 난처한 눈빛으로 바라봅니다.",
+    "컴퓨터 모니터의 빨간색 나이스 반려 메시지를 보여주며 한숨을 쉽니다.",
+    "종이컵에 따뜻한 믹스커피를 타 건네며 슬며시 말을 꺼냅니다.",
+    "복도 구석 빈 교실 문앞에서 안타까운 표정으로 조용히 귓속말을 전합니다.",
+    "머리를 긁적이며 난감한 기색으로 표정을 살핍니다.",
+    "안경을 치켜쓰며 결재 지침 파일이 띄워진 모니터를 넌지시 두드립니다.",
+    "수첩 구석에 조그맣게 갈겨쓴 핵심 메모를 짚어 줍니다.",
+    "잔뜩 지친 얼굴로 교단에 기대앉아 하소연하듯 고민을 토로합니다.",
+    "씁쓸한 헛웃음을 지으며 어깨를 으쓱하고 반응을 기다립니다.",
+    "서류 봉투를 품에 안고 해결 능력을 절실히 바라는 표정을 짓습니다.",
+    "기안란에 찍혀야 할 도장을 가볍게 만지작거리며 비밀스러운 조언을 건넵니다.",
+    "미간을 잔뜩 찌푸린 채 기재 누락된 행정 문서를 슬그머니 들이밀며 속삭입니다."
+  ];
+
   const t = themes[index] || {
     title: schoolTasks[index - 3] ? `${schoolTasks[index - 3]} 조율` : defaultTheme.title,
     situation: schoolTasks[index - 3]
@@ -162,64 +235,86 @@ export const colleagueDialogueEvents: DialogueEvent[] = Array.from({ length: 150
   return {
     id: eventId,
     title: t.title,
-    generateSteps: (npcName: string, role?: string) => [
-      {
-        speaker: npcName,
-        text: `"${role || '동료 교사'}로서 드리는 말씀인데... ${t.situation}" ${npcName} 교사가 교무 수첩을 가리키며 긴밀히 조언합니다.`,
-        choices: [
-          {
-            text: t.choice1,
-            nextStepIndex: 1,
-            effects: t.effects1 as any,
-            resultText: t.result1
-          },
-          {
-            text: t.choice2,
-            nextStepIndex: 2,
-            effects: t.effects2 as any,
-            resultText: t.result2
-          },
-          {
-            text: t.choice3,
-            nextStepIndex: 3,
-            effects: t.effects3 as any,
-            resultText: t.result3
-          },
-          {
-            text: t.choice4,
-            nextStepIndex: 4,
-            effects: t.effects4 as any,
-            resultText: t.result4
-          },
-          {
-            text: t.choice5,
-            nextStepIndex: 5,
-            effects: t.effects5 as any,
-            resultText: t.result5
-          }
-        ]
-      },
-      {
-        speaker: npcName,
-        text: `"${npcName} 교사는 당신의 단호하고 원칙적인 태도에 고개를 끄덕이며 회의를 원활하게 마무리 지었습니다."`
-      },
-      {
-        speaker: npcName,
-        text: `"${npcName} 교사는 당신의 정서적이고 유연한 공조에 크게 안심하며, 덕분에 든든한 동료애를 느꼈다며 기뻐합니다."`
-      },
-      {
-        speaker: npcName,
-        text: `"${npcName} 교사는 당신이 제시한 학년 공동 합리 분담표에 감탄하며, 앞으로도 이 체계대로 함께하겠다고 서명해 줍니다."`
-      },
-      {
-        speaker: npcName,
-        text: `"${npcName} 교사는 당신이 한 발 뒤로 물러서서 관망하는 태도를 취하자 약간 씁쓸해하면서도, 어쩔 수 없다는 듯 스스로 해결하기 위해 돌아섰습니다."`
-      },
-      {
-        speaker: npcName,
-        text: `"${npcName} 교사는 교육청 공식 컨설팅 결과 지침서의 엄격한 조항을 확인하고는, 이견 없이 깔끔하게 수긍하며 기안을 즉시 결재했습니다."`
+    generateSteps: (npcName: string, role?: string) => {
+      // 5만개 이상의 조합 다변화 적용
+      const isDefault = !schoolTasks[index - 3];
+      let text = '';
+      if (isDefault) {
+        text = `"${role || '동료 교사'}로서 드리는 말씀인데... ${t.situation}" ${npcName} 교사가 교무 수첩을 가리키며 긴밀히 조언합니다.`;
+      } else {
+        const taskName = schoolTasks[index - 3];
+        const pIdx = Math.floor(Math.random() * PREFIX_TEMPLATES.length);
+        const tIdx = Math.floor(Math.random() * TASK_TEMPLATES.length);
+        const cIdx = Math.floor(Math.random() * CONFLICT_TEMPLATES.length);
+        const aIdx = Math.floor(Math.random() * ACTION_TEMPLATES.length);
+
+        const prefix = PREFIX_TEMPLATES[pIdx];
+        const taskSentence = TASK_TEMPLATES[tIdx].replace('{task}', taskName);
+        const conflict = CONFLICT_TEMPLATES[cIdx];
+        const action = ACTION_TEMPLATES[aIdx];
+
+        text = `"${role || '동료 교사'}로서 드리는 말씀인데... ${prefix} ${taskSentence} ${conflict}" ${npcName} 교사가 ${action}`;
       }
-    ]
+
+      return [
+        {
+          speaker: npcName,
+          text: text,
+          choices: [
+            {
+              text: t.choice1,
+              nextStepIndex: 1,
+              effects: t.effects1 as any,
+              resultText: t.result1
+            },
+            {
+              text: t.choice2,
+              nextStepIndex: 2,
+              effects: t.effects2 as any,
+              resultText: t.result2
+            },
+            {
+              text: t.choice3,
+              nextStepIndex: 3,
+              effects: t.effects3 as any,
+              resultText: t.result3
+            },
+            {
+              text: t.choice4,
+              nextStepIndex: 4,
+              effects: t.effects4 as any,
+              resultText: t.result4
+            },
+            {
+              text: t.choice5,
+              nextStepIndex: 5,
+              effects: t.effects5 as any,
+              resultText: t.result5
+            }
+          ]
+        },
+        {
+          speaker: npcName,
+          text: `"${npcName} 교사는 당신의 단호하고 원칙적인 태도에 고개를 끄덕이며 회의를 원활하게 마무리 지었습니다."`
+        },
+        {
+          speaker: npcName,
+          text: `"${npcName} 교사는 당신의 정서적이고 유연한 공조에 크게 안심하며, 덕분에 든든한 동료애를 느꼈다며 기뻐합니다."`
+        },
+        {
+          speaker: npcName,
+          text: `"${npcName} 교사는 당신이 제시한 학년 공동 합리 분담표에 감탄하며, 앞으로도 이 체계대로 함께하겠다고 서명해 줍니다."`
+        },
+        {
+          speaker: npcName,
+          text: `"${npcName} 교사는 당신이 한 발 뒤로 물러서서 관망하는 태도를 취하자 약간 씁쓸해하면서도, 어쩔 수 없다는 듯 스스로 해결하기 위해 돌아섰습니다."`
+        },
+        {
+          speaker: npcName,
+          text: `"${npcName} 교사는 교육청 공식 컨설팅 결과 지침서의 엄격한 조항을 확인하고는, 이견 없이 깔끔하게 수긍하며 기안을 즉시 결재했습니다."`
+        }
+      ];
+    }
   };
 });
 
