@@ -456,9 +456,9 @@ export const useGameStore = create<GameState>()(
         const initialStats = getInitialStats(info.difficulty, info.traits);
         
         // 난이도 및 교직 경력에 따른 교사력(TP) 한도 조절
-        let maxTP = 5;
-        if (info.traits.includes('교사력왕')) maxTP = 6;
-        if (info.difficulty === 'hard') maxTP = 4;
+        let maxTP = 7;
+        if (info.traits.includes('교사력왕')) maxTP = 8;
+        if (info.difficulty === 'hard') maxTP = 6;
 
         // Fisher-Yates 셔플 알고리즘으로 학생 풀 40명 셔플링
         const shuffledStudents = [...initialStudents];
@@ -467,8 +467,8 @@ export const useGameStore = create<GameState>()(
           [shuffledStudents[i], shuffledStudents[j]] = [shuffledStudents[j], shuffledStudents[i]];
         }
         
-        // 상위 10명 선택
-        const selectedStudents = shuffledStudents.slice(0, 10);
+        // 랜덤 5명 선택
+        const selectedStudents = shuffledStudents.slice(0, 5);
         const selectedStudentIds = selectedStudents.map(s => s.id);
         
         // 매칭되는 학부모 선택

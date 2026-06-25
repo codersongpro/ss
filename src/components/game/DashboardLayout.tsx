@@ -35,7 +35,7 @@ const TUTORIAL_STEPS: TutorialStepData[] = [
   },
   {
     title: "⚡ 우주 최강의 에너지: 교사력 (TP - Teacher Power)",
-    desc: "가장 중요한 '교사력' 표시등입니다. 매일 아침 5TP의 교사력이 기본으로 주어집니다.\n\n여기서 TP(Teacher Power)란 교사로서 발휘할 수 있는 '교직 생존력'이자 '기안 결재력', '진상 대항력'을 한데 모은 초인적인 교사 에너지입니다! 위치 이동, 대화, 업무, 학생 개별 지도 등 하나의 이벤트가 실행될 때마다 소중한 1TP가 소모됩니다.",
+    desc: "가장 중요한 '교사력' 표시등입니다. 매일 아침 7TP의 교사력이 기본으로 주어집니다.\n\n여기서 TP(Teacher Power)란 교사로서 하루 동안 발휘할 수 있는 에너지의 총량입니다. 위치 이동, 대화, 업무, 학생 개별 지도 등 하나의 이벤트가 실행될 때마다 1TP가 소모됩니다.",
     targetId: "tutorial-hp-bar",
     positionClass: "bottom-6 left-1/2 -translate-x-1/2 lg:top-28 lg:right-6 lg:left-auto lg:translate-x-0"
   },
@@ -513,7 +513,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
               {/* 마우스오버 규칙 설명 툴팁 */}
               <div className="absolute top-full right-0 mt-2 w-72 bg-slate-900 text-white text-xs p-3.5 rounded-xl border border-slate-700 shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 z-[1050] leading-relaxed font-semibold break-keep text-left">
                 <span className="font-extrabold text-yellow-400 flex items-center gap-1 mb-1">⚡ 교사력 (Teacher Power) 관리 규칙:</span>
-                <p>• 매일 아침 교사에게는 5TP의 교사력이 기본으로 주어집니다.</p>
+                <p>• 매일 아침 교사에게는 7TP의 교사력이 기본으로 주어집니다.</p>
                 <p className="mt-1">• 위치 이동, 대화, 업무, 학생 개별 지도 등 하나의 이벤트가 발생할 때마다 교사력 1TP가 소모됩니다.</p>
               </div>
             </div>
@@ -695,7 +695,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                 <div className="absolute left-0 bottom-full mb-2 w-72 bg-slate-900 text-white text-xs rounded-xl p-3.5 shadow-xl hidden group-hover:block z-50 border border-slate-700 leading-relaxed pointer-events-none animate-fade-in font-normal break-keep text-left">
                   <p className="font-bold text-amber-300 mb-1 text-sm">🎒 학급운영 (Class Management)</p>
                   <p className="mb-1 text-slate-300 font-mono text-[10.5px]">공식: 학생신뢰 50% + 학부모신뢰 30% + 교육소신 20%</p>
-                  <p className="text-slate-200">아침 교실 조회, 급식 지도, 교문 등교 안전 지도, 책임 훈육 실천 시 <strong className="text-emerald-400">상승</strong>합니다. 학부모 민원을 방임하거나 학생 갈등을 씹고 날을 넘길 시 <strong className="text-rose-400">하락</strong>합니다.</p>
+                  <p className="text-slate-200">아침 교실 조회, 급식 지도, 교문 등교 안전 지도, 책임 훈육 실천 시 <strong className="text-emerald-400">상승</strong>합니다. 학부모 민원을 방임하거나 학생 갈등을 무시하고 날을 넘길 시 <strong className="text-rose-400">하락</strong>합니다.</p>
                 </div>
               </div>
 
