@@ -14,7 +14,7 @@ export const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onBackToTitl
   const [name, setName] = useState('');
   const [experience, setExperience] = useState<PlayerInfo['experience']>('newbie');
   const [grade, setGrade] = useState<number>(3);
-  const [isClassTeacher, setIsClassTeacher] = useState<boolean>(true);
+  const isClassTeacher = true;
   
   // 가족 구성 상태와 연동될 난이도 기본값 설정 (독신 'single' -> 쉬움 'warm')
   const [familyState, setFamilyState] = useState<PlayerInfo['familyState']>('single');

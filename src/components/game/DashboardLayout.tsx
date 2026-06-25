@@ -193,7 +193,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
     toastMessage,
     selectChoice,
     progressTime,
-    completeTask,
     completeTaskWithChoice,
     delegateTask,
     clearToast,
@@ -243,6 +242,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
 
   // 모바일 화면용 탭 상태 ('center' = 교실/사건, 'left' = 학급현황, 'right' = 스마트폰/업무, 'status' = 내 스탯) [MODIFY]
   const [activeTab, setActiveTab] = useState<'center' | 'left' | 'right' | 'status'>('center');
+  
+  // iorad 스타일 첫날 튜토리얼 로컬 상태 [MOVE]
+  const [isTutorialActive, setIsTutorialActive] = useState<boolean>(false);
+  const [tutorialStep, setTutorialStep] = useState<number>(0);
   
   // 층간 상태 (1층 ⇄ 2층)
   const [currentFloor, setCurrentFloor] = useState<1 | 2>(1);
@@ -389,10 +392,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
 
   // 개별 학생 1:1 지도 결과 피드백 로컬 상태
   const [counselResult, setCounselResult] = useState<{ feedbackText: string; effectsText: string } | null>(null);
-
-  // iorad 스타일 첫날 튜토리얼 로컬 상태
-  const [isTutorialActive, setIsTutorialActive] = useState<boolean>(false);
-  const [tutorialStep, setTutorialStep] = useState<number>(0);
 
   // 첫날 시작 시 튜토리얼 자동 트리거
   useEffect(() => {
@@ -1893,7 +1892,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
 
                   // 선택지 코드으로 작동 중인지 확인
                   const taskKey = `${task.id}`;
-                  const isThisTaskExpanded = activeTaskChoice === taskKey;
 
                   return (
                     <div 
@@ -2025,14 +2023,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                   const isPhone = notif.type === 'phone';
                   
                   let cardBg = 'bg-rose-50/50 border-rose-300';
-                  let iconColor = 'text-rose-500';
                   let badgeText = '💝 감사격려';
                   let badgeBg = 'bg-rose-100 text-rose-800';
                   let checkBtnBg = 'bg-rose-500 hover:bg-rose-400';
 
                   if (!isPositive) {
                     cardBg = 'bg-violet-50/40 border-violet-300';
-                    iconColor = 'text-violet-500';
                     badgeText = '🚨 민원부탁';
                     badgeBg = 'bg-violet-100 text-violet-850';
                     checkBtnBg = 'bg-violet-600 hover:bg-violet-500';
