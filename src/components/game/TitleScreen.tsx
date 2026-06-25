@@ -46,7 +46,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
         {/* 서브 설명글 */}
         <div className="max-w-md bg-black/25 backdrop-blur-sm rounded-lg p-4 border border-white/10 text-white/90 text-sm md:text-base mb-10 leading-relaxed font-light">
           "새 학기 첫날, 낯선 교무실 문이 열립니다.<br />
-          학생의 성장, 학부모 민원, 과중한 행무 속에서<br />
+          학생의 성장, 학부모 민원, 행정업무 속에서<br />
           당신은 어떤 교사로 살아가기를 선택하시겠습니까?"
         </div>
 
@@ -94,20 +94,34 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
           </button>
         </div>
 
-        <div className="mt-8 text-xs text-white/50">
-          개발: Dustin | 권장 해상도: PC 및 모바일 반응형 대응 v1.1
-        </div>
-      </div>
 
-      {/* 포스트잇 데코레이션 효과 */}
-      <div className="hidden lg:block absolute -left-8 bottom-12 rotate-12 bg-school-postit-yellow border-2 border-black p-4 w-44 shadow-school-flat text-xs text-slate-700">
-        <h4 className="font-bold border-b border-black/30 pb-1 mb-1">💡 교무수첩 꿀팁</h4>
-        체력과 멘탈 관리가 핵심입니다. 번아웃이 80을 넘어가면 행동을 실패합니다!
-      </div>
-      
-      <div className="hidden lg:block absolute -right-8 top-12 -rotate-6 bg-school-postit-pink border-2 border-black p-4 w-44 shadow-school-flat text-xs text-slate-700">
-        <h4 className="font-bold border-b border-black/30 pb-1 mb-1">📌 경고 사항</h4>
-        실제 학생의 개인정보나 학교 정보는 입력하지 마십시오!
+        {/* 칠판 내부 포스트잇 장식 (3장) — 버튼 아래 하단 영역에 배치 */}
+        <div className="mt-6 w-full grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl">
+          {/* 포스트잇 1: 교무수첩 꿀팁 (노란색) */}
+          <div className="bg-school-postit-yellow border-2 border-black p-3 shadow-school-flat text-xs text-slate-700 rotate-1 hover:rotate-0 transition-transform">
+            <h4 className="font-bold border-b border-black/30 pb-1 mb-1">💡 교무수첩 꿀팁</h4>
+            체력과 멘탈 관리가 핵심입니다. 번아웃이 80을 넘어가면 행동을 실패합니다!
+          </div>
+
+          {/* 포스트잇 2: 경고 사항 (분홍색) */}
+          <div className="bg-school-postit-pink border-2 border-black p-3 shadow-school-flat text-xs text-slate-700 -rotate-1 hover:rotate-0 transition-transform">
+            <h4 className="font-bold border-b border-black/30 pb-1 mb-1">📌 경고 사항</h4>
+            실제 학생의 개인정보나 학교 정보는 입력하지 마십시오!
+          </div>
+
+          {/* 포스트잇 3: 면책 조항 (연두/민트색) */}
+          <div className="bg-emerald-100 border-2 border-black p-3 shadow-school-flat text-xs text-slate-700 rotate-1 hover:rotate-0 transition-transform">
+            <h4 className="font-bold border-b border-black/30 pb-1 mb-1">⚖️ 면책 고지</h4>
+            이 게임은 학교생활에서 일어날 수 있는 다양한 상황을 재구성한 가상의 이야기입니다. 등장하는 인물·학교·사건은 모두 허구이며, 특정 개인·기관을 지칭하거나 비하할 의도가 없습니다. 풍자와 상상력을 바탕으로 제작된 엔터테인먼트 콘텐츠이므로, 실제 상황과 구분하여 가볍게 즐겨 주시기 바랍니다.
+          </div>
+        </div>
+        {/* 개발 정보 및 가상 이야기 고지 */}
+        <div className="mt-8 text-center text-slate-500 text-xs md:text-sm max-w-xl space-y-1.5 select-none font-sans font-medium">
+          <p className="font-extrabold text-slate-700 text-sm">개발: Antigravity & Coder Song Pro</p>
+          <p className="leading-relaxed">
+            이 게임은 학교생활을 소재로 한 가상의 이야기입니다. 등장인물과 사건은 모두 허구이며, 특정 개인·학교·기관을 지칭하거나 비하할 의도가 없습니다. 실제 상황과 구분하여 재미로 즐겨 주세요.
+          </p>
+        </div>
       </div>
     </div>
   );

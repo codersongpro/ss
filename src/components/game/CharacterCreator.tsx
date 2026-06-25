@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import type { PlayerInfo } from '@/game/types';
-import { useGameStore } from '@/store/useGameStore';
 import { User, Award, ShieldAlert, ArrowLeft, ArrowRight, Check } from 'lucide-react';
 
 interface CharacterCreatorProps {
   onBackToTitle: () => void;
+  onComplete: (info: PlayerInfo) => void;
 }
 
-export const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onBackToTitle }) => {
-  const { startGame } = useGameStore();
+export const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onBackToTitle, onComplete }) => {
   const [step, setStep] = useState(1);
 
   // 캐릭터 기본 폼 상태
@@ -29,7 +28,7 @@ export const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onBackToTitl
     { name: '행정 해결사', desc: '기본 행정 역량 보너스, 공문 처리 효율 향상', penalty: '추가 행정 기안 빈도 약간 증가' },
     { name: '칼퇴 수호자', desc: '정시 퇴근 시 체력 및 가정 만족도 대폭 회복', penalty: '야근 기피로 인한 관리자 신뢰 획득 패널티' },
     { name: '원칙주의자', desc: '공정성 플래그 및 교장/교감 신뢰 보너스', penalty: '유연한 관계 해결 시 난이도 상승' },
-    { name: '체력왕', desc: '하루 최대 행동 포인트(AP) +1 보너스', penalty: '초기 수업 전문성 보너스 전무' }
+    { name: '교사력왕', desc: '하루 최대 교사력(TP) +1 보너스', penalty: '초기 수업 전문성 보너스 전무' }
   ];
 
   // 학교 유형 정의
@@ -84,7 +83,7 @@ export const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onBackToTitl
       schoolType,
       difficulty
     };
-    startGame(finalInfo);
+    onComplete(finalInfo);
   };
 
   return (

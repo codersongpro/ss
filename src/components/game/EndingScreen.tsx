@@ -223,6 +223,46 @@ export const EndingScreen: React.FC<EndingScreenProps> = ({ onRestart }) => {
           badgeColor: 'bg-teal-600 text-white',
           illustration: '🏡☕🌱'
         };
+      case 'ending_class_master':
+        return {
+          title: '🥇 학급 경영의 달인 (클래스 마스터)',
+          subtitle: '빈틈없는 질서와 끈끈한 사랑으로 교실을 통일하다',
+          desc: '당신은 탁월한 학급 운영 능력으로 교실을 질서와 온기가 가득한 이상적인 공동체로 만들었습니다. 규칙은 합리적이었고 소통은 투명했습니다. 학생들은 스스로 학급을 가꾸고 갈등은 대화로 풀었으며 학부모들은 무한한 지지를 보냅니다. 동료 교사들도 당신의 교실 자치 노하우를 배우러 매일 노크합니다.',
+          badgeColor: 'bg-yellow-500 text-slate-900',
+          illustration: '🥇🏫🤝'
+        };
+      case 'ending_teaching_scholar':
+        return {
+          title: '💡 수업 연구의 대가 (티칭 숄라)',
+          subtitle: '지루한 지식을 흥미진진한 탐구로 바꾼 명강사',
+          desc: '당신은 수업 준비와 연구에 대한 끝없는 열정으로 공교육 최고의 교육과정을 실천했습니다. 아이들은 학습 동기부여를 얻어 눈빛을 반짝였고, 교과 연구회와 동료 장학 등에서 당신의 수업안이 우수 사례로 등극했습니다. 수업을 통해 아이들의 삶을 변화시키는 참된 지성인으로서 동료들의 교과 멘토가 됩니다.',
+          badgeColor: 'bg-emerald-600 text-white',
+          illustration: '💡🎓📖'
+        };
+      case 'ending_family_peacekeeper':
+        return {
+          title: '🚲 가정 평화 수호자 (패밀리 피스키퍼)',
+          subtitle: '업무의 무게를 내려놓고 내 가족의 품으로',
+          desc: '당신은 무리한 행정 업무나 과도한 승진 경쟁을 과감히 거절하고 내 가정의 행복을 최우선으로 지켜냈습니다. 퇴근 시간에 울리는 메신저는 쿨하게 덮어두고, 주말에는 온전히 소중한 이들과 시간을 보냈습니다. 비록 교내 승진 평판은 평범할지언정, 당신의 식탁에는 늘 따뜻한 웃음과 사랑이 흘러 넘칩니다.',
+          badgeColor: 'bg-pink-400 text-slate-950',
+          illustration: '🚲🏡❤️'
+        };
+      case 'ending_innovation_director':
+        return {
+          title: '🎯 학교 혁신 장학관 (이노베이션 디렉터)',
+          subtitle: '압도적인 실무 행정과 교육학적 조예의 완벽한 융합',
+          desc: '당신은 기가 막히게 세련된 공문 기안 능력과 전문적인 수업 설계 지식 양쪽 모두를 거머쥔 학교 최고의 인재입니다. 관리자들의 절대적 조력과 동료들의 존경 속에서, 복잡한 학교 혁신 사업을 주도하여 예산 확보와 환경 개선을 동시에 이룩해냈습니다. 교육 혁신을 선도하는 스타 장학관의 선두 주자로 발탁됩니다.',
+          badgeColor: 'bg-indigo-700 text-white',
+          illustration: '🎯💼🏢'
+        };
+      case 'ending_myway':
+        return {
+          title: '🦅 독고다이 마이웨이 교사 (아웃사이더 싱어)',
+          subtitle: '교무실의 눈치와 사교를 거부하고 나만의 교육 철학으로',
+          desc: '당신은 교무실의 인맥 관리나 친목 다지기, 혹은 상사의 눈치 보기 같은 사교 활동에 전혀 에너지를 쓰지 않았습니다. 동료들과의 관계는 무미건조하지만 오로지 단단한 원칙과 뜨거운 신념으로 교실을 이끌었습니다. 눈치는 보지 않고 할 말은 시원하게 지르는, 그 누구도 건드릴 수 없는 뚝심의 아웃사이더 스승이 되었습니다.',
+          badgeColor: 'bg-slate-700 text-white',
+          illustration: '🦅🛡️🍂'
+        };
       default:
         return {
           title: '평범하지만 묵묵한 평교사',
@@ -286,7 +326,7 @@ export const EndingScreen: React.FC<EndingScreenProps> = ({ onRestart }) => {
           {/* 최종 스탯 요약 레포트 */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 border-2 border-black rounded-xl p-4 text-xs font-mono text-left">
             <div>
-              <span className="text-slate-400 block mb-0.5">최종 체력/멘탈</span>
+              <span className="text-slate-400 block mb-0.5">최종 건강/멘탈</span>
               <span className="text-slate-900 font-bold">{stats.hp} / {stats.mental}</span>
             </div>
             <div>

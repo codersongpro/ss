@@ -18,6 +18,9 @@ import type {
 } from '@/game/types';
 import { initialStudents, initialParents } from '@/data/students';
 import { gameEvents } from '@/data/events';
+import { colleagueDialogueEvents, studentDialogueEvents } from '@/data/npcDialoguesData';
+import { parentMessengerEvents, colleaguePrivateEvents } from '@/data/parentMessengerData';
+import { positiveEvents } from '@/data/positiveEventsData';
 
 // 시간대 정의
 export type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'night' | 'summary';
@@ -51,6 +54,8 @@ interface GameState {
   dailyNpcPlacement: Record<string, { id: string; name: string; role?: string }[]>; // [NEW] 각 장소별 당일 등장 캐릭터 목록
   messengerNotifications: MessengerNotification[]; // [NEW] 수신된 학교 메신저 목록
   activeMessengerEvent: MessengerEvent | null; // [NEW] 현재 활성화되어 팝업된 메신저 사건
+  phoneAndTextNotifications: MessengerNotification[]; // [NEW] 스마트폰 수신함 목록
+  activePhoneAndTextEvent: MessengerEvent | null; // [NEW] 현재 활성화된 스마트폰 팝업 사건
   
   // 핵심 데이터
   stats: Stats;
@@ -61,6 +66,10 @@ interface GameState {
   hiddenFlags: string[];
   completedNpcDialoguesToday: string[]; // 오늘 대화 완료한 NPC ID 목록 [NEW]
   completedDialogueHistory: string[]; // 게임 내내 통틀어 대화 완료한 NPC ID 목록 [NEW]
+  completedNpcEvents: Record<string, number[]>; // npcId => 완료된 0~49 인덱스 목록
+  completedParentEvents: number[]; // 완료된 학부모 민원 인덱스 목록
+  completedColleaguePrivateEvents: number[]; // 완료된 교직원 사적 요청 인덱스 목록
+  completedPositiveEvents: number[]; // 완료된 긍정 격려/감사 인덱스 목록
   
   // 현재 진행 중인 이벤트 연출 상태
   currentEvent: GameEvent | null;
@@ -116,15 +125,36 @@ interface GameState {
   triggerMessengerAction: (notificationId: string) => void; // [NEW] 메신저 쪽지 클릭
   selectMessengerChoice: (choiceId: string, effects: StatEffect[], resultText: string) => void; // [NEW] 메신저 선택지 클릭
   closeMessengerEvent: () => void; // [NEW] 메신저 팝업 닫기
+  generatePhoneAndTextNotifications: () => void; // [NEW] 매일 아침 스마트폰 전화/문자 수신
+  triggerPhoneAndTextAction: (notificationId: string) => void; // [NEW] 스마트폰 알림 클릭
+  selectPhoneAndTextChoice: (choiceId: string, effects: StatEffect[], resultText: string) => void; // [NEW] 스마트폰 선택지 클릭
+  closePhoneAndTextEvent: () => void; // [NEW] 스마트폰 팝업 닫기
   
   // 멀티턴 대화 추가 액션
   selectDialogueChoice: (choice: DialogueChoice) => void;
   advanceDialogueStep: () => void;
+  clearDayEffects: () => void;
+  counselStudent: (
+    studentId: string, 
+    actionType: 'empathy' | 'rational' | 'strict' | 'strength' | 'mentoring'
+  ) => { feedbackText: string; effectsText: string } | null;
 }
 
 // 0 ~ 100 범위 강제 헬퍼
 const clamp = (val: number, min: number = 0, max: number = 100) => 
   Math.max(min, Math.min(max, val));
+
+// 5대 핵심 교사 역량 스탯 동기화 헬퍼 [NEW]
+const syncNewStats = (s: Stats): Stats => {
+  return {
+    ...s,
+    workCapacity: clamp(Math.round(s.expert * 0.4 + s.adminPower * 0.4 + s.adminTrust * 0.2)),
+    interpersonal: clamp(Math.round(s.colleagueRelation * 0.3 + s.studentTrust * 0.3 + s.parentTrust * 0.3 + s.colleagueSolidarity * 0.1)),
+    familyRelation: clamp(s.familySatisfaction),
+    classManagement: clamp(Math.round(s.studentTrust * 0.5 + s.parentTrust * 0.3 + s.educationSoshin * 0.2)),
+    teachingResearch: clamp(Math.round(s.expert * 0.7 + s.teachingSatisfaction * 0.3))
+  };
+};
 
 // 초기 스탯 프리셋 생성 헬퍼
 const getInitialStats = (difficulty: 'warm' | 'realistic' | 'hard', traits: string[]): Stats => {
@@ -145,7 +175,14 @@ const getInitialStats = (difficulty: 'warm' | 'realistic' | 'hard', traits: stri
     careerPoint: 0,
     teachingSatisfaction: 40,  // 교육적 보람 (0 ~ 100) [NEW]
     colleagueSolidarity: 40,   // 동료 교직원 연대감 (0 ~ 100) [NEW]
-    parentComplaint: 0         // 학부모 민원 수치 (0 ~ 100) [NEW]
+    parentComplaint: 0,        // 학부모 민원 수치 (0 ~ 100) [NEW]
+    
+    // 5대 핵심 교사 역량 초기화
+    workCapacity: 0,
+    interpersonal: 0,
+    familyRelation: 0,
+    classManagement: 0,
+    teachingResearch: 0
   };
 
   if (difficulty === 'warm') {
@@ -164,7 +201,7 @@ const getInitialStats = (difficulty: 'warm' | 'realistic' | 'hard', traits: stri
   }
 
   // 특성 보너스 적용
-  if (traits.includes('체력왕')) {
+  if (traits.includes('교사력왕')) {
     baseStats.hp += 15;
   }
   if (traits.includes('공감형 교사')) {
@@ -185,7 +222,8 @@ const getInitialStats = (difficulty: 'warm' | 'realistic' | 'hard', traits: stri
     baseStats.familySatisfaction += 20;
   }
 
-  return baseStats;
+  // 5대 핵심 교사 역량 동기화 반영 후 반환
+  return syncNewStats(baseStats);
 };
 
 // 특정 날짜 범위 및 조건에 맞는 이벤트 추첨 헬퍼
@@ -341,6 +379,8 @@ export const useGameStore = create<GameState>()(
       dailyNpcPlacement: {},
       messengerNotifications: [],
       activeMessengerEvent: null,
+      phoneAndTextNotifications: [],
+      activePhoneAndTextEvent: null,
       
       stats: {
         hp: 80,
@@ -358,7 +398,14 @@ export const useGameStore = create<GameState>()(
         careerPoint: 0,
         teachingSatisfaction: 0,
         colleagueSolidarity: 0,
-        parentComplaint: 0
+        parentComplaint: 0,
+        
+        // 5대 핵심 교사 역량 스탯 초기값 [NEW]
+        workCapacity: 0,
+        interpersonal: 0,
+        familyRelation: 0,
+        classManagement: 0,
+        teachingResearch: 0
       },
       students: [],
       parents: [],
@@ -367,14 +414,18 @@ export const useGameStore = create<GameState>()(
       hiddenFlags: [],
       completedNpcDialoguesToday: [],
       completedDialogueHistory: [],
+      completedNpcEvents: {},
+      completedParentEvents: [],
+      completedColleaguePrivateEvents: [],
+      completedPositiveEvents: [],
       
       currentEvent: null,
       selectedChoice: null,
       eventResultText: null,
       dayEffectsTriggered: [],
       
-      actionPoints: 4,
-      maxActionPoints: 4,
+      actionPoints: 5,
+      maxActionPoints: 5,
       
       recentLogs: [],
       toastMessage: null,
@@ -388,9 +439,9 @@ export const useGameStore = create<GameState>()(
         const initialStats = getInitialStats(info.difficulty, info.traits);
         
         // 난이도 및 교직 경력에 따른 행동 포인트 한도 조절
-        let maxAP = 4;
-        if (info.traits.includes('체력왕')) maxAP = 5;
-        if (info.difficulty === 'hard') maxAP = 3;
+        let maxAP = 5;
+        if (info.traits.includes('교사력왕')) maxAP = 6;
+        if (info.difficulty === 'hard') maxAP = 4;
 
         // Fisher-Yates 셔플 알고리즘으로 학생 풀 40명 셔플링
         const shuffledStudents = [...initialStudents];
@@ -423,6 +474,12 @@ export const useGameStore = create<GameState>()(
           hiddenFlags: [],
           completedNpcDialoguesToday: [],
           completedDialogueHistory: [],
+          completedNpcEvents: {},
+          completedParentEvents: [],
+          completedColleaguePrivateEvents: [],
+          completedPositiveEvents: [],
+          phoneAndTextNotifications: [],
+          activePhoneAndTextEvent: null,
           currentEvent: null, // 시작 직후 아침에는 지도를 보고 탐색하도록 null 설정
           selectedChoice: null,
           eventResultText: null,
@@ -435,6 +492,7 @@ export const useGameStore = create<GameState>()(
         // [NEW] 캐릭터 배치 셔플 및 메신저 생성
         get().shuffleNpcPlacements();
         get().generateMessengerNotifications();
+        get().generatePhoneAndTextNotifications();
       },
 
       // 2. 게임 리셋
@@ -454,6 +512,12 @@ export const useGameStore = create<GameState>()(
           dayEffectsTriggered: [],
           completedNpcDialoguesToday: [],
           completedDialogueHistory: [],
+          completedNpcEvents: {},
+          completedParentEvents: [],
+          completedColleaguePrivateEvents: [],
+          completedPositiveEvents: [],
+          phoneAndTextNotifications: [],
+          activePhoneAndTextEvent: null,
           recentLogs: []
         });
       },
@@ -520,7 +584,7 @@ export const useGameStore = create<GameState>()(
         });
 
         set({
-          stats: newStats,
+          stats: syncNewStats(newStats),
           delayedEffects: newDelayedEffects,
           hiddenFlags: newFlags,
           selectedChoice: choice,
@@ -582,22 +646,69 @@ export const useGameStore = create<GameState>()(
             get().checkEndingConditions();
           } else {
             // 미해결 업무 지연 패널티 정산
-            const { tasks } = get();
+            const { tasks, messengerNotifications, phoneAndTextNotifications } = get();
             const overdueTasks = tasks.filter(t => !t.isCompleted && t.deadlineDay < nextDay);
             const penaltyStats = { ...get().stats };
-            let repLoss = 0;
-            let stressGain = 0;
+            const penaltyMessages: string[] = [];
 
-            overdueTasks.forEach(() => {
-              repLoss += 8;
-              stressGain += 10;
+            // 1) 미결 업무 방치 패널티 정산
+            overdueTasks.forEach(t => {
+              // 행정역량 -20, 전문성 -15, 관리자신뢰 -10 차감 -> 이에 따라 업무능력 및 수업연구능력 하락 연동
+              penaltyStats.adminPower = clamp(penaltyStats.adminPower - 20);
+              penaltyStats.expert = clamp(penaltyStats.expert - 15);
+              penaltyStats.adminTrust = clamp(penaltyStats.adminTrust - 10);
+              penaltyStats.reputation = clamp(penaltyStats.reputation - 8);
+              penaltyStats.burnout = clamp(penaltyStats.burnout + 10);
+
+              penaltyMessages.push(
+                `[업무 미결 패널티] "${t.title}" 업무 마감 기한 초과 방치로 인해 행정역량 -20, 전문성 -15, 관리자신뢰 -10 하락 (사유: 주요 공무 연체에 따른 실무 태만)`
+              );
             });
 
-            if (overdueTasks.length > 0) {
-              penaltyStats.reputation = clamp(penaltyStats.reputation - repLoss);
-              penaltyStats.burnout = clamp(penaltyStats.burnout + stressGain);
-              penaltyStats.adminTrust = clamp(penaltyStats.adminTrust - 5);
-            }
+            // 2) 미확인 학교 메신저 방치 패널티 정산
+            const unreadMessengers = messengerNotifications.filter(m => !m.isRead);
+            unreadMessengers.forEach(m => {
+              // 메신저 요청 무시 -> 동료관계 -10, 행정역량 -10, 평판 -5 차감 -> 이에 따라 인간관계 및 업무능력 하락 연동
+              penaltyStats.colleagueRelation = clamp(penaltyStats.colleagueRelation - 10);
+              penaltyStats.adminPower = clamp(penaltyStats.adminPower - 10);
+              penaltyStats.reputation = clamp(penaltyStats.reputation - 5);
+
+              penaltyMessages.push(
+                `[메신저 방치 패널티] "${m.sender}"의 메신저 요청 무시로 인해 동료관계 -10, 행정역량 -10, 평판 -5 하락 (사유: 교내 공적 소통 방치 및 협조 거부)`
+              );
+            });
+
+            // 3) 미확인 스마트폰 연락 방치 패널티 정산
+            const unreadPhones = phoneAndTextNotifications.filter(p => !p.isRead);
+            unreadPhones.forEach(p => {
+              if (p.id.startsWith('phone_positive_')) {
+                // 긍정적 감사 연락 무응답 -> 동료관계 -5, 가정만족 -5, 학생신뢰 -5 차감
+                penaltyStats.colleagueRelation = clamp(penaltyStats.colleagueRelation - 5);
+                penaltyStats.familySatisfaction = clamp(penaltyStats.familySatisfaction - 5);
+                penaltyStats.studentTrust = clamp(penaltyStats.studentTrust - 5);
+
+                penaltyMessages.push(
+                  `[감사 무응답 패널티] 제자/학부모의 격려 연락 무응답으로 동료관계 -5, 가정만족 -5, 학생신뢰 -5 하락 (사유: 긍정 힐링 소통 기회 방치)`
+                );
+              } else if (p.id.startsWith('phone_parent_')) {
+                // 학부모 민원 무시 -> 학부모신뢰 -10, 학생신뢰 -5 차감, 민원수치 +12 상승 -> 이에 따라 인간관계, 학급운영 하락 연동
+                penaltyStats.parentTrust = clamp(penaltyStats.parentTrust - 10);
+                penaltyStats.studentTrust = clamp(penaltyStats.studentTrust - 5);
+                penaltyStats.parentComplaint = clamp(penaltyStats.parentComplaint + 12);
+
+                penaltyMessages.push(
+                  `[민원 방치 패널티] 학부모 전화 민원 무시로 학부모 민원 수치 +12, 학부모신뢰 -10, 학생신뢰 -5 하락 (사유: 학부모와의 소통 거부로 인한 불만 가중)`
+                );
+              } else if (p.id.startsWith('phone_colleague_')) {
+                // 교직원 사적 요청 무시 -> 동료관계 -10, 평판 -5 차감
+                penaltyStats.colleagueRelation = clamp(penaltyStats.colleagueRelation - 10);
+                penaltyStats.reputation = clamp(penaltyStats.reputation - 5);
+
+                penaltyMessages.push(
+                  `[교직원 요청 방치 패널티] 동료 교직원의 사적인 요청 연락 무시로 인해 동료관계 -10, 평판 -5 하락 (사유: 교직원 친목 및 협조 거부)`
+                );
+              }
+            });
 
             // 매일 아침 행동 포인트(AP) 갱신 (체력이 바닥이거나 번아웃이 극심하면 AP 차감)
             let dailyAP = maxActionPoints;
@@ -605,8 +716,9 @@ export const useGameStore = create<GameState>()(
             if (penaltyStats.burnout > 80) dailyAP -= 1;
             dailyAP = Math.max(1, dailyAP);
 
-            // RPG 버전: 새 날 아침 시작 시 지도가 먼저 열려야 하므로 아침 랜덤 이벤트 자동 추첨은 제거
-            
+            // 5대 핵심 스탯 동기화 및 즉시 게임오버 검사
+            const syncedStats = syncNewStats(penaltyStats);
+
             // 업무 기한 리셋/업데이트 (일정 날짜에 새 업무 할당)
             let updatedTasks = [...tasks];
             if (nextDay === 10) {
@@ -645,21 +757,23 @@ export const useGameStore = create<GameState>()(
             set({
               day: nextDay,
               timeOfDay: 'morning',
-              stats: penaltyStats,
+              stats: syncedStats,
               actionPoints: dailyAP,
               currentLocation: null,
               currentNpcDialogue: null,
               currentEvent: null, // 지도를 보고 아침 활동 시작
               selectedChoice: null,
               eventResultText: null,
-              dayEffectsTriggered: [],
+              dayEffectsTriggered: penaltyMessages, // 아침 브리핑용 패널티 메시지 저장
               completedNpcDialoguesToday: [],
-              tasks: updatedTasks
+              tasks: updatedTasks,
+              activePhoneAndTextEvent: null
             });
 
             // [NEW] 캐릭터 배치 셔플 및 메신저 생성
             get().shuffleNpcPlacements();
             get().generateMessengerNotifications();
+            get().generatePhoneAndTextNotifications();
           }
         }
       },
@@ -671,7 +785,7 @@ export const useGameStore = create<GameState>()(
         
         if (!target || target.isCompleted) return;
         if (actionPoints < target.estimatedTime) {
-          get().showToast('행동 포인트(AP)가 부족하여 업무를 완료할 수 없습니다.');
+          get().showToast('교사력(TP)이 부족하여 업무를 완료할 수 없습니다.');
           return;
         }
 
@@ -741,7 +855,7 @@ export const useGameStore = create<GameState>()(
         const remainingEffects = delayedEffects.filter(eff => eff.dayTrigger !== day);
 
         set({
-          stats: newStats,
+          stats: syncNewStats(newStats),
           delayedEffects: remainingEffects,
           dayEffectsTriggered: effectMessages
         });
@@ -760,6 +874,26 @@ export const useGameStore = create<GameState>()(
         // 2. 교사 권익 수호 노조 의장 엔딩 (교육 소신 극상, 연대감 극상)
         else if (stats.educationSoshin >= 85 && stats.colleagueSolidarity >= 75) {
           finalEnding = 'ending_labor_union_leader';
+        }
+        // [신규] 2-1. 학교 혁신 장학관 엔딩 (업무능력 우수, 수업연구 우수)
+        else if (stats.workCapacity >= 80 && stats.teachingResearch >= 80) {
+          finalEnding = 'ending_innovation_director';
+        }
+        // [신규] 2-2. 학급 경영의 달인 엔딩 (학급운영 극상)
+        else if (stats.classManagement >= 85) {
+          finalEnding = 'ending_class_master';
+        }
+        // [신규] 2-3. 수업 연구의 대가 엔딩 (수업연구 극상)
+        else if (stats.teachingResearch >= 85) {
+          finalEnding = 'ending_teaching_scholar';
+        }
+        // [신규] 2-4. 가정 평화 수호자 엔딩 (가족관계 극상, 업무능력 낮음)
+        else if (stats.familyRelation >= 85 && stats.workCapacity < 60) {
+          finalEnding = 'ending_family_peacekeeper';
+        }
+        // [신규] 2-5. 독고다이 마이웨이 교사 엔딩 (교육소신 높음, 인간관계 낮음)
+        else if (stats.educationSoshin >= 80 && stats.interpersonal < 40) {
+          finalEnding = 'ending_myway';
         }
         // 3. 장학사 엔딩 (커리어 포인트, 행정력, 소신 우수)
         else if (
@@ -905,7 +1039,7 @@ export const useGameStore = create<GameState>()(
         const { currentLocation, day, hiddenFlags, recentLogs, actionPoints } = get();
         if (!currentLocation) return;
         if (actionPoints < 1) {
-          get().showToast('행동 포인트(AP)가 부족하여 탐색할 수 없습니다.');
+          get().showToast('교사력(TP)이 부족하여 탐색할 수 없습니다.');
           return;
         }
 
@@ -1007,7 +1141,7 @@ export const useGameStore = create<GameState>()(
       ) => {
         const { actionPoints, stats, day, recentLogs } = get();
         if (actionPoints < 1) {
-          get().showToast('행동 포인트(AP)가 부족하여 행동을 수행할 수 없습니다.');
+          get().showToast('교사력(TP)이 부족하여 행동을 수행할 수 없습니다.');
           return;
         }
 
@@ -1095,7 +1229,7 @@ export const useGameStore = create<GameState>()(
 
         set({
           actionPoints: actionPoints - 1,
-          stats: newStats,
+          stats: syncNewStats(newStats),
           recentLogs: updatedLogs
         });
 
@@ -1104,7 +1238,111 @@ export const useGameStore = create<GameState>()(
       },
 
       // 13. RPG 캐릭터 대화 개시 (AP를 소모하지 않는 이벤트성 대화)
+      // 13. RPG 캐릭터 대화 개시 (체력 1 소모 및 100선 랜덤 대화 연동)
       talkToNPC: (npcId: string, npcName: string) => {
+        const { day, recentLogs, completedNpcDialoguesToday, completedNpcEvents, actionPoints } = get();
+
+        // 오늘 이미 대화한 적 있는 NPC인지 확인 (당일 중복 차단)
+        if (completedNpcDialoguesToday.includes(npcId)) {
+          get().showToast(`[대화 제한] 오늘 이미 ${npcName}님과 대화했습니다. 내일 다시 대화할 수 있습니다.`);
+          return;
+        }
+
+        // 대화 시 체력 1 소모 체크
+        if (actionPoints < 1) {
+          get().showToast('교사력(TP)이 부족하여 NPC와 대화할 수 없습니다. 퇴근 후 다음 날로 진행하세요.');
+          return;
+        }
+
+        let steps: DialogueStep[] = [];
+        let eventIdx = 0;
+
+        // npcId가 student_ 로 시작하는 경우 학생 대화 50선 연동
+        if (npcId.startsWith('student_')) {
+          const completedIdxs = completedNpcEvents[npcId] || [];
+          let candidates = Array.from({ length: 50 }, (_, i) => i).filter(i => !completedIdxs.includes(i));
+          
+          if (candidates.length === 0) {
+            candidates = Array.from({ length: 50 }, (_, i) => i);
+            completedNpcEvents[npcId] = [];
+          }
+
+          eventIdx = candidates[Math.floor(Math.random() * candidates.length)];
+          const evt = studentDialogueEvents[eventIdx];
+          
+          const student = get().students.find(s => s.id === npcId);
+          const role = student ? `${student.name} (우리 반 학생)` : '학생';
+          steps = evt.generateSteps(npcName, role);
+        } 
+        // 그 외에는 교직원 대화 50선 연동
+        else {
+          const completedIdxs = completedNpcEvents[npcId] || [];
+          let candidates = Array.from({ length: 50 }, (_, i) => i).filter(i => !completedIdxs.includes(i));
+          
+          if (candidates.length === 0) {
+            candidates = Array.from({ length: 50 }, (_, i) => i);
+            completedNpcEvents[npcId] = [];
+          }
+
+          eventIdx = candidates[Math.floor(Math.random() * candidates.length)];
+          const evt = colleagueDialogueEvents[eventIdx];
+
+          // 역할 매핑
+          let role = '동료 교사';
+          if (npcId === 'colleague_senior') role = '부장 선생님';
+          else if (npcId === 'colleague_mate') role = '옆자리 동료 교사';
+          else if (npcId === 'colleague_vice_principal') role = '교감 선생님';
+          else if (npcId === 'principal') role = '교장 선생님';
+          else if (npcId === 'nurse') role = '보건 교사';
+          else if (npcId === 'gym') role = '체육 교사';
+          else if (npcId.startsWith('staff_')) {
+            if (npcId === 'staff_admin_chief') role = '행정실장';
+            else if (npcId === 'staff_admin_worker') role = '행정 주무관';
+            else if (npcId === 'staff_nutritionist') role = '영양 교사';
+            else if (npcId === 'staff_cook') role = '조리원';
+            else if (npcId === 'staff_librarian') role = '사서 교사';
+            else if (npcId === 'staff_counselor') role = '전문 상담 교사';
+            else if (npcId === 'staff_science_assistant') role = '과학 실무사';
+            else if (npcId === 'staff_guard') role = '배움터 지킴이';
+          }
+
+          steps = evt.generateSteps(npcName, role);
+        }
+
+        const updatedLogs = [
+          `[${day}일차] ${npcName} 캐릭터와 대화 개시 (체력 1 소모)`,
+          ...recentLogs.slice(0, 19)
+        ];
+
+        const nextCompletedToday = [...completedNpcDialoguesToday];
+        if (!nextCompletedToday.includes(npcId)) {
+          nextCompletedToday.push(npcId);
+        }
+
+        const updatedCompletedNpcEvents = { ...completedNpcEvents };
+        if (!updatedCompletedNpcEvents[npcId]) {
+          updatedCompletedNpcEvents[npcId] = [];
+        }
+        updatedCompletedNpcEvents[npcId].push(eventIdx);
+
+        set({
+          completedNpcDialoguesToday: nextCompletedToday,
+          completedNpcEvents: updatedCompletedNpcEvents,
+          actionPoints: actionPoints - 1, // 체력 1 소모
+          npcDialogueSession: {
+            npcId,
+            npcName,
+            currentStepIndex: 0,
+            steps,
+            activeFeedbackText: null,
+            activeFeedbackEffects: null
+          },
+          recentLogs: updatedLogs
+        });
+      },
+
+      // 레거시 백업
+      talkToNPCLegacy: (npcId: string, npcName: string) => {
         const { day, recentLogs, completedNpcDialoguesToday, completedDialogueHistory } = get();
 
         // 1. 이미 평생 대화한 적 있는 NPC인지 확인 (영구 중복 차단)
@@ -1960,7 +2198,7 @@ export const useGameStore = create<GameState>()(
         // 결과 리액션 피드백이 있는 경우
         if (choice.resultText) {
           set({
-            stats: newStats,
+            stats: syncNewStats(newStats),
             npcDialogueSession: {
               ...npcDialogueSession,
               activeFeedbackText: choice.resultText,
@@ -1972,7 +2210,7 @@ export const useGameStore = create<GameState>()(
           // 바로 다음 스텝으로 이동하거나 대화 세션 종료
           if (choice.nextStepIndex !== null) {
             set({
-              stats: newStats,
+              stats: syncNewStats(newStats),
               npcDialogueSession: {
                 ...npcDialogueSession,
                 currentStepIndex: choice.nextStepIndex,
@@ -1983,7 +2221,7 @@ export const useGameStore = create<GameState>()(
           } else {
             // 대화 즉시 종료
             set({
-              stats: newStats,
+              stats: syncNewStats(newStats),
               npcDialogueSession: null
             });
           }
@@ -2023,6 +2261,223 @@ export const useGameStore = create<GameState>()(
             }
           });
         }
+      },
+
+      clearDayEffects: () => {
+        set({ dayEffectsTriggered: [] });
+      },
+
+      counselStudent: (studentId, actionType) => {
+        const { actionPoints, students, stats, day, recentLogs } = get();
+
+        // 1. 체력(AP) 체크
+        if (actionPoints < 1) {
+          get().showToast('교사력(TP)이 부족하여 학생을 지도할 수 없습니다.');
+          return null;
+        }
+
+        const student = students.find(s => s.id === studentId);
+        if (!student) return null;
+
+        const newStats = { ...stats };
+        let studentTrustDiff = 0;
+        let selfEsteemDiff = 0;
+        let behaviorDiff = 0;
+        let academicLevelDiff = 0;
+        let motivationDiff = 0;
+
+        let teacherHpDiff = 0;
+        let teacherMentalDiff = 0;
+        let teacherSoshinDiff = 0;
+        let teacherSatisfactionDiff = 0;
+        let teacherExpertDiff = 0;
+
+        let feedbackText = '';
+        let effectsText = '';
+
+        // 2. 상성 판정 및 점수 계산
+        if (actionType === 'empathy') {
+          // 따뜻한 공감 지지
+          const hasGoodTrait = student.traits.some(t => 
+            ['유리멘탈', '보이지않는아이', '내성적', '속앓이', '예민한정서', '소외감', '관계불안', '감정기복'].includes(t)
+          );
+          const hasBadTrait = student.traits.some(t => 
+            ['트러블메이커', '규칙위반', '독단성'].includes(t)
+          );
+
+          if (hasGoodTrait) {
+            studentTrustDiff = 15;
+            selfEsteemDiff = 10;
+            teacherMentalDiff = -3;
+            teacherHpDiff = -1;
+            feedbackText = `"${student.name} 학생의 여리고 지친 마음에 깊은 위로와 지지를 전했습니다. 아이는 참아왔던 눈물을 왈칵 쏟아내며, 자신의 아픔을 온전히 알아주는 선생님에게 평생 잊지 못할 깊은 고마움을 느낍니다."`;
+            effectsText = `효과: 학생 신뢰도 +15, 자존감 +10 | 교사 멘탈 -3, 체력 -1`;
+          } else if (hasBadTrait) {
+            behaviorDiff = -10;
+            teacherSoshinDiff = -3;
+            teacherMentalDiff = -3;
+            feedbackText = `"${student.name} 학생의 일탈 행동에 대해 훈육 대신 온정적인 지지만 베풀었습니다. 아이는 이를 '대충 넘어가도 된다'는 신호로 받아들여 학급 기강이 흐트러지고 반항적 경향이 늘었습니다."`;
+            effectsText = `효과: 학생 행동성향 -10 | 교사 소신 -3, 멘탈 -3`;
+          } else {
+            studentTrustDiff = 5;
+            selfEsteemDiff = 5;
+            teacherMentalDiff = -2;
+            feedbackText = `"${student.name} 학생의 이야기를 경청하며 다정한 조언을 건넸습니다. 특별한 상성은 없었으나 마음을 한결 가볍게 털어내고 돌아갑니다."`;
+            effectsText = `효과: 학생 신뢰도 +5, 자존감 +5 | 교사 멘탈 -2`;
+          }
+        } else if (actionType === 'rational') {
+          // 이성적 솔루션
+          const hasGoodTrait = student.traits.some(t => 
+            ['우등생', '성실파', '노력형 부진아', '기획자', '코딩신동', '과학고지망', '이과형인재'].includes(t)
+          );
+          const hasBadTrait = student.traits.some(t => 
+            ['유리멘탈', '걱정많음', '소녀감성'].includes(t)
+          );
+
+          if (hasGoodTrait) {
+            academicLevelDiff = 10;
+            motivationDiff = 15;
+            teacherExpertDiff = 8;
+            teacherMentalDiff = -2;
+            feedbackText = `"${student.name} 학생에게 현 상황을 정밀하게 피드백하고 구체적인 극복 계획과 행동 수칙을 제시했습니다. 계획적인 성향의 아이는 교사의 체계적인 교육관에 탄복하며 즉시 실천 의지를 불태웁니다."`;
+            effectsText = `효과: 학생 학업역량 +10, 학습동기 +15 | 교사 전문성 +8, 멘탈 -2`;
+          } else if (hasBadTrait) {
+            selfEsteemDiff = -10;
+            studentTrustDiff = -8;
+            feedbackText = `"${student.name} 학생의 정서적 힘겨움은 고려하지 않은 채, 지독하게 이성적인 팩트와 해야 할 행동 수칙만 조목조목 들이댔습니다. 아이는 강한 심리적 압박감을 느끼며 마음에 큰 상처를 받았습니다."`;
+            effectsText = `효과: 학생 자존감 -10, 신뢰도 -8`;
+          } else {
+            academicLevelDiff = 5;
+            motivationDiff = 5;
+            teacherExpertDiff = 2;
+            feedbackText = `"${student.name} 학생에게 실현 가능한 학업 방향 및 과제 스케줄을 조율해주었습니다. 평범하고 무난한 도움이 되었습니다."`;
+            effectsText = `효과: 학생 학업역량 +5, 학습동기 +5 | 교사 전문성 +2`;
+          }
+        } else if (actionType === 'strict') {
+          // 엄격한 규율 훈육
+          const hasGoodTrait = student.traits.some(t => 
+            ['트러블메이커', '규칙위반', '독단성', '주의산만', '오지랖', '지각쟁이', '다혈질'].includes(t)
+          );
+          const hasBadTrait = student.traits.some(t => 
+            ['내성적', '유리멘탈', '경계심'].includes(t)
+          );
+
+          if (hasGoodTrait) {
+            behaviorDiff = 20;
+            teacherSoshinDiff = 10;
+            studentTrustDiff = -3;
+            teacherMentalDiff = -4;
+            feedbackText = `"${student.name} 학생이 지켜야 할 학급 규율과 한계를 엄정하고 단호한 어조로 지도했습니다. 평소 산만하고 경계가 모호했던 아이는 흐트러진 규율을 다잡고 자신의 그릇된 행동을 조심하기 시작합니다."`;
+            effectsText = `효과: 학생 행동성향 +20, 신뢰도 -3 | 교사 소신 +10, 멘탈 -4`;
+          } else if (hasBadTrait) {
+            studentTrustDiff = -15;
+            selfEsteemDiff = -12;
+            teacherMentalDiff = -5;
+            feedbackText = `"${student.name} 학생의 여린 성향을 헤아리지 못한 채 매서운 어조와 엄벌 기조로 강하게 훈육했습니다. 내성적인 아이는 극심한 위축감과 불신감을 느끼며 문을 닫아 걸어버렸습니다."`;
+            effectsText = `효과: 학생 신뢰도 -15, 자존감 -12 | 교사 멘탈 -5`;
+          } else {
+            behaviorDiff = 6;
+            teacherSoshinDiff = 3;
+            teacherMentalDiff = -2;
+            feedbackText = `"${student.name} 학생이 반성해야 할 사안에 대해 조목조목 이치에 맞는 훈육을 집행했습니다. 기강 정돈에 도움이 되었습니다."`;
+            effectsText = `효과: 학생 행동성향 +6 | 교사 소신 +3, 멘탈 -2`;
+          }
+        } else if (actionType === 'strength') {
+          // 강점 진로 격려
+          const hasGoodTrait = student.traits.some(t => 
+            ['예술가기질', '체육특기자', '아이돌지망생', '크리에이터꿈나무', '기계덕후', '곤충박사', '일러스트레이터', '피아노장인', '댄싱퀸', '요리사지망'].includes(t)
+          );
+          const hasBadTrait = student.traits.some(t => 
+            ['성적집착', '완벽주의'].includes(t)
+          );
+
+          if (hasGoodTrait) {
+            motivationDiff = 20;
+            selfEsteemDiff = 15;
+            studentTrustDiff = 10;
+            teacherSatisfactionDiff = 8;
+            feedbackText = `"${student.name} 학생의 성적 이면에 잠재된 뛰어난 끼와 고유한 재능을 조명하며, 진심 어린 격려와 지지를 보냈습니다. 아이는 자신의 꿈을 알아봐 준 교사에게 큰 희망을 느끼고 자존감을 한껏 드높입니다."`;
+            effectsText = `효과: 학생 학습동기 +20, 자존감 +15, 신뢰도 +10 | 교사 보람 +8`;
+          } else if (hasBadTrait) {
+            motivationDiff = -8;
+            feedbackText = `"${student.name} 학생에게 성적이 전부가 아니니 부담을 내려놓고 다른 취미나 진로를 보라고 과도하게 권했습니다. 그러나 성적과 완벽함에 강하게 집착하는 아이는 오히려 갈피를 잃고 의욕을 상실합니다."`;
+            effectsText = `효과: 학생 학습동기 -8`;
+          } else {
+            motivationDiff = 6;
+            selfEsteemDiff = 5;
+            feedbackText = `"${student.name} 학생의 긍정적인 면모와 장점을 칭찬해 주었습니다. 아이의 눈가에 작은 활력과 자부심이 깃듭니다."`;
+            effectsText = `효과: 학생 학습동기 +6, 자존감 +5`;
+          }
+        } else if (actionType === 'mentoring') {
+          // 밀착 1:1 멘토링
+          const hasGoodTrait = student.traits.some(t => 
+            ['노력형 부진아', '잠만보', '만성피로', '조용한반항아', '학업방치', '행동느림', '느림보'].includes(t)
+          );
+          const hasBadTrait = student.traits.some(t => 
+            ['아웃사이더', '독서광', '비사교적'].includes(t)
+          );
+
+          if (hasGoodTrait) {
+            academicLevelDiff = 10;
+            behaviorDiff = 12;
+            studentTrustDiff = 10;
+            teacherHpDiff = -8;
+            teacherMentalDiff = -4;
+            feedbackText = `"${student.name} 학생을 위해 방과 후 개인 시간을 대거 할애하여 1:1 보충 지도를 수행하고 규칙적인 생활 습관을 다독였습니다. 끈기 있는 헌신 덕에 아이의 더딘 발걸음이 크게 전진하기 시작합니다."`;
+            effectsText = `효과: 학생 학업역량 +10, 행동성향 +12, 신뢰도 +10 | 교사 체력 -8, 멘탈 -4`;
+          } else if (hasBadTrait) {
+            studentTrustDiff = -10;
+            feedbackText = `"${student.name} 학생을 돕겠다며 그의 사적 바운더리에 과도하게 침범하여 억지 밀착 솔루션을 시도했습니다. 사색을 중요시하는 아이는 강한 거부감을 느끼며 선생님을 더 멀리하기 시작합니다."`;
+            effectsText = `효과: 학생 신뢰도 -10`;
+          } else {
+            academicLevelDiff = 4;
+            behaviorDiff = 4;
+            teacherHpDiff = -4;
+            feedbackText = `"${student.name} 학생을 옆자리에 앉히고 차근차근 학급 실무와 뒤처진 학습지 작성을 꼼꼼하게 도왔습니다. 실질적인 서포트가 이루어졌습니다."`;
+            effectsText = `효과: 학생 학업역량 +4, 행동성향 +4 | 교사 체력 -4`;
+          }
+        }
+
+        // 3. 학생 지표 및 교사 지표 반영
+        const updatedStudents = students.map(s => {
+          if (s.id === studentId) {
+            return {
+              ...s,
+              academicLevel: clamp(s.academicLevel + academicLevelDiff),
+              motivation: clamp(s.motivation + motivationDiff),
+              selfEsteem: clamp(s.selfEsteem + selfEsteemDiff),
+              behavior: clamp(s.behavior + behaviorDiff),
+              teacherTrust: clamp(s.teacherTrust + studentTrustDiff)
+            };
+          }
+          return s;
+        });
+
+        if (teacherHpDiff !== 0) newStats.hp = clamp(newStats.hp + teacherHpDiff);
+        if (teacherMentalDiff !== 0) newStats.mental = clamp(newStats.mental + teacherMentalDiff);
+        if (teacherSoshinDiff !== 0) newStats.educationSoshin = clamp(newStats.educationSoshin + teacherSoshinDiff);
+        if (teacherSatisfactionDiff !== 0) newStats.teachingSatisfaction = clamp(newStats.teachingSatisfaction + teacherSatisfactionDiff);
+        if (teacherExpertDiff !== 0) newStats.expert = clamp(newStats.expert + teacherExpertDiff);
+
+        // 스탯 동기화
+        const syncedStats = syncNewStats(newStats);
+
+        const updatedLogs = [
+          `[${day}일차] 반 학생 ${student.name} 1:1 개별 지도 수행 (${actionType})`,
+          ...recentLogs.slice(0, 19)
+        ];
+
+        set({
+          students: updatedStudents,
+          stats: syncedStats,
+          actionPoints: actionPoints - 1,
+          recentLogs: updatedLogs
+        });
+
+        get().showToast(`[학생지도] ${student.name} 학생을 지도하여 상태가 변동되었습니다.`);
+        get().checkFailureConditions();
+
+        return { feedbackText, effectsText };
       },
 
       // [NEW] 매일 아침 각 장소별 등장 캐릭터 일일 셔플링
@@ -2174,7 +2629,209 @@ export const useGameStore = create<GameState>()(
       },
 
       // [NEW] 매일 아침 학교 메신저 메시지 일일 생성
+      // [NEW] 매일 아침 학교 메신저 메시지 일일 생성 (대한민국 현실 민원 50선 랜덤 연동)
       generateMessengerNotifications: () => {
+        const { day, completedParentEvents } = get();
+        const newNotifs: MessengerNotification[] = [];
+
+        // 1. 교육청/학교 긴급 공문 알림 (항상 1개)
+        newNotifs.push({
+          id: `msg_edu_${day}`,
+          sender: '교육청 초등교육과',
+          previewText: '디지털 교과서 설문 취합 긴급 지침',
+          type: 'messenger_event',
+          targetId: 'messenger_evt_edu_01',
+          isRead: false
+        });
+
+        // 2. 교직원 협조 요청 알림 (50% 확률)
+        if (Math.random() < 0.5) {
+          newNotifs.push({
+            id: `msg_school_${day}`,
+            sender: '교무부 행사기획계',
+            previewText: '교내 과학 체험 창의 융합 축전 행사용 보조교사 지원 요청',
+            type: 'messenger_event',
+            targetId: 'messenger_evt_school_01',
+            isRead: false
+          });
+        }
+
+        // 3. 대한민국 현실 학부모 민원 알림 (70% 확률로 출현)
+        if (Math.random() < 0.7) {
+          let candidates = Array.from({ length: 50 }, (_, i) => i).filter(i => !completedParentEvents.includes(i));
+          if (candidates.length === 0) {
+            candidates = Array.from({ length: 50 }, (_, i) => i);
+            set({ completedParentEvents: [] });
+          }
+          const randomIdx = candidates[Math.floor(Math.random() * candidates.length)];
+          const parentEvt = parentMessengerEvents[randomIdx];
+
+          newNotifs.push({
+            id: `msg_parent_${day}_${randomIdx}`,
+            sender: parentEvt.sender,
+            previewText: `${parentEvt.sender}: "${parentEvt.previewText.slice(0, 35)}..."`,
+            type: 'messenger_event',
+            targetId: `parent_msg_${randomIdx}`,
+            isRead: false
+          });
+        }
+
+        // 최대 6개까지만 쌓이도록 제한
+        if (newNotifs.length > 6) {
+          set({ messengerNotifications: newNotifs.slice(newNotifs.length - 6) });
+        } else {
+          set({ messengerNotifications: newNotifs });
+        }
+      },
+
+      // [NEW] 학교 메신저 알림 클릭 시 액션 (체력 1 소모 연계 및 파싱)
+      triggerMessengerAction: (notificationId: string) => {
+        const { messengerNotifications, actionPoints } = get();
+        const target = messengerNotifications.find(n => n.id === notificationId);
+        if (!target) return;
+
+        // 메신저 이벤트 처리를 시작하려면 교사력이 최소 1이 필요합니다.
+        if (actionPoints < 1) {
+          get().showToast('교사력(TP)이 부족하여 메신저 요청을 처리할 수 없습니다. 다음 날로 넘어가 교사력을 회복하세요.');
+          return;
+        }
+
+        // 읽음 처리
+        set({
+          messengerNotifications: messengerNotifications.map(n => 
+            n.id === notificationId ? { ...n, isRead: true } : n
+          )
+        });
+
+        // 1. NPC 대화 연계인 경우
+        if (target.type === 'npc_dialogue') {
+          get().talkToNPC(target.targetId, target.targetName || '동료 교사');
+        } 
+        // 2. 메신저 전용 A/B 선택형 사건인 경우
+        else if (target.type === 'messenger_event') {
+          let eventDetails: MessengerEvent | null = null;
+          
+          // 학부모 리얼 민원 50선 파싱
+          if (target.targetId.startsWith('parent_msg_')) {
+            const idx = parseInt(target.targetId.replace('parent_msg_', ''), 10);
+            const parentEvt = parentMessengerEvents[idx];
+            if (parentEvt) {
+              eventDetails = {
+                id: parentEvt.id,
+                sender: parentEvt.sender,
+                previewText: parentEvt.previewText,
+                choices: parentEvt.choices.map(c => ({
+                  id: c.id,
+                  text: c.text,
+                  effects: c.effects,
+                  resultText: c.resultText
+                }))
+              };
+            }
+          } 
+          // 그 외 고정 공문들
+          else if (target.targetId === 'messenger_evt_edu_01') {
+            eventDetails = {
+              id: target.targetId,
+              sender: target.sender,
+              previewText: '교육청 초등교육과에서 온 디지털 교과서 설문 취합 긴급 지침입니다. 오늘 4시까지 전 학년 활용 수치 통계를 보고해야 합니다. 어떻게 행동하시겠습니까?',
+              choices: [
+                {
+                  id: 'choice_edu_01_1',
+                  text: '교실 청소 지도를 자습으로 대체하고 정보실에 올라가 즉각 보고서 취합 기안을 상신한다.',
+                  effects: [{ stat: 'adminPower', value: 8 }, { stat: 'burnout', value: 12 }, { stat: 'mental', value: -8 }, { stat: 'studentTrust', value: -3 }],
+                  resultText: '정보 부서 결재를 안전하게 뚫고 교육청 공문 처리를 완수하여 관리자의 평판이 오르고 행정 역량을 입증했으나, 담임 교실 지도가 누설되고 몸이 극도로 피로해졌습니다.'
+                },
+                {
+                  id: 'choice_edu_01_2',
+                  text: '메신저로 부장님과 행무 실무사님께 사정을 구해 내일 오전 중으로 협조 보고를 늦춰 작성한다.',
+                  effects: [{ stat: 'colleagueSolidarity', value: 10 }, { stat: 'hp', value: -3 }, { stat: 'burnout', value: -5 }],
+                  resultText: '행정 부서 간 조율을 거치며 동료들과 협동적 연대를 다졌고 오늘 밤 야근을 피했습니다. 단, 공문 마감일이 밀려 행정실의 깐깐한 결재 압박은 약간 남아있습니다.'
+                }
+              ]
+            };
+          } else if (target.targetId === 'messenger_evt_school_01') {
+            eventDetails = {
+              id: target.targetId,
+              sender: target.sender,
+              previewText: '교내 과학 창의 융합 축전 행사입니다. 각 학급 부스 운영을 도울 스태프 교사가 부족하여 지원을 바라는 긴급 공고입니다. 어떻게 응대하시겠습니까?',
+              choices: [
+                {
+                  id: 'choice_school_01_1',
+                  text: '적극 지원하여 우주 과학 실험 부스를 책임지고 당당히 종일 운영한다.',
+                  effects: [{ stat: 'expert', value: 10 }, { stat: 'teachingSatisfaction', value: 10 }, { stat: 'hp', value: -10 }, { stat: 'burnout', value: 10 }],
+                  resultText: '과학 부스를 열어 아이들에게 경이로운 실험 체험을 제공하고 수업 전문성과 보람을 드높였습니다. 교무실 평판도 훌륭하지만 체력 소진이 엄청납니다.'
+                },
+                {
+                  id: 'choice_school_01_2',
+                  text: '교실에서 부적응 학생 개별 상담 일정이 밀려 있어 부스 행사 지원을 정중히 양해 구하고 거절한다.',
+                  effects: [{ stat: 'studentTrust', value: 8 }, { stat: 'colleagueSolidarity', value: -5 }, { stat: 'mental', value: 3 }],
+                  resultText: '체육 축제나 과학 행사 동원 대신 교실에서 지현이와 민준이 등 위기 학생과의 밀착 상담에 집중해 학생들의 절대적인 지지와 신뢰를 얻어냈습니다.'
+                }
+              ]
+            };
+          }
+
+          if (eventDetails) {
+            set({ activeMessengerEvent: eventDetails });
+          }
+        }
+      },
+
+      // [NEW] 학교 메신저 선택지 클릭 시 스탯 적용 및 피드백 출력 (교사력 1TP 소모)
+      selectMessengerChoice: (_choiceId: string, effects: StatEffect[], resultText: string) => {
+        const { stats, recentLogs, day, actionPoints, completedParentEvents, activeMessengerEvent } = get();
+        
+        // 교사력 1TP 소모 체크
+        if (actionPoints < 1) {
+          get().showToast('교사력(TP)이 부족하여 메신저 사건을 완료할 수 없습니다.');
+          return;
+        }
+
+        // 스탯 변동 적용
+        const newStats = { ...stats };
+        effects.forEach((eff: StatEffect) => {
+          newStats[eff.stat] = clamp(
+            newStats[eff.stat] + eff.value, 
+            eff.stat === 'burnout' ? 0 : 0, 
+            100
+          );
+        });
+
+        const logMsg = `[메신저 처리] ${resultText.slice(0, 30)}...`;
+        const updatedLogs = [
+          `[${day}일차] 메신저 응답 (교사력 1TP 소모): ${logMsg}`,
+          ...recentLogs.slice(0, 19)
+        ];
+
+        // 학부모 민원 완료 이력 기록
+        const updatedCompletedParentEvents = [...completedParentEvents];
+        if (activeMessengerEvent && activeMessengerEvent.id.startsWith('parent_msg_')) {
+          const idx = parseInt(activeMessengerEvent.id.replace('parent_msg_', ''), 10);
+          if (!updatedCompletedParentEvents.includes(idx)) {
+            updatedCompletedParentEvents.push(idx);
+          }
+        }
+
+        if (activeMessengerEvent) {
+          set({
+            stats: syncNewStats(newStats),
+            recentLogs: updatedLogs,
+            actionPoints: actionPoints - 1, // 교사력 1TP 소모
+            completedParentEvents: updatedCompletedParentEvents,
+            activeMessengerEvent: {
+              ...activeMessengerEvent,
+              previewText: resultText,
+              choices: [] // 선택지 배열을 지워서 확인 버튼만 띄우게 함
+            }
+          });
+        }
+        
+        get().checkFailureConditions();
+      },
+
+      // 레거시 메신저 액션 백업
+      generateMessengerNotificationsLegacy: () => {
         const { day, messengerNotifications } = get();
         
         // 기존 메신저 리스트 백업
@@ -2228,7 +2885,7 @@ export const useGameStore = create<GameState>()(
       },
 
       // [NEW] 학교 메신저 알림 클릭 시 액션
-      triggerMessengerAction: (notificationId: string) => {
+      triggerMessengerActionLegacy: (notificationId: string) => {
         const { messengerNotifications } = get();
         const target = messengerNotifications.find(n => n.id === notificationId);
         if (!target) return;
@@ -2317,7 +2974,7 @@ export const useGameStore = create<GameState>()(
       },
 
       // [NEW] 학교 메신저 선택지 클릭 시 스탯 적용 및 피드백 출력
-      selectMessengerChoice: (_choiceId: string, effects: StatEffect[], resultText: string) => {
+      selectMessengerChoiceLegacy: (_choiceId: string, effects: StatEffect[], resultText: string) => {
         const { stats, recentLogs, day } = get();
         
         // 스탯 변동 적용
@@ -2356,6 +3013,254 @@ export const useGameStore = create<GameState>()(
       // [NEW] 메신저 팝업 닫기
       closeMessengerEvent: () => {
         set({ activeMessengerEvent: null });
+      },
+
+      // [NEW] 매일 아침 스마트폰 전화/문자 수신 (학부모 민원 50선 + 교직원 사적 20선 vs 긍정 힐링 150선)
+      generatePhoneAndTextNotifications: () => {
+        const { day, completedParentEvents, completedColleaguePrivateEvents, completedPositiveEvents, phoneAndTextNotifications } = get();
+        const newNotifs: MessengerNotification[] = [];
+
+        // 매일 아침 75% 확률로 스마트폰 피드 알림 생성
+        if (Math.random() < 0.75) {
+          // 50% 확률로 긍정 힐링 vs 50% 확률로 부정 딜레마 결정
+          const isPositive = Math.random() < 0.5;
+
+          if (isPositive) {
+            // [긍정 힐링 150선 생성]
+            let candidates = Array.from({ length: 150 }, (_, i) => i).filter(i => !completedPositiveEvents.includes(i));
+            if (candidates.length === 0) {
+              candidates = Array.from({ length: 150 }, (_, i) => i);
+              set({ completedPositiveEvents: [] });
+            }
+            const randomIdx = candidates[Math.floor(Math.random() * candidates.length)];
+            const posEvt = positiveEvents[randomIdx];
+            const type = Math.random() < 0.5 ? 'phone' : 'text';
+
+            newNotifs.push({
+              id: `phone_positive_${day}_${randomIdx}`,
+              sender: posEvt.sender,
+              previewText: type === 'phone' 
+                ? `☎️ [전화] ${posEvt.sender} 님이 전화를 걸었습니다.` 
+                : `💬 [문자] ${posEvt.previewText.slice(0, 35)}...`,
+              type: type,
+              targetId: `positive_phone_text_${randomIdx}`,
+              isRead: false
+            });
+          } else {
+            // [부정 딜레마 생성 - 학부모 민원 50선 + 교직원 사적 20선]
+            const isParentComplaint = Math.random() < 0.7; // 부정 딜레마 안에서 70% 확률로 학부모 민원
+
+            if (isParentComplaint) {
+              let candidates = Array.from({ length: 50 }, (_, i) => i).filter(i => !completedParentEvents.includes(i));
+              if (candidates.length === 0) {
+                candidates = Array.from({ length: 50 }, (_, i) => i);
+                set({ completedParentEvents: [] });
+              }
+              const randomIdx = candidates[Math.floor(Math.random() * candidates.length)];
+              const parentEvt = parentMessengerEvents[randomIdx];
+              const type = Math.random() < 0.5 ? 'phone' : 'text';
+
+              newNotifs.push({
+                id: `phone_parent_${day}_${randomIdx}`,
+                sender: parentEvt.sender,
+                previewText: type === 'phone' 
+                  ? `☎️ [전화] ${parentEvt.sender} 님이 민원 전화를 걸었습니다.` 
+                  : `💬 [문자] ${parentEvt.previewText.slice(0, 35)}...`,
+                type: type,
+                targetId: `parent_phone_text_${randomIdx}`,
+                isRead: false
+              });
+            } else {
+              // 교직원 사적 요청 20선
+              let candidates = Array.from({ length: 20 }, (_, i) => i).filter(i => !completedColleaguePrivateEvents.includes(i));
+              if (candidates.length === 0) {
+                candidates = Array.from({ length: 20 }, (_, i) => i);
+                set({ completedColleaguePrivateEvents: [] });
+              }
+              const randomIdx = candidates[Math.floor(Math.random() * candidates.length)];
+              const colleagueEvt = colleaguePrivateEvents[randomIdx];
+              const type = Math.random() < 0.5 ? 'phone' : 'text';
+
+              newNotifs.push({
+                id: `phone_colleague_${day}_${randomIdx}`,
+                sender: colleagueEvt.sender,
+                previewText: type === 'phone' 
+                  ? `☎️ [전화] ${colleagueEvt.sender} 님이 사적인 요청 전화를 걸었습니다.` 
+                  : `💬 [문자] ${colleagueEvt.previewText.slice(0, 35)}...`,
+                type: type,
+                targetId: `colleague_phone_text_${randomIdx}`,
+                isRead: false
+              });
+            }
+          }
+        }
+
+        // 스마트폰 알림은 누적되며 최대 6개까지만 쌓이도록 제한
+        const combined = [...phoneAndTextNotifications, ...newNotifs];
+        if (combined.length > 6) {
+          set({ phoneAndTextNotifications: combined.slice(combined.length - 6) });
+        } else {
+          set({ phoneAndTextNotifications: combined });
+        }
+      },
+
+      // [NEW] 스마트폰 알림 클릭 시 액션 (교사력 1TP 소모 체크 - 긍정 격려 이벤트는 프리패스)
+      triggerPhoneAndTextAction: (notificationId: string) => {
+        const { phoneAndTextNotifications, actionPoints } = get();
+        const target = phoneAndTextNotifications.find(n => n.id === notificationId);
+        if (!target) return;
+
+        // 부정 딜레마 알림(parent 또는 colleague) 처리를 시작하려면 교사력이 최소 1이 필요합니다.
+        const isPositive = target.targetId.startsWith('positive_phone_text_');
+        if (!isPositive && actionPoints < 1) {
+          get().showToast('교사력(TP)이 부족하여 스마트폰 민원을 처리할 수 없습니다. 다음 날로 넘어가 교사력을 회복하세요.');
+          return;
+        }
+
+        // 읽음 처리
+        set({
+          phoneAndTextNotifications: phoneAndTextNotifications.map(n => 
+            n.id === notificationId ? { ...n, isRead: true } : n
+          )
+        });
+
+        let eventDetails: MessengerEvent | null = null;
+
+        if (target.targetId.startsWith('parent_phone_text_')) {
+          const idx = parseInt(target.targetId.replace('parent_phone_text_', ''), 10);
+          const parentEvt = parentMessengerEvents[idx];
+          if (parentEvt) {
+            eventDetails = {
+              id: parentEvt.id,
+              sender: `${parentEvt.sender} (${target.type === 'phone' ? '전화 민원' : '문자 답장'})`,
+              previewText: parentEvt.previewText,
+              choices: parentEvt.choices.map(c => ({
+                id: c.id,
+                text: c.text,
+                effects: c.effects,
+                resultText: c.resultText
+              }))
+            };
+          }
+        } else if (target.targetId.startsWith('colleague_phone_text_')) {
+          const idx = parseInt(target.targetId.replace('colleague_phone_text_', ''), 10);
+          const colleagueEvt = colleaguePrivateEvents[idx];
+          if (colleagueEvt) {
+            eventDetails = {
+              id: colleagueEvt.id,
+              sender: `${colleagueEvt.sender} (${target.type === 'phone' ? '사적 통화' : '사적 문자'})`,
+              previewText: colleagueEvt.previewText,
+              choices: colleagueEvt.choices.map(c => ({
+                id: c.id,
+                text: c.text,
+                effects: c.effects,
+                resultText: c.resultText
+              }))
+            };
+          }
+        } else if (target.targetId.startsWith('positive_phone_text_')) {
+          const idx = parseInt(target.targetId.replace('positive_phone_text_', ''), 10);
+          const posEvt = positiveEvents[idx];
+          if (posEvt) {
+            eventDetails = {
+              id: posEvt.id,
+              sender: `${posEvt.sender} (${target.type === 'phone' ? '격려 전화' : '격려 문자'})`,
+              previewText: posEvt.previewText,
+              choices: posEvt.choices.map(c => ({
+                id: c.id,
+                text: c.text,
+                effects: c.effects,
+                resultText: c.resultText
+              }))
+            };
+          }
+        }
+
+        if (eventDetails) {
+          set({ activePhoneAndTextEvent: eventDetails });
+        }
+      },
+
+      // [NEW] 스마트폰 선택지 클릭 시 스탯 적용 및 피드백 출력 (교사력 소모/회복 연계)
+      selectPhoneAndTextChoice: (_choiceId: string, effects: StatEffect[], resultText: string) => {
+        const { stats, recentLogs, day, actionPoints, maxActionPoints, completedParentEvents, completedColleaguePrivateEvents, completedPositiveEvents, activePhoneAndTextEvent } = get();
+        
+        if (!activePhoneAndTextEvent) return;
+
+        // 긍정 격려 이벤트인지 체크
+        const isPositive = activePhoneAndTextEvent.id.startsWith('positive_parent_') || 
+                           activePhoneAndTextEvent.id.startsWith('positive_colleague_') || 
+                           activePhoneAndTextEvent.id.startsWith('positive_student_');
+
+        // 부정 딜레마인데 교사력이 없으면 진행 불가
+        if (!isPositive && actionPoints < 1) {
+          get().showToast('교사력(TP)이 부족하여 완료할 수 없습니다.');
+          return;
+        }
+
+        // 스탯 변동 적용
+        const newStats = { ...stats };
+        effects.forEach((eff: StatEffect) => {
+          newStats[eff.stat] = clamp(
+            newStats[eff.stat] + eff.value, 
+            eff.stat === 'burnout' ? 0 : 0, 
+            100
+          );
+        });
+
+        // 긍정 이벤트일 땐 교사력 소모 0, 부정일 땐 교사력 1TP 감원
+        const apChange = isPositive ? 0 : -1;
+        const logActionType = isPositive ? '스마트폰 격려' : '스마트폰 대응';
+        const apMsg = isPositive ? '교사력 소모 없음' : '교사력 1TP 소모';
+
+        const logMsg = `[폰 연락 처리] ${resultText.slice(0, 30)}...`;
+        const updatedLogs = [
+          `[${day}일차] ${logActionType} (${apMsg}): ${logMsg}`,
+          ...recentLogs.slice(0, 19)
+        ];
+
+        // 완료 목록 기록
+        const updatedCompletedParentEvents = [...completedParentEvents];
+        const updatedCompletedColleaguePrivateEvents = [...completedColleaguePrivateEvents];
+        const updatedCompletedPositiveEvents = [...completedPositiveEvents];
+
+        if (activePhoneAndTextEvent.id.startsWith('parent_msg_')) {
+          const idx = parseInt(activePhoneAndTextEvent.id.replace('parent_msg_', ''), 10) - 1;
+          if (!updatedCompletedParentEvents.includes(idx)) {
+            updatedCompletedParentEvents.push(idx);
+          }
+        } else if (activePhoneAndTextEvent.id.startsWith('colleague_private_')) {
+          const idx = parseInt(activePhoneAndTextEvent.id.replace('colleague_private_', ''), 10) - 1;
+          if (!updatedCompletedColleaguePrivateEvents.includes(idx)) {
+            updatedCompletedColleaguePrivateEvents.push(idx);
+          }
+        } else if (isPositive) {
+          const idx = positiveEvents.findIndex(e => e.id === activePhoneAndTextEvent.id);
+          if (idx !== -1 && !updatedCompletedPositiveEvents.includes(idx)) {
+            updatedCompletedPositiveEvents.push(idx);
+          }
+        }
+
+        set({
+          stats: syncNewStats(newStats),
+          recentLogs: updatedLogs,
+          actionPoints: clamp(actionPoints + apChange, 0, maxActionPoints),
+          completedParentEvents: updatedCompletedParentEvents,
+          completedColleaguePrivateEvents: updatedCompletedColleaguePrivateEvents,
+          completedPositiveEvents: updatedCompletedPositiveEvents,
+          activePhoneAndTextEvent: {
+            ...activePhoneAndTextEvent,
+            previewText: resultText,
+            choices: [] // 선택지 배열을 지워서 확인 버튼만 띄우게 함
+          }
+        });
+        
+        get().checkFailureConditions();
+      },
+
+      // [NEW] 스마트폰 팝업 닫기
+      closePhoneAndTextEvent: () => {
+        set({ activePhoneAndTextEvent: null });
       }
     }),
     {

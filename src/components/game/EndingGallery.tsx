@@ -158,6 +158,41 @@ export const EndingGallery: React.FC<EndingGalleryProps> = ({ onBackToTitle }) =
       icon: '🌱'
     },
     {
+      id: 'ending_class_master',
+      title: '🥇 학급 경영의 달인',
+      desc: '질서와 온기가 가득한 이상적인 학급 공동체를 설계하고, 동료 교사들의 학급 경영 멘토가 되는 교사',
+      condition: '30일차에 학급운영 85 이상 달성',
+      icon: '🥇'
+    },
+    {
+      id: 'ending_teaching_scholar',
+      title: '💡 수업 연구의 대가',
+      desc: '수업 연구에 헌신하여 교과 장학 우수 사례로 등극하고 공교육 최고의 참지성 수업 전문가로 성장하는 길',
+      condition: '30일차에 수업연구능력 85 이상 달성',
+      icon: '💡'
+    },
+    {
+      id: 'ending_family_peacekeeper',
+      title: '🚲 가정 평화 수호자',
+      desc: '업무나 승진 욕심을 내려놓고 정시 퇴근과 주말 가족 생활을 완벽히 지켜내어 가정의 넘치는 행복을 누리는 스승',
+      condition: '30일차에 가족관계 85 이상, 업무능력 60 미만 달성',
+      icon: '🚲'
+    },
+    {
+      id: 'ending_innovation_director',
+      title: '🎯 학교 혁신 장학관',
+      desc: '최정상급의 행정 실무 능력과 전문적 교육학적 혜안을 융합하여 국가 교육 혁신을 선도하는 스타 장학관의 탄생',
+      condition: '30일차에 업무능력 80 이상, 수업연구능력 80 이상 달성',
+      icon: '🎯'
+    },
+    {
+      id: 'ending_myway',
+      title: '🦅 독고다이 마이웨이 교사',
+      desc: '교무실 친목이나 권력의 눈치를 거부하고 오로지 강인한 신념과 굳건한 훈육 원칙으로 교실을 통솔하는 고고한 학의 길',
+      condition: '30일차에 교육소신 80 이상, 인간관계 40 미만 달성',
+      icon: '🦅'
+    },
+    {
       id: 'ending_general',
       title: '🚶‍♂️ 묵묵히 자리를 지킨 평교사',
       desc: '화려한 영예나 표창은 없어도 큰 사고 없이 매일 교탁을 소독하고 교실 조종례를 지켜낸 든든한 기둥',

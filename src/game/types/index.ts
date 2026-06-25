@@ -16,6 +16,13 @@ export interface Stats {
   teachingSatisfaction: number; // 교육적 보람 (0 ~ 100) [NEW]
   colleagueSolidarity: number;  // 동료 교직원 연대감 (0 ~ 100) [NEW]
   parentComplaint: number;      // 학부모 민원 수치 (0 ~ 100, 높을수록 위험) [NEW]
+  
+  // 5대 핵심 교사 역량 스탯 [NEW]
+  workCapacity: number;       // 업무능력 (0 ~ 100)
+  interpersonal: number;      // 인간관계 (0 ~ 100)
+  familyRelation: number;     // 가족관계 (0 ~ 100)
+  classManagement: number;    // 학급운영 (0 ~ 100)
+  teachingResearch: number;   // 수업연구능력 (0 ~ 100)
 }
 
 // 플레이어 기본 신상 정보
@@ -186,7 +193,7 @@ export interface MessengerNotification {
   id: string;
   sender: string;       // 발신인/발신기관 (예: '교육청', '교감 선생님')
   previewText: string;  // 본문 요약
-  type: 'npc_dialogue' | 'messenger_event';
+  type: 'npc_dialogue' | 'messenger_event' | 'phone' | 'text';
   targetId: string;     // npcId 또는 messenger_event_id
   targetName?: string;  // 대화 연동용 이름
   isRead: boolean;      // 읽음 여부

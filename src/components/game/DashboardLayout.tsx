@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGameStore } from '@/store/useGameStore';
 import type { TimeOfDay } from '@/store/useGameStore';
 import { 
@@ -13,12 +13,71 @@ import {
   ChevronRight, 
   CheckCircle, 
   AlertCircle,
+  AlertTriangle,
   HelpCircle,
   LogOut,
   Sparkles,
   Info
 } from 'lucide-react';
 import type { Student } from '@/game/types';
+
+interface TutorialStepData {
+  title: string;
+  desc: string;
+  targetId: string;
+  forcedTab?: 'left' | 'right' | 'center';
+  positionClass: string;
+}
+
+const TUTORIAL_STEPS: TutorialStepData[] = [
+  {
+    title: "👨‍🏫 티처 메이커에 오신 것을 환영합니다!",
+    desc: "신임 교사로서 앞으로 30일간 학급을 이끌고 생존하기 위한 기본적인 규칙과 UI 사용법을 안내해 드릴게요. 1분만 투자해 가이드를 따라와 보세요!",
+    targetId: "",
+    positionClass: "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+  },
+  {
+    title: "⚡ 우주 최강의 에너지: 교사력 (TP - Teacher Power)",
+    desc: "가장 중요한 '교사력' 표시등입니다. 매일 아침 5TP의 교사력이 기본으로 주어집니다.\n\n여기서 TP(Teacher Power)란 교사로서 발휘할 수 있는 '교직 생존력'이자 '기안 결재력', '진상 대항력'을 한데 모은 초인적인 교사 에너지입니다! 위치 이동, 대화, 업무, 학생 개별 지도 등 하나의 이벤트가 실행될 때마다 소중한 1TP가 소모됩니다.",
+    targetId: "tutorial-hp-bar",
+    positionClass: "fixed top-24 right-4 lg:right-[150px]"
+  },
+  {
+    title: "🌟 5대 핵심 교사 역량 스탯",
+    desc: "교사로서 지닌 5가지 핵심 역량(업무능력, 인간관계, 가족관계, 학급운영, 수업연구능력)입니다. 각 게이지에 마우스를 올리거나 터치하면 어떠한 행동에 의해 상승/하락하는지 공식과 근거를 볼 수 있습니다. 이 스탯 중 단 하나라도 0이 되면 즉시 게임오버가 되니 늘 집중관리해야 합니다!",
+    targetId: "tutorial-stats-panel",
+    forcedTab: "left",
+    positionClass: "fixed bottom-10 left-4 lg:left-[26%] lg:bottom-auto lg:top-[50%]"
+  },
+  {
+    title: "📋 학급 교무수첩 (학생 명단)",
+    desc: "선생님이 담당하는 우리 반 학생 10명의 목록입니다. 학생의 이름을 누르면 상세 정보와 숨겨진 성향 카드가 열립니다. 여기서 학생에게 꼭 맞는 지도 방침(💬공감, 💡이성, 🛡️훈육, 🎨강점, 🤝멘토링)을 선택해 교사력 1TP를 소모하고 개별 지도를 진행할 수 있습니다. 학생의 숨겨진 특성과의 상성에 따라 반응이 극명히 엇갈립니다.",
+    targetId: "tutorial-students-panel",
+    forcedTab: "left",
+    positionClass: "fixed top-1/3 left-4 lg:left-[26%]"
+  },
+  {
+    title: "📂 미결 행정 업무 리스트",
+    desc: "교사에게 부여된 공문 및 행정 업무들입니다. 요구되는 교사력을 소모하여 결재 처리하거나 선배에게 위임할 수 있습니다. 마감일 이전에 해결하지 않고 방치한 채 퇴근하여 날을 넘기면, 다음 날 아침 강력한 업무 해태 패널티(스탯 대폭 차감)가 찾아옵니다.",
+    targetId: "tutorial-tasks-panel",
+    forcedTab: "right",
+    positionClass: "fixed top-1/3 right-4 lg:right-[26%]"
+  },
+  {
+    title: "🏫 학교 메신저 및 스마트폰 연락",
+    desc: "교육청/교감선생님이 보낸 공적 연락과 학부모 민원, 동료 교사의 사적 문자가 들어옵니다. 확인하지 않고 날을 넘기면 소통 방치에 따른 막대한 스탯 감소와 민원 급증 패널티를 받게 됩니다. 하루가 지나기 전 잊지 말고 꼭 확인해서 답장하세요!",
+    targetId: "tutorial-alerts-panel",
+    forcedTab: "right",
+    positionClass: "fixed bottom-10 right-4 lg:right-[26%] lg:bottom-auto lg:top-[55%]"
+  },
+  {
+    title: "🏃‍♂️ 2D 학교 맵 (장소 이동)",
+    desc: "교사력(TP)이 남아 있다면 학교 지도를 보고 캐릭터(👨‍🏫)를 교실, 교무실, 행정실 등으로 움직여 원하는 장소로 가세요. 각 장소에 있는 다양한 인물들과 대화하거나, 장소별 조사를 통해 예기치 못한 돌발 사건을 맞이하고 이를 극복해 나갑니다.",
+    targetId: "tutorial-navigation-panel",
+    forcedTab: "center",
+    positionClass: "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 lg:left-[35%] lg:-translate-x-0"
+  }
+];
 
 interface DashboardLayoutProps {
   onExitGame: () => void;
@@ -65,7 +124,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
     activeMessengerEvent,
     triggerMessengerAction,
     selectMessengerChoice,
-    closeMessengerEvent
+    closeMessengerEvent,
+    phoneAndTextNotifications,
+    activePhoneAndTextEvent,
+    triggerPhoneAndTextAction,
+    selectPhoneAndTextChoice,
+    closePhoneAndTextEvent,
+    clearDayEffects,
+    counselStudent
   } = useGameStore();
 
   // 모바일 화면용 탭 상태 ('center' = 교실/사건, 'left' = 학급현황, 'right' = 스마트폰/업무)
@@ -73,6 +139,49 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
   
   // 층간 상태 (1층 ⇄ 2층)
   const [currentFloor, setCurrentFloor] = useState<1 | 2>(1);
+
+  // 개별 학생 1:1 지도 결과 피드백 로컬 상태
+  const [counselResult, setCounselResult] = useState<{ feedbackText: string; effectsText: string } | null>(null);
+
+  // iorad 스타일 첫날 튜토리얼 로컬 상태
+  const [isTutorialActive, setIsTutorialActive] = useState<boolean>(false);
+  const [tutorialStep, setTutorialStep] = useState<number>(0);
+
+  // 첫날 시작 시 튜토리얼 자동 트리거
+  useEffect(() => {
+    const isDone = localStorage.getItem('teacher_maker_tutorial_done') === 'true';
+    if (day === 1 && timeOfDay === 'morning' && !isDone) {
+      setIsTutorialActive(true);
+      setTutorialStep(0);
+    }
+  }, [day, timeOfDay]);
+
+  // 튜토리얼 단계 전환 시 적절한 패널 자동 활성화 (반응형 탭 연동)
+  useEffect(() => {
+    if (!isTutorialActive) return;
+    const currentStepData = TUTORIAL_STEPS[tutorialStep];
+    if (currentStepData && currentStepData.forcedTab) {
+      setActiveTab(currentStepData.forcedTab);
+    }
+  }, [tutorialStep, isTutorialActive]);
+
+  // 미확인 메신저, 스마트폰 연락, 미결 업무 사전 체크 래퍼 함수
+  const handleProgressTime = () => {
+    if (timeOfDay === 'summary') {
+      const nextDay = day + 1;
+      const overdueTasks = tasks.filter(t => !t.isCompleted && t.deadlineDay < nextDay);
+      const unreadMessengers = messengerNotifications.filter(m => !m.isRead);
+      const unreadPhones = phoneAndTextNotifications.filter(p => !p.isRead);
+
+      if (overdueTasks.length > 0 || unreadMessengers.length > 0 || unreadPhones.length > 0) {
+        const confirmMsg = `⚠️ [방치 경고] 아직 확인하지 않은 메신저(${unreadMessengers.length}건), 스마트폰 연락(${unreadPhones.length}건) 혹은 미결된 마감 업무(${overdueTasks.length}건)가 남아있습니다.\n\n이대로 퇴근하여 날을 넘길 시, 다음 날 아침에 핵심 교사 역량 스탯에 심각한 부정적 패널티가 가해질 수 있습니다.\n\n정말로 퇴근을 진행하시겠습니까?`;
+        if (!window.confirm(confirmMsg)) {
+          return;
+        }
+      }
+    }
+    progressTime();
+  };
 
   // 장소별 한글 명칭 및 테마 스타일 설정 헬퍼
   const getLocationTheme = (loc: string) => {
@@ -393,7 +502,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
               </div>
               <div className="w-24 md:w-32">
                 <div className="flex justify-between text-xs font-bold mb-0.5">
-                  <span>체력</span>
+                  <span>건강</span>
                   <span>{stats.hp}</span>
                 </div>
                 <div className="w-full bg-slate-200 h-2.5 rounded-full border border-black overflow-hidden">
@@ -436,12 +545,26 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
               </div>
             </div>
 
-            {/* 행동 포인트 (AP) */}
-            <div className="flex items-center gap-1.5 bg-yellow-100 border-2 border-yellow-400 rounded-xl px-3 py-1.5 shadow-school-press">
+            {/* 교사력 (TP) */}
+            <div 
+              id="tutorial-hp-bar"
+              className={`flex items-center gap-1.5 bg-yellow-100 border-2 border-yellow-400 rounded-xl px-3 py-1.5 shadow-school-press relative group cursor-help transition-all duration-300 ${
+                isTutorialActive && tutorialStep === 1 
+                  ? 'z-[1000] relative ring-4 ring-[#FF007F] ring-offset-4 ring-offset-slate-900 animate-pulse border-[#FF007F]' 
+                  : ''
+              }`}
+            >
               <Clock className="w-4 h-4 text-yellow-700" />
               <span className="text-xs font-bold text-yellow-800">
-                AP {actionPoints} / {maxActionPoints}
+                교사력 {actionPoints} / {maxActionPoints} TP
               </span>
+              
+              {/* 마우스오버 규칙 설명 툴팁 */}
+              <div className="absolute top-full right-0 mt-2 w-72 bg-slate-900 text-white text-xs p-3.5 rounded-xl border border-slate-700 shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 z-[1050] leading-relaxed font-semibold">
+                <span className="font-extrabold text-yellow-400 flex items-center gap-1 mb-1">⚡ 교사력 (Teacher Power) 관리 규칙:</span>
+                <p>• 매일 아침 교사에게는 5TP의 교사력이 기본으로 주어집니다.</p>
+                <p className="mt-1">• 위치 이동, 대화, 업무, 학생 개별 지도 등 하나의 이벤트가 발생할 때마다 교사력 1TP가 소모됩니다.</p>
+              </div>
             </div>
             
             {/* 타이틀 복귀 */}
@@ -486,7 +609,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
         
         {/* ================= 좌측 패널 (lg:col-span-3): 학급현황 ================= */}
         <section className={`lg:col-span-3 space-y-4 ${activeTab === 'left' ? 'block' : 'hidden lg:block'}`}>
-          <div className="paper-card bg-white p-4">
+          <div 
+            id="tutorial-students-panel"
+            className={`paper-card bg-white p-4 transition-all duration-300 ${
+              isTutorialActive && tutorialStep === 3 
+                ? 'z-[1000] relative ring-4 ring-[#FF007F] ring-offset-4 ring-offset-slate-900 animate-pulse border-[#FF007F]' 
+                : ''
+            }`}
+          >
             <h3 className="font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-2 mb-3 flex items-center gap-1.5">
               <Users className="w-5 h-5 text-emerald-600" />
               학급 교무수첩 (학생 현황)
@@ -513,6 +643,113 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                   <ChevronRight className="w-4 h-4 text-slate-400" />
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* 5대 핵심 교사 역량 지표 (마우스 오버 툴팁 지원) */}
+          <div 
+            id="tutorial-stats-panel"
+            className={`paper-card bg-white p-4 space-y-3 transition-all duration-300 ${
+              isTutorialActive && tutorialStep === 2 
+                ? 'z-[1000] relative ring-4 ring-[#FF007F] ring-offset-4 ring-offset-slate-900 animate-pulse border-[#FF007F]' 
+                : ''
+            }`}
+          >
+            <h3 className="font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-2 flex items-center gap-1.5 text-base">
+              <span>🌟 5대 핵심 교사 역량</span>
+            </h3>
+            <p className="text-xs text-slate-400 font-medium">마우스 오버 시 스탯 영향 인과 가이드가 표시됩니다.</p>
+            
+            <div className="space-y-3.5">
+              {/* 업무능력 */}
+              <div className="relative group cursor-help">
+                <div className="flex justify-between text-sm font-bold mb-1">
+                  <span className="text-slate-700">💼 업무능력</span>
+                  <span className="text-indigo-700 font-mono">{stats.workCapacity} / 100</span>
+                </div>
+                <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
+                  <div className="bg-indigo-500 h-full rounded-full transition-all duration-300" style={{ width: `${stats.workCapacity}%` }} />
+                </div>
+                
+                {/* 툴팁 */}
+                <div className="absolute left-0 bottom-full mb-2 w-72 bg-slate-900 text-white text-xs rounded-xl p-3.5 shadow-xl hidden group-hover:block z-50 border border-slate-700 leading-relaxed pointer-events-none animate-fade-in font-normal">
+                  <p className="font-bold text-indigo-300 mb-1 text-sm">💼 업무능력 (Work Capacity)</p>
+                  <p className="mb-1 text-slate-300 font-mono text-[10.5px]">공식: 전문성 40% + 행정 40% + 관리자신뢰 20%</p>
+                  <p className="text-slate-200">공문 기안 완수, 행정 예산 협조, 미결 업무의 당일 결재 완료 시 <strong className="text-emerald-400">상승</strong>합니다. 미결 업무나 메신저를 방치하고 날을 넘길 시 <strong className="text-rose-400">급격히 하락</strong>합니다.</p>
+                </div>
+              </div>
+
+              {/* 인간관계 */}
+              <div className="relative group cursor-help">
+                <div className="flex justify-between text-sm font-bold mb-1">
+                  <span className="text-slate-700">🤝 인간관계</span>
+                  <span className="text-emerald-700 font-mono">{stats.interpersonal} / 100</span>
+                </div>
+                <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
+                  <div className="bg-emerald-500 h-full rounded-full transition-all duration-300" style={{ width: `${stats.interpersonal}%` }} />
+                </div>
+                
+                {/* 툴팁 */}
+                <div className="absolute left-0 bottom-full mb-2 w-72 bg-slate-900 text-white text-xs rounded-xl p-3.5 shadow-xl hidden group-hover:block z-50 border border-slate-700 leading-relaxed pointer-events-none animate-fade-in font-normal">
+                  <p className="font-bold text-emerald-300 mb-1 text-sm">🤝 인간관계 (Interpersonal)</p>
+                  <p className="mb-1 text-slate-300 font-mono text-[10.5px]">공식: 동료관계 30% + 학생신뢰 30% + 학부모신뢰 30% + 동료연대감 10%</p>
+                  <p className="text-slate-200">동료들과의 사교, 학생/학부모 개별 상담, 스마트폰 감사 연락 답장 시 <strong className="text-emerald-400">상승</strong>합니다. 전화/문자 민원이나 연락을 방치할 시 <strong className="text-rose-400">급격히 하락</strong>합니다.</p>
+                </div>
+              </div>
+
+              {/* 가족관계 */}
+              <div className="relative group cursor-help">
+                <div className="flex justify-between text-sm font-bold mb-1">
+                  <span className="text-slate-700">❤️ 가족관계</span>
+                  <span className="text-rose-700 font-mono">{stats.familyRelation} / 100</span>
+                </div>
+                <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
+                  <div className="bg-rose-400 h-full rounded-full transition-all duration-300" style={{ width: `${stats.familyRelation}%` }} />
+                </div>
+                
+                {/* 툴팁 */}
+                <div className="absolute left-0 bottom-full mb-2 w-72 bg-slate-900 text-white text-xs rounded-xl p-3.5 shadow-xl hidden group-hover:block z-50 border border-slate-700 leading-relaxed pointer-events-none animate-fade-in font-normal">
+                  <p className="font-bold text-rose-300 mb-1 text-sm">❤️ 가족관계 (Family Relation)</p>
+                  <p className="mb-1 text-slate-300 font-mono text-[10.5px]">공식: 가정만족도와 1:1 비례</p>
+                  <p className="text-slate-200">칼퇴근 고수, 주말 사적인 동원 거절, 스마트폰 격려 연락 답장 시 <strong className="text-emerald-400">상승</strong>합니다. 야근 수행, 주말 친목 모임 강제 참석 시 <strong className="text-rose-400">하락</strong>합니다.</p>
+                </div>
+              </div>
+
+              {/* 학급운영 */}
+              <div className="relative group cursor-help">
+                <div className="flex justify-between text-sm font-bold mb-1">
+                  <span className="text-slate-700">🎒 학급운영</span>
+                  <span className="text-amber-700 font-mono">{stats.classManagement} / 100</span>
+                </div>
+                <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
+                  <div className="bg-amber-500 h-full rounded-full transition-all duration-300" style={{ width: `${stats.classManagement}%` }} />
+                </div>
+                
+                {/* 툴팁 */}
+                <div className="absolute left-0 bottom-full mb-2 w-72 bg-slate-900 text-white text-xs rounded-xl p-3.5 shadow-xl hidden group-hover:block z-50 border border-slate-700 leading-relaxed pointer-events-none animate-fade-in font-normal">
+                  <p className="font-bold text-amber-300 mb-1 text-sm">🎒 학급운영 (Class Management)</p>
+                  <p className="mb-1 text-slate-300 font-mono text-[10.5px]">공식: 학생신뢰 50% + 학부모신뢰 30% + 교육소신 20%</p>
+                  <p className="text-slate-200">아침 교실 조회, 급식 지도, 교문 등교 안전 지도, 책임 훈육 실천 시 <strong className="text-emerald-400">상승</strong>합니다. 학부모 민원을 방임하거나 학생 갈등을 씹고 날을 넘길 시 <strong className="text-rose-400">하락</strong>합니다.</p>
+                </div>
+              </div>
+
+              {/* 수업연구능력 */}
+              <div className="relative group cursor-help">
+                <div className="flex justify-between text-sm font-bold mb-1">
+                  <span className="text-slate-700">💡 수업연구능력</span>
+                  <span className="text-sky-700 font-mono">{stats.teachingResearch} / 100</span>
+                </div>
+                <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
+                  <div className="bg-sky-500 h-full rounded-full transition-all duration-300" style={{ width: `${stats.teachingResearch}%` }} />
+                </div>
+                
+                {/* 툴팁 */}
+                <div className="absolute left-0 bottom-full mb-2 w-72 bg-slate-900 text-white text-xs rounded-xl p-3.5 shadow-xl hidden group-hover:block z-50 border border-slate-700 leading-relaxed pointer-events-none animate-fade-in font-normal">
+                  <p className="font-bold text-sky-300 mb-1 text-sm">💡 수업연구능력 (Teaching Research)</p>
+                  <p className="mb-1 text-slate-300 font-mono text-[10.5px]">공식: 수업전문성 70% + 교육적보람 30%</p>
+                  <p className="text-slate-200">타 교실 수업 참관, 도서실 교안 정리, 과학실 안전 점검 시 <strong className="text-emerald-400">상승</strong>합니다. 업무 미결 방치 및 수업 준비 미흡 시 <strong className="text-rose-400">하락</strong>합니다.</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -600,8 +837,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                   <h4 className="font-bold text-xs text-slate-700 uppercase tracking-wider">오늘 하루 동안의 누적 상태 요약</h4>
                   <div className="grid grid-cols-2 gap-4 text-xs font-semibold">
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-slate-500">생존 체력/멘탈</span>
-                      <span className="text-slate-900 font-mono">체력 {stats.hp} | 멘탈 {stats.mental}</span>
+                      <span className="text-slate-500">생존 건강/멘탈</span>
+                      <span className="text-slate-900 font-mono">건강 {stats.hp} | 멘탈 {stats.mental}</span>
                     </div>
                     <div className="flex flex-col gap-0.5">
                       <span className="text-slate-500">교무실 번아웃</span>
@@ -623,7 +860,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
 
               {/* 다음 날로 진행 */}
               <button
-                onClick={progressTime}
+                onClick={handleProgressTime}
                 className="w-full btn-school-accent flex items-center justify-center gap-1.5 py-3 text-lg"
               >
                 교무수첩을 덮고 퇴근하기 (다음 날로)
@@ -709,7 +946,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                         {/* 복귀/진행 버튼 분기 */}
                         {timeOfDay === 'evening' ? (
                           <button
-                            onClick={progressTime}
+                            onClick={handleProgressTime}
                             className="w-full btn-school-accent flex items-center justify-center gap-1 py-2 text-sm"
                           >
                             하루 정리하러 가기
@@ -761,7 +998,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                             🏫 학교 지도 (School Map)
                           </h2>
                           <button
-                            onClick={progressTime}
+                            onClick={handleProgressTime}
                             className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold border-2 border-black rounded-lg active:translate-y-0.5 shadow-school-press text-xs transition-colors flex items-center gap-1"
                           >
                             <span>{timeOfDay === 'morning' ? '오후 일과로 전진' : '퇴근/방과후로 전진'}</span>
@@ -775,7 +1012,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                         </p>
 
                         {/* 격자 기반 2D 학교 맵 */}
-                        <div className="flex flex-col items-center justify-center bg-slate-100 rounded-xl p-4 border border-slate-200">
+                        <div 
+                          id="tutorial-navigation-panel"
+                          className={`flex flex-col items-center justify-center bg-slate-100 rounded-xl p-4 border border-slate-200 transition-all duration-300 ${
+                            isTutorialActive && tutorialStep === 6 
+                              ? 'z-[1000] relative ring-4 ring-[#FF007F] ring-offset-4 ring-offset-slate-900 animate-pulse border-[#FF007F]' 
+                              : ''
+                          }`}
+                        >
                           <div className="w-full max-w-[360px] aspect-square bg-slate-800 border-4 border-slate-950 rounded-xl p-1.5 shadow-inner grid grid-cols-9 gap-1">
                             {currentMap.flatMap((row, y) => 
                               row.map((tile, x) => {
@@ -953,7 +1197,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                             <div className="space-y-6">
                               {/* 1. 상주 NPC 구역 */}
                               <div>
-                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5">👥 상주하는 인물과 대화 (AP 소모 없음)</h4>
+                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5">👥 상주하는 인물과 대화 (교사력 소모 없음)</h4>
                                 <div className="flex flex-wrap gap-2.5">
                                   {(() => {
                                     const npcs = dailyNpcPlacement[currentLocation || ''] || [];
@@ -1130,7 +1374,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
         {/* ================= 우측 패널 (lg:col-span-3): 업무보드 & 스마트폰 ================= */}
         <section className={`lg:col-span-3 space-y-4 ${activeTab === 'right' ? 'block' : 'hidden lg:block'}`}>
           {/* 업무 보드 */}
-          <div className="paper-card bg-white p-4">
+          <div 
+            id="tutorial-tasks-panel"
+            className={`paper-card bg-white p-4 transition-all duration-300 ${
+              isTutorialActive && tutorialStep === 4 
+                ? 'z-[1000] relative ring-4 ring-[#FF007F] ring-offset-4 ring-offset-slate-900 animate-pulse border-[#FF007F]' 
+                : ''
+            }`}
+          >
             <h3 className="font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-2 mb-3 flex items-center gap-1.5">
               <FileText className="w-5 h-5 text-emerald-600" />
               미결 행정 업무 리스트
@@ -1148,7 +1399,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                         </span>
                       </div>
                       <div className="flex gap-2 text-xs text-slate-500 font-semibold mb-2">
-                        <span>요구 AP: {task.estimatedTime}</span>
+                        <span>요구 TP: {task.estimatedTime}TP</span>
                         <span>피로도: +{task.stressCost}</span>
                       </div>
                     </div>
@@ -1180,14 +1431,21 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
             )}
           </div>
 
-          {/* 가상 스마트폰 메신저 피드 */}
-          <div className="paper-card bg-white p-4">
+          {/* 가상 스마트폰 메신저 피드 (공무 전용) */}
+          <div 
+            id="tutorial-alerts-panel"
+            className={`paper-card bg-white p-4 transition-all duration-300 ${
+              isTutorialActive && tutorialStep === 5 
+                ? 'z-[1000] relative ring-4 ring-[#FF007F] ring-offset-4 ring-offset-slate-900 animate-pulse border-[#FF007F]' 
+                : ''
+            }`}
+          >
             <h3 className="font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-2 mb-3 flex items-center gap-1.5">
               <Smartphone className="w-5 h-5 text-emerald-600" />
-              학교메신저 & 알림
+              🏫 학교 메신저 (공무전용)
             </h3>
             
-            <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
               {messengerNotifications.length > 0 ? (
                 messengerNotifications.map((notif) => (
                   <button
@@ -1209,7 +1467,65 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                 ))
               ) : (
                 <div className="text-slate-400 text-xs text-center p-4 italic bg-slate-50 rounded-lg">
-                  메신저에 새로운 알림이 없습니다.
+                  메신저에 새로운 공무 알림이 없습니다.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 개인 스마트폰 수신함 */}
+          <div className="paper-card bg-white p-4">
+            <h3 className="font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-2 mb-3 flex items-center gap-1.5">
+              <Smartphone className="w-5 h-5 text-rose-500" />
+              📱 개인 스마트폰 (전화 & 문자)
+            </h3>
+            
+            <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+              {phoneAndTextNotifications.length > 0 ? (
+                phoneAndTextNotifications.map((notif) => {
+                  const isPositive = notif.id.includes('positive');
+                  const isPhone = notif.type === 'phone';
+                  
+                  let cardBg = 'bg-rose-50/50 border-rose-250';
+                  let iconColor = 'text-rose-500';
+                  let badgeText = '💝 감사격려';
+                  let badgeBg = 'bg-rose-100 text-rose-850';
+
+                  if (!isPositive) {
+                    cardBg = 'bg-violet-50/40 border-violet-250';
+                    iconColor = 'text-violet-500';
+                    badgeText = '🚨 민원부탁';
+                    badgeBg = 'bg-violet-100 text-violet-850';
+                  }
+
+                  if (notif.isRead) {
+                    cardBg = 'bg-slate-50/80 border-slate-200 opacity-75 shadow-none';
+                  }
+
+                  return (
+                    <button
+                      key={notif.id}
+                      onClick={() => triggerPhoneAndTextAction(notif.id)}
+                      className={`w-full text-left p-2.5 rounded-xl border-2 border-black text-xs transition-all active:translate-y-0.5 shadow-school-press flex items-start gap-2 ${cardBg}`}
+                    >
+                      <span className={`text-sm mt-0.5 flex-shrink-0 ${iconColor}`}>
+                        {isPhone ? '☎️' : '💬'}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-center text-xs text-slate-500 mb-0.5">
+                          <span className="font-extrabold text-slate-800">{notif.sender}</span>
+                          <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${badgeBg}`}>
+                            {badgeText}
+                          </span>
+                        </div>
+                        <p className="leading-snug truncate text-slate-750 text-xs">{notif.previewText}</p>
+                      </div>
+                    </button>
+                  );
+                })
+              ) : (
+                <div className="text-slate-400 text-xs text-center p-4 italic bg-slate-50 rounded-lg">
+                  스마트폰 알림 수신함이 비어있습니다.
                 </div>
               )}
 
@@ -1228,12 +1544,46 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
 
       </main>
 
+      {/* ☀️ 새 아침 브리핑 팝업 모달 (미처리 방치 패널티 결과 보고) */}
+      {timeOfDay === 'morning' && dayEffectsTriggered.length > 0 && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white border-4 border-slate-900 rounded-2xl p-6 max-w-lg w-full shadow-school-deep relative">
+            <div className="border-b-2 border-slate-900 pb-3 mb-4">
+              <h3 className="text-2xl font-school font-bold text-slate-900 flex items-center gap-2">
+                ☀️ 새 아침 브리핑 (어제 방치된 업무와 연락 결과)
+              </h3>
+              <p className="text-sm text-slate-500 mt-1.5">어제 처리하지 않은 메신저, 스마트폰 연락, 마감 업무에 대한 정산 결과 보고입니다.</p>
+            </div>
+
+            <div className="max-h-65 overflow-y-auto space-y-2.5 mb-6 pr-1">
+              {dayEffectsTriggered.map((msg, idx) => (
+                <div key={idx} className="bg-rose-50 border border-rose-300 rounded-xl p-4 text-sm text-rose-900 flex items-start gap-2.5 shadow-sm">
+                  <AlertTriangle className="w-5 h-5 flex-shrink-0 text-rose-600 mt-0.5" />
+                  <span className="leading-relaxed font-semibold">{msg}</span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={clearDayEffects}
+              className="w-full btn-school-accent py-3 text-base font-bold flex items-center justify-center gap-1.5"
+            >
+              오늘의 업무 개시하기
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 3. 학생 상세 프로필 카드 모달 (오버레이) */}
       {selectedStudent && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-white border-4 border-black rounded-2xl p-6 max-w-md w-full shadow-school-deep relative">
             <button
-              onClick={() => setSelectedStudent(null)}
+              onClick={() => {
+                setSelectedStudent(null);
+                setCounselResult(null);
+              }}
               className="absolute top-3 right-3 border-2 border-black rounded-lg w-8 h-8 flex items-center justify-center font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 active:translate-y-0.5 shadow-school-press"
             >
               X
@@ -1315,6 +1665,93 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
 
             <div className="text-xs text-slate-500 font-medium">
               💡 위 수치는 교사의 개별 상담과 대응 방식에 따라 실시간으로 변동합니다.
+            </div>
+
+            {/* 개별 맞춤 지도 영역 */}
+            <div className="border-t-2 border-black pt-3 mt-4 space-y-3">
+              <h4 className="font-bold text-sm text-slate-800 flex items-center gap-1.5">
+                <span>👨‍🏫 개별 맞춤 지도 (교사력 1TP 소모)</span>
+              </h4>
+
+              {counselResult ? (
+                /* 지도 실행 결과 브리핑 창 */
+                <div className="bg-amber-50 border-2 border-dashed border-amber-400 rounded-xl p-4 space-y-2.5 animate-fade-in">
+                  <p className="text-xs font-extrabold text-amber-800 flex items-center gap-1">
+                    📢 지도 결과 피드백
+                  </p>
+                  <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line font-medium">
+                    {counselResult.feedbackText}
+                  </p>
+                  <div className="text-[11px] bg-white border border-amber-300 rounded px-2.5 py-1.5 font-bold text-emerald-800 font-mono">
+                    {counselResult.effectsText}
+                  </div>
+                  <button
+                    onClick={() => setCounselResult(null)}
+                    className="w-full mt-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold py-1.5 rounded-lg text-xs border border-black shadow-school-press"
+                  >
+                    확인
+                  </button>
+                </div>
+              ) : (
+                /* 지도 버튼 목록 */
+                <div className="grid grid-cols-2 gap-2 text-xs font-bold">
+                  <button
+                    onClick={() => {
+                      const res = counselStudent(selectedStudent.id, 'empathy');
+                      if (res) setCounselResult(res);
+                    }}
+                    className="bg-emerald-50 hover:bg-emerald-100 text-emerald-850 p-2.5 rounded-xl border border-emerald-300 transition-colors flex flex-col items-center gap-1"
+                    title="유리멘탈, 내성적 아동에 상성 보충"
+                  >
+                    <span>💬 감정 공감 지지</span>
+                    <span className="text-[9px] font-normal text-emerald-600">신뢰·자존감 회복</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      const res = counselStudent(selectedStudent.id, 'rational');
+                      if (res) setCounselResult(res);
+                    }}
+                    className="bg-indigo-50 hover:bg-indigo-100 text-indigo-850 p-2.5 rounded-xl border border-indigo-300 transition-colors flex flex-col items-center gap-1"
+                    title="우등생, 성실파 아동에 상성 보충"
+                  >
+                    <span>💡 이성 솔루션</span>
+                    <span className="text-[9px] font-normal text-indigo-600">학력·동기 상승</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      const res = counselStudent(selectedStudent.id, 'strict');
+                      if (res) setCounselResult(res);
+                    }}
+                    className="bg-rose-50 hover:bg-rose-100 text-rose-850 p-2.5 rounded-xl border border-rose-300 transition-colors flex flex-col items-center gap-1"
+                    title="트러블메이커, 규칙위반 아동에 상성 보충"
+                  >
+                    <span>🛡️ 엄격 규율 훈육</span>
+                    <span className="text-[9px] font-normal text-rose-600">행동교정·기강 확립</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      const res = counselStudent(selectedStudent.id, 'strength');
+                      if (res) setCounselResult(res);
+                    }}
+                    className="bg-amber-50 hover:bg-amber-100 text-amber-850 p-2.5 rounded-xl border border-amber-300 transition-colors flex flex-col items-center gap-1"
+                    title="예체능 특기자, 끼 있는 아동에 상성 보충"
+                  >
+                    <span>🎨 강점 진로 격려</span>
+                    <span className="text-[9px] font-normal text-amber-600">재능·자아 인정</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      const res = counselStudent(selectedStudent.id, 'mentoring');
+                      if (res) setCounselResult(res);
+                    }}
+                    className="col-span-2 bg-sky-50 hover:bg-sky-100 text-sky-850 p-2.5 rounded-xl border border-sky-300 transition-colors flex flex-col items-center gap-1"
+                    title="부진아, 잠만보 아동에 상성 보충"
+                  >
+                    <span>🤝 밀착 1:1 멘토링</span>
+                    <span className="text-[9px] font-normal text-sky-600">학력보충·생활 동행</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1491,6 +1928,149 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
             
             <div className="mt-5 text-xs text-slate-400 text-center">
               ⚠️ 메신저 대응 선택에 따른 스탯 변화가 시스템에 즉각 반영되었습니다.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 7. 스마트폰 개인 연락(전화/문자) 선택형 이벤트 모달 (오버레이) [NEW] */}
+      {activePhoneAndTextEvent && (() => {
+        const isPositive = activePhoneAndTextEvent.id.startsWith('positive_parent_') || 
+                           activePhoneAndTextEvent.id.startsWith('positive_colleague_') || 
+                           activePhoneAndTextEvent.id.startsWith('positive_student_');
+        
+        // 긍정 격려 vs 부정 민원 디자인 분기
+        const modalBg = isPositive 
+          ? 'bg-rose-50 border-rose-400 text-rose-950 shadow-lg' 
+          : 'bg-slate-900 border-violet-500 text-white';
+        const headerTextColor = isPositive ? 'text-rose-600' : 'text-violet-400';
+        const innerBoxBg = isPositive 
+          ? 'bg-white border-rose-200 text-rose-900' 
+          : 'bg-slate-950/80 border-violet-900/50 text-slate-100';
+        const infoBadgeBg = isPositive 
+          ? 'bg-rose-100 text-rose-800 border-rose-300' 
+          : 'bg-violet-950 text-violet-300 border-violet-700';
+        const choiceBtnStyle = isPositive
+          ? 'border-rose-300 bg-white hover:bg-rose-100/50 active:bg-rose-100 text-rose-900 shadow-sm'
+          : 'border-violet-500/40 bg-violet-950/20 hover:bg-violet-900/30 active:bg-violet-900/50 text-slate-200';
+        const closeBtnStyle = isPositive
+          ? 'bg-rose-600 hover:bg-rose-500 text-white border-2 border-black rounded-xl'
+          : 'bg-violet-600 hover:bg-violet-500 text-white border-2 border-black rounded-xl';
+
+        return (
+          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+            <div className={`border-4 rounded-2xl p-6 max-w-md w-full shadow-school-deep relative ${modalBg}`}>
+              <div className={`border-b pb-3 mb-4 flex justify-between items-center ${isPositive ? 'border-rose-200' : 'border-violet-500/30'}`}>
+                <h3 className={`text-lg font-bold flex items-center gap-2 ${headerTextColor}`}>
+                  <Smartphone className="w-5 h-5 animate-pulse" />
+                  {isPositive ? '💝 격려/감사 수신' : '🚨 스마트폰 연락 수신'}
+                </h3>
+                <span className={`text-xs border px-2 py-0.5 rounded font-bold ${infoBadgeBg}`}>
+                  발신: {activePhoneAndTextEvent.sender}
+                </span>
+              </div>
+
+              <div className={`border rounded-xl p-4 mb-5 text-xs md:text-sm leading-relaxed whitespace-pre-line font-school ${innerBoxBg}`}>
+                {activePhoneAndTextEvent.previewText}
+              </div>
+
+              {/* 선택지 혹은 확인 버튼 */}
+              <div className="space-y-3">
+                {activePhoneAndTextEvent.choices.length > 0 ? (
+                  activePhoneAndTextEvent.choices.map((choice) => (
+                    <button
+                      key={choice.id}
+                      onClick={() => selectPhoneAndTextChoice(choice.id, choice.effects, choice.resultText)}
+                      className={`w-full text-left p-3.5 rounded-xl border transition-all font-semibold text-xs md:text-sm flex items-start gap-3 group active:translate-y-0.5 shadow-school-press ${choiceBtnStyle}`}
+                    >
+                      <div className="flex-1 leading-snug">
+                        {choice.text}
+                      </div>
+                    </button>
+                  ))
+                ) : (
+                  <button
+                    onClick={closePhoneAndTextEvent}
+                    className={`w-full font-bold py-3 active:translate-y-0.5 shadow-school-press text-xs md:text-sm transition-all ${closeBtnStyle}`}
+                  >
+                    확인 및 닫기
+                  </button>
+                )}
+              </div>
+              
+              <div className={`mt-5 text-xs text-center ${isPositive ? 'text-rose-600/70 font-semibold' : 'text-slate-400'}`}>
+                {isPositive 
+                  ? '✨ 이 격려 연락은 교사력 소모가 없으며, 힐링 및 버프 효과를 제공합니다!'
+                  : '⚠️ 이 스마트폰 대응은 완료 시 교사력 1TP가 소모되며 딜레마 처리가 완료됩니다.'
+                }
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* iorad 스타일 첫날 튜토리얼 오버레이 */}
+      {isTutorialActive && (
+        <div className="fixed inset-0 z-[990] pointer-events-none select-none">
+          {/* 어두운 마스크 레이어 */}
+          <div className="absolute inset-0 bg-black/60 pointer-events-auto" />
+
+          {/* 설명 말풍선 카드 */}
+          <div 
+            className={`absolute z-[1000] pointer-events-auto max-w-md w-full bg-white border-4 border-black rounded-2xl p-6 shadow-[8px_8px_0_#000] text-slate-800 animate-fade-in animate-duration-300 font-sans ${TUTORIAL_STEPS[tutorialStep].positionClass}`}
+          >
+            {/* 상단 진행률 바 */}
+            <div className="flex justify-between items-center text-xs text-slate-400 font-bold mb-3">
+              <span className="bg-[#FF007F] text-white px-2.5 py-0.5 rounded-full font-mono text-[10px]">TUTORIAL GUIDE</span>
+              <span>{tutorialStep + 1} / {TUTORIAL_STEPS.length}</span>
+            </div>
+
+            {/* 타이틀 */}
+            <h4 className="font-extrabold text-base md:text-lg text-slate-900 mb-3 flex items-center gap-1.5 leading-tight">
+              {TUTORIAL_STEPS[tutorialStep].title}
+            </h4>
+
+            {/* 설명 본문 */}
+            <p className="text-sm text-slate-600 font-semibold leading-relaxed mb-5 whitespace-pre-line">
+              {TUTORIAL_STEPS[tutorialStep].desc}
+            </p>
+
+            {/* 제어 버튼 */}
+            <div className="flex gap-2 justify-between pt-3 border-t-2 border-dashed border-slate-200">
+              <button
+                onClick={() => {
+                  localStorage.setItem('teacher_maker_tutorial_done', 'true');
+                  setIsTutorialActive(false);
+                }}
+                className="text-xs text-slate-400 hover:text-rose-500 font-extrabold underline transition-colors"
+              >
+                가이드 건너뛰기
+              </button>
+
+              <div className="flex gap-2">
+                {tutorialStep > 0 && (
+                  <button
+                    onClick={() => setTutorialStep(prev => prev - 1)}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold border-2 border-black rounded-xl px-3.5 py-1.5 text-xs md:text-sm active:translate-y-0.5"
+                  >
+                    이전
+                  </button>
+                )}
+                
+                <button
+                  onClick={() => {
+                    if (tutorialStep < TUTORIAL_STEPS.length - 1) {
+                      setTutorialStep(prev => prev + 1);
+                    } else {
+                      localStorage.setItem('teacher_maker_tutorial_done', 'true');
+                      setIsTutorialActive(false);
+                    }
+                  }}
+                  className="bg-[#FF007F] hover:bg-[#E00070] text-white font-extrabold border-2 border-black rounded-xl px-4 py-1.5 text-xs md:text-sm active:translate-y-0.5 shadow-[2px_2px_0_#000]"
+                >
+                  {tutorialStep === TUTORIAL_STEPS.length - 1 ? '출근하기! ➔' : '다음 단계'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
