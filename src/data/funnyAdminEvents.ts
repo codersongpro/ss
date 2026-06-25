@@ -25,14 +25,21 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_01_2',
-        text: '"교장 선생님의 명품 원예 솜씨에 감탄했습니다! 다만 제가 지금 교실에 학부모 긴급 폰 알림 상담이 잡혀 있어서 먼저 퇴실을 허가받고자 합니다"라며 부드럽게 빠져나간다. (멘탈 +15, hp +5, adminTrust +5)',
+        text: '"교장 선생님의 명품 원예 솜씨에 감탄했습니다! 다만 제가 지금 교실에 학부모 긴급 폰 알림 상담이 잡혀 있어서 먼저 퇴실을 허가받고자 합니다"라며 부드럽게 빠져나간다. (성공률 65%) (멘탈 +15, hp +5, adminTrust +5)',
         intent: '업무 핑계 합리적 회피',
+        successRate: 65,
         immediateEffects: [
           { stat: 'mental', value: 15 },
           { stat: 'hp', value: 5 },
           { stat: 'adminTrust', value: 5 }
         ],
-        resultText: '교장 선생님은 "오, 학부모 상담이 더 중요하지!"라며 흔쾌히 가라고 하셨고, 덕분에 정시 퇴근에 성공하여 집에서 온전히 휴식했습니다.'
+        successResultText: '교장 선생님은 "오, 학부모 상담이 더 중요하지!"라며 흔쾌히 가라고 하셨고, 덕분에 정시 퇴근에 성공하여 집에서 온전히 휴식했습니다.',
+        failEffects: [
+          { stat: 'mental', value: -10 },
+          { stat: 'adminTrust', value: -15 },
+          { stat: 'burnout', value: 15 }
+        ],
+        failResultText: '교장 선생님이 호통을 치십니다. "학부모 상담? 내 자리에서 스피커폰으로 통화하면 되잖아! 이리 와서 마저 뽑아!" 결국 잡초 100그루를 마저 뽑고 기안서 검토 업무까지 강제로 맡겨졌습니다. 야근 당첨입니다.'
       }
     ]
   },

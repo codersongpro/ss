@@ -113,6 +113,34 @@ const StatChangeBriefing: React.FC<{ prev: any; current: any }> = ({ prev, curre
   );
 };
 
+// 타이핑 효과를 구현하기 위한 컴포넌트 [NEW]
+const TypewriterText: React.FC<{ text: string; speed?: number }> = ({ text, speed = 15 }) => {
+  const [displayedText, setDisplayedText] = useState('');
+  
+  useEffect(() => {
+    setDisplayedText('');
+    let index = 0;
+    const timer = setInterval(() => {
+      setDisplayedText((prev) => prev + text.charAt(index));
+      index++;
+      if (index >= text.length) {
+        clearInterval(timer);
+      }
+    }, speed);
+    
+    return () => clearInterval(timer);
+  }, [text, speed]);
+  
+  return <span className="whitespace-pre-line">{displayedText}</span>;
+};
+
+// 선택지 텍스트에서 스탯 힌트를 필터링하는 헬퍼 [NEW]
+const filterStatHints = (text: string, showStatHints: boolean) => {
+  if (showStatHints) return text;
+  // 괄호 안에 +나 -로 시작하는 숫자가 포함된 부분을 제거 (예: "(HP -5)", "(멘탈 +10, 건강 -5)" 등)
+  return text.replace(/\s*\([^)]*[-+]\d+[^)]*\)/g, '');
+};
+
 interface TutorialStepData {
   title: string;
   desc: string;
@@ -226,7 +254,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
     counselStudent,
     overtimeWork,
     bgmVolume,
-    setBgmVolume
+    setBgmVolume,
+    showStatHints,
+    toggleStatHints,
+    diceRollState,
+    clearDiceRollState
   } = useGameStore();
 
   const toggleVolume = () => {
@@ -782,6 +814,17 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
               <span className="font-mono">{bgmVolume === 0 ? 'OFF' : `LV.${bgmVolume}`}</span>
             </button>
 
+            {/* 스탯 힌트 토글 버튼 [NEW] */}
+            <button
+              onClick={toggleStatHints}
+              className={`p-1.5 rounded-lg border-2 border-black active:translate-y-0.5 shadow-school-press transition-all flex items-center gap-1 text-xs font-bold focus:outline-none cursor-pointer ${
+                showStatHints ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+              } ${isTutorialActive && tutorialStep === 1 ? 'opacity-30 pointer-events-none' : ''}`}
+              title="선택지의 스탯 변동 힌트를 표시하거나 숨깁니다."
+            >
+              <span>{showStatHints ? '👁️ 힌트 켜짐' : '🙈 힌트 숨김'}</span>
+            </button>
+
             {/* 다음 일과 진행 버튼 고정 배치 [NEW] */}
             {timeOfDay !== 'summary' && currentEvent === null && npcDialogueSession === null && activeMessengerEvent === null && activePhoneAndTextEvent === null && (
               <button
@@ -1265,13 +1308,24 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                       </span>
                     </div>
 
-                    <h2 className="text-xl md:text-2xl font-bold mb-4 chalk-text">
+                    {/* 테마 이모지 대왕 카드 연출 [NEW] */}
+                    <div className="flex justify-center mb-4">
+                      <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center text-4xl shadow-inner border border-white/20 animate-pulse">
+                        {currentEvent.category === 'student' ? '🍱' : 
+                         currentEvent.category === 'parent' ? '💬' : 
+                         currentEvent.category === 'colleague' ? '🤝' : 
+                         currentEvent.category === 'admin' ? '📋' : 
+                         currentEvent.category === 'family' ? '🏠' : '🏫'}
+                      </div>
+                    </div>
+
+                    <h2 className="text-xl md:text-2xl font-bold mb-4 text-center chalk-text">
                       {currentEvent.title}
                     </h2>
 
-                    {/* 내레이션 설명글 */}
-                    <div className="text-sm md:text-base leading-relaxed text-white/90 font-light mb-6 whitespace-pre-line bg-black/10 p-3 rounded-lg">
-                      {currentEvent.narratorText}
+                    {/* 내레이션 설명글 - 타이핑 효과 적용 [NEW] */}
+                    <div className="text-sm md:text-base leading-relaxed text-white/90 font-light mb-6 whitespace-pre-line bg-black/10 p-3 rounded-lg min-h-[4.5rem]">
+                      <TypewriterText text={currentEvent.narratorText} />
                     </div>
                   </div>
 
@@ -1350,7 +1404,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                         )}
                       </div>
                     ) : (
-                      /* 일반 선택지 목록 */
+                      /* 일반 선택지 목록 - 스탯 힌트 숨김 필터 적용 [NEW] */
                       <div className="space-y-2.5">
                         {currentEvent.choices.map((choice, index) => (
                           <button
@@ -1362,7 +1416,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                               {index + 1}
                             </span>
                             <div className="flex-1">
-                              <p className="font-medium text-white/95 leading-snug">{choice.text}</p>
+                              <p className="font-medium text-white/95 leading-snug">{filterStatHints(choice.text, showStatHints)}</p>
                               <span className="text-xs text-white/50 font-mono mt-1 block">
                                 [의도: {choice.intent}]
                               </span>
@@ -2796,6 +2850,101 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
             </div>
           </div>
         </>
+      )}
+
+      {/* 커스텀 주사위 연출 CSS 주입 [NEW] */}
+      <style>{`
+        @keyframes stamp {
+          0% { transform: scale(3) rotate(-15deg); opacity: 0; }
+          50% { transform: scale(0.9) rotate(-10deg); opacity: 0.9; }
+          100% { transform: scale(1) rotate(-6deg); opacity: 1; }
+        }
+        @keyframes scaleUp {
+          0% { transform: scale(0.7); opacity: 0; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-stamp {
+          animation: stamp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        .animate-scale-up {
+          animation: scaleUp 0.25s ease-out forwards;
+        }
+      `}</style>
+
+      {/* 주사위 판정 모달 Overlay [NEW] */}
+      {diceRollState && (
+        <div className="fixed inset-0 bg-black/80 z-[2000] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in text-left">
+          <div className="bg-slate-900 border-4 border-slate-950 rounded-3xl p-8 max-w-sm w-full text-center space-y-6 shadow-2xl relative overflow-hidden">
+            {/* 백그라운드 장식용 격자 */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-800/50 via-slate-900/50 to-slate-950 opacity-40 pointer-events-none" />
+            
+            <div className="relative z-10 space-y-6">
+              <h3 className="text-white text-lg font-black tracking-wider uppercase border-b border-slate-800 pb-3">
+                🎲 능력치 및 운명 판정
+              </h3>
+              
+              {diceRollState.rolling ? (
+                <div className="space-y-6 py-4">
+                  {/* 회전하는 입체 주사위 연출 */}
+                  <div className="relative w-24 h-24 mx-auto flex items-center justify-center text-6xl animate-bounce">
+                    <div className="animate-spin duration-500 ease-in-out">
+                      🎲
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <p className="text-emerald-400 font-extrabold text-lg animate-pulse">운명의 주사위가 구르는 중...</p>
+                    <p className="text-xs text-slate-400">성공 확률을 기반으로 주사위 눈금(1~100)을 굴립니다.</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6 py-2">
+                  {/* 판정 결과 스탬프 연출 */}
+                  <div className="space-y-2">
+                    <div className="text-xs text-slate-400 font-bold uppercase tracking-widest">판정 눈금</div>
+                    <div className="text-5xl font-extrabold font-mono text-white animate-scale-up">
+                      {diceRollState.value} <span className="text-2xl text-slate-500">/ 100</span>
+                    </div>
+                  </div>
+
+                  {/* 성공/실패 대형 스탬프 */}
+                  <div className="relative py-2 flex justify-center">
+                    {diceRollState.success ? (
+                      <div className="border-4 border-emerald-500 text-emerald-500 font-black text-3xl uppercase tracking-widest px-6 py-2.5 rounded-2xl rotate-[-6deg] shadow-lg animate-stamp">
+                        🎉 판정 성공!
+                      </div>
+                    ) : (
+                      <div className="border-4 border-rose-500 text-rose-500 font-black text-3xl uppercase tracking-widest px-6 py-2.5 rounded-2xl rotate-[6deg] shadow-lg animate-stamp">
+                        💥 판정 실패
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 성공 기준 설명 */}
+                  {selectedChoice && (
+                    <p className="text-xs text-slate-300 font-medium leading-relaxed bg-black/40 p-3 rounded-xl border border-slate-800">
+                      선택지 성공 확률: <strong className="text-yellow-400">{selectedChoice.successRate}%</strong> 이하<br />
+                      실제 굴린 결과값(<strong className="text-white">{diceRollState.value}</strong>)이 성공 확률보다 낮아 {diceRollState.success ? <span className="text-emerald-400 font-bold">성공</span> : <span className="text-rose-400 font-bold">실패</span>} 하였습니다.
+                    </p>
+                  )}
+
+                  {/* 확인 및 진행 버튼 */}
+                  <button
+                    onClick={() => {
+                      clearDiceRollState();
+                    }}
+                    className={`w-full py-3 rounded-xl text-sm font-black border-2 border-black active:translate-y-0.5 transition-all shadow-school-press text-white cursor-pointer ${
+                      diceRollState.success 
+                        ? 'bg-emerald-600 hover:bg-emerald-500' 
+                        : 'bg-rose-600 hover:bg-rose-500'
+                    }`}
+                  >
+                    결과 텍스트 읽기
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

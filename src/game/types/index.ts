@@ -60,8 +60,15 @@ export interface GameChoice {
   immediateEffects: StatEffect[]; // 즉각적인 스탯 변화
   delayedEffects?: DelayedEffect[]; // 나중에 일어날 지연 효과들
   hiddenFlags?: string[];     // 누적될 숨겨진 성향 플래그 (예: 'student_center', 'work_avoid' 등)
-  resultText: string;         // 선택 후 보여질 피드백 텍스트
+  resultText?: string;         // 선택 후 보여질 피드백 텍스트
   riskText?: string;          // 선택 시 동반되는 부작용에 대한 경고 메시지
+  
+  // [NEW] 주사위 판정용 추가 필드
+  successRate?: number;       // 성공 확률 (0 ~ 100)
+  successResultText?: string; // 성공 시 피드백 텍스트
+  failResultText?: string;    // 실패 시 피드백 텍스트
+  failEffects?: StatEffect[]; // 실패 시 스탯 변화
+  failDelayedEffects?: DelayedEffect[]; // 실패 시 지연 효과
 }
 
 // 학교 내부의 공간 정의

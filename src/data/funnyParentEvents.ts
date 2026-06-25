@@ -25,14 +25,21 @@ export const funnyParentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_parent_01_2',
-        text: '전화로 목소리를 톤 업하여 "아이의 훌륭한 과제 의지를 격하게 칭찬하고자 보낸 감탄의 엄지척이었습니다!"라고 넉살 좋게 넘긴다. (parentTrust +15, 멘탈 +10, parentComplaint -10)',
+        text: '전화로 목소리를 톤 업하여 "아이의 훌륭한 과제 의지를 격하게 칭찬하고자 보낸 감탄의 엄지척이었습니다!"라고 넉살 좋게 넘긴다. (성공률 70%) (parentTrust +15, 멘탈 +10, parentComplaint -10)',
         intent: '유머러스한 넉살 돌파',
+        successRate: 70,
         immediateEffects: [
           { stat: 'parentTrust', value: 15 },
           { stat: 'mental', value: 10 },
           { stat: 'parentComplaint', value: -10 }
         ],
-        resultText: '학부모님은 쾌활한 해명에 빵 터지시며 "선생님의 큰 뜻을 몰라봤다"며 아주 흡족하게 통화를 마쳤습니다.'
+        successResultText: '학부모님은 쾌활한 해명에 빵 터지시며 "선생님의 큰 뜻을 몰라봤다"며 아주 흡족하게 통화를 마쳤습니다.',
+        failEffects: [
+          { stat: 'parentTrust', value: -10 },
+          { stat: 'mental', value: -15 },
+          { stat: 'parentComplaint', value: 15 }
+        ],
+        failResultText: '학부모님은 정색하며 "지금 저랑 장난하십니까? 제 항의가 농담처럼 들리시나요?"라며 대노하셨습니다. 수습하느라 진땀을 뺐습니다.'
       }
     ]
   },

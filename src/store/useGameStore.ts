@@ -161,6 +161,15 @@ interface GameState {
   bgmVolume: number; // 배경음 볼륨 단계 (0: off, 1~5) [NEW]
   setBgmVolume: (volume: number) => void; // 배경음 볼륨 단계 변경 [NEW]
   burnout100Days: number; // [NEW] 번아웃 100% 상태 연속 지속 일수
+  showStatHints: boolean; // 스탯 힌트 표시 여부 [NEW]
+  toggleStatHints: () => void; // 스탯 힌트 토글 액션 [NEW]
+  diceRollState: {
+    rolling: boolean;
+    value: number | null;
+    success: boolean | null;
+    targetChoiceId: string | null;
+  } | null; // 주사위 판정 상태 [NEW]
+  clearDiceRollState: () => void; // 주사위 상태 초기화 [NEW]
 }
 
 // 0 ~ 100 범위 강제 헬퍼
@@ -796,6 +805,11 @@ export const useGameStore = create<GameState>()(
       toastMessage: null,
       bgmVolume: 3, // 기본 배경음 볼륨 단계 3 [NEW]
       burnout100Days: 0, // 기본 번아웃 지속 일수 0 [NEW]
+      showStatHints: true, // 기본적으로 스탯 힌트 표시 활성화 [NEW]
+      diceRollState: null, // 초기 주사위 판정 상태는 null [NEW]
+
+      toggleStatHints: () => set({ showStatHints: !get().showStatHints }), // 스탯 힌트 토글 액션 [NEW]
+      clearDiceRollState: () => set({ diceRollState: null }), // 주사위 상태 초기화 액션 [NEW]
 
       // 알림 표출
       showToast: (msg: string) => set({ toastMessage: msg }),
@@ -895,72 +909,166 @@ export const useGameStore = create<GameState>()(
       selectChoice: (choice: GameChoice) => {
         const { stats, hiddenFlags, delayedEffects, day, recentLogs, students } = get();
         
-        // 스탯 즉각 효과 반영
-        const newStats = { ...stats };
-        choice.immediateEffects.forEach((eff: StatEffect) => {
-          newStats[eff.stat] = clamp(
-            newStats[eff.stat] + eff.value, 
-            eff.stat === 'burnout' ? 0 : 0, 
-            100
-          );
-        });
+        // 주사위 판정(성공률)이 있는 선택지인 경우
+        if (choice.successRate !== undefined) {
+          // 주사위 롤링 애니메이션 상태 돌입
+          set({
+            diceRollState: {
+              rolling: true,
+              value: null,
+              success: null,
+              targetChoiceId: choice.id
+            },
+            selectedChoice: choice,
+            eventResultText: null // 판정이 끝날 때까지 결과 텍스트는 임시 은폐
+          });
 
-        // 지연 효과 큐 처리
-        const newDelayedEffects = [...delayedEffects];
-        if (choice.delayedEffects && choice.delayedEffects.length > 0) {
-          choice.delayedEffects.forEach(delayed => {
-            newDelayedEffects.push({
-              ...delayed,
-              // dayTrigger에 상대 날짜 갭 더하기 (현재 날짜 + Gap)
-              dayTrigger: clamp(day + delayed.dayTrigger, 1, 30)
+          // 1.2초간 주사위가 굴러가는 연출 시간 대기 후 최종 판정
+          setTimeout(() => {
+            const rollValue = Math.floor(Math.random() * 100) + 1; // 1 ~ 100
+            const isSuccess = rollValue <= choice.successRate!;
+
+            // 성공/실패 여부에 따른 효과 및 결과 텍스트 분기
+            const appliedEffects = isSuccess ? choice.immediateEffects : (choice.failEffects || []);
+            const appliedDelayed = isSuccess ? (choice.delayedEffects || []) : (choice.failDelayedEffects || []);
+            const resultText = isSuccess ? (choice.successResultText || choice.resultText) : (choice.failResultText || '판정에 실패하여 아쉬운 결과가 초래되었습니다.');
+
+            // 스탯 효과 반영
+            const currentStats = get().stats; // 비동기 지연 시간 동안 변화했을 수 있는 최신 스탯 참조
+            const newStats = { ...currentStats };
+            appliedEffects.forEach((eff: StatEffect) => {
+              newStats[eff.stat] = clamp(
+                newStats[eff.stat] + eff.value, 
+                eff.stat === 'burnout' ? 0 : 0, 
+                100
+              );
             });
-          });
-        }
 
-        // 숨겨진 성향 카운터 업데이트 및 플래그 적재
-        const newFlags = [...hiddenFlags];
-        if (choice.hiddenFlags) {
-          choice.hiddenFlags.forEach(flag => {
-            if (!newFlags.includes(flag)) {
-              newFlags.push(flag);
+            // 지연 효과 큐 처리
+            const currentDelayed = get().delayedEffects;
+            const newDelayedEffects = [...currentDelayed];
+            appliedDelayed.forEach(delayed => {
+              newDelayedEffects.push({
+                ...delayed,
+                dayTrigger: clamp(day + delayed.dayTrigger, 1, 30)
+              });
+            });
+
+            // 플래그 적재
+            const currentFlags = get().hiddenFlags;
+            const newFlags = [...currentFlags];
+            if (choice.hiddenFlags) {
+              choice.hiddenFlags.forEach(flag => {
+                if (!newFlags.includes(flag)) {
+                  newFlags.push(flag);
+                }
+              });
             }
+
+            // 로그 기록 (주사위 판정 상세 수치 기록)
+            const updatedLogs = [
+              `[${day}일차] ${choice.intent} 판정 ${isSuccess ? '성공' : '실패'} (${rollValue}/${choice.successRate}%) -> ${choice.text}`,
+              ...get().recentLogs.slice(0, 19)
+            ];
+
+            // 학생 수치 보정
+            const currentStudents = get().students;
+            const updatedStudents = currentStudents.map(stud => {
+              if (choice.id.includes('s05_2') && stud.id === 'student_jihun') {
+                return { ...stud, behavior: clamp(stud.behavior + 15), teacherTrust: clamp(stud.teacherTrust + 20) };
+              }
+              if (choice.id.includes('s05_3') && stud.id === 'student_jihun') {
+                return { ...stud, behavior: clamp(stud.behavior - 10), peerRelation: clamp(stud.peerRelation - 15) };
+              }
+              if (choice.id.includes('s07_1') && stud.id === 'student_minjun') {
+                return { ...stud, selfEsteem: clamp(stud.selfEsteem + 15), teacherTrust: clamp(stud.teacherTrust + 15) };
+              }
+              if (choice.id.includes('s07_2') && stud.id === 'student_minjun') {
+                return { ...stud, selfEsteem: clamp(stud.selfEsteem - 15), motivation: clamp(stud.motivation + 5) };
+              }
+              return stud;
+            });
+
+            set({
+              stats: syncNewStats(newStats),
+              delayedEffects: newDelayedEffects,
+              hiddenFlags: newFlags,
+              eventResultText: resultText,
+              recentLogs: updatedLogs,
+              students: updatedStudents,
+              diceRollState: {
+                rolling: false,
+                value: rollValue,
+                success: isSuccess,
+                targetChoiceId: choice.id
+              }
+            });
+
+            get().checkFailureConditions();
+          }, 1200);
+
+        } else {
+          // 주사위 판정이 없는 일반 선택지 처리
+          const newStats = { ...stats };
+          choice.immediateEffects.forEach((eff: StatEffect) => {
+            newStats[eff.stat] = clamp(
+              newStats[eff.stat] + eff.value, 
+              eff.stat === 'burnout' ? 0 : 0, 
+              100
+            );
+          });
+
+          const newDelayedEffects = [...delayedEffects];
+          if (choice.delayedEffects && choice.delayedEffects.length > 0) {
+            choice.delayedEffects.forEach(delayed => {
+              newDelayedEffects.push({
+                ...delayed,
+                dayTrigger: clamp(day + delayed.dayTrigger, 1, 30)
+              });
+            });
+          }
+
+          const newFlags = [...hiddenFlags];
+          if (choice.hiddenFlags) {
+            choice.hiddenFlags.forEach(flag => {
+              if (!newFlags.includes(flag)) {
+                newFlags.push(flag);
+              }
+            });
+          }
+
+          const updatedLogs = [
+            `[${day}일차] ${choice.intent} 선택 -> ${choice.text}`,
+            ...recentLogs.slice(0, 19)
+          ];
+
+          const updatedStudents = students.map(stud => {
+            if (choice.id.includes('s05_2') && stud.id === 'student_jihun') {
+              return { ...stud, behavior: clamp(stud.behavior + 15), teacherTrust: clamp(stud.teacherTrust + 20) };
+            }
+            if (choice.id.includes('s05_3') && stud.id === 'student_jihun') {
+              return { ...stud, behavior: clamp(stud.behavior - 10), peerRelation: clamp(stud.peerRelation - 15) };
+            }
+            if (choice.id.includes('s07_1') && stud.id === 'student_minjun') {
+              return { ...stud, selfEsteem: clamp(stud.selfEsteem + 15), teacherTrust: clamp(stud.teacherTrust + 15) };
+            }
+            if (choice.id.includes('s07_2') && stud.id === 'student_minjun') {
+              return { ...stud, selfEsteem: clamp(stud.selfEsteem - 15), motivation: clamp(stud.motivation + 5) };
+            }
+            return stud;
+          });
+
+          set({
+            stats: syncNewStats(newStats),
+            delayedEffects: newDelayedEffects,
+            hiddenFlags: newFlags,
+            selectedChoice: choice,
+            eventResultText: choice.resultText,
+            recentLogs: updatedLogs,
+            students: updatedStudents,
+            diceRollState: null // 일반 선택지는 주사위 상태 무시
           });
         }
-
-        // 로그 기록
-        const updatedLogs = [
-          `[${day}일차] ${choice.intent} 선택 -> ${choice.text}`,
-          ...recentLogs.slice(0, 19)
-        ];
-
-        // 학생 수치 동기화 예외 처리 (선택지에 따라 특정 학생 상태 보정)
-        const updatedStudents = students.map(stud => {
-          // 지훈 관련 카테고리
-          if (choice.id.includes('s05_2') && stud.id === 'student_jihun') {
-            return { ...stud, behavior: clamp(stud.behavior + 15), teacherTrust: clamp(stud.teacherTrust + 20) };
-          }
-          if (choice.id.includes('s05_3') && stud.id === 'student_jihun') {
-            return { ...stud, behavior: clamp(stud.behavior - 10), peerRelation: clamp(stud.peerRelation - 15) };
-          }
-          // 민준 불안 극복
-          if (choice.id.includes('s07_1') && stud.id === 'student_minjun') {
-            return { ...stud, selfEsteem: clamp(stud.selfEsteem + 15), teacherTrust: clamp(stud.teacherTrust + 15) };
-          }
-          if (choice.id.includes('s07_2') && stud.id === 'student_minjun') {
-            return { ...stud, selfEsteem: clamp(stud.selfEsteem - 15), motivation: clamp(stud.motivation + 5) };
-          }
-          return stud;
-        });
-
-        set({
-          stats: syncNewStats(newStats),
-          delayedEffects: newDelayedEffects,
-          hiddenFlags: newFlags,
-          selectedChoice: choice,
-          eventResultText: choice.resultText,
-          recentLogs: updatedLogs,
-          students: updatedStudents
-        });
       },
 
       // 4. 시간 흐름 전진

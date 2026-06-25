@@ -987,14 +987,22 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_30_1',
-        text: '집게를 과감히 쥐고 마늘과 고기를 겉바속촉 미디움 웰던 규격으로 구워 교감 선생님과 동료들의 식판에 조용히 얹어준다. (colleagueRelation +15, hp +5, 멘탈 +10)',
+        text: '집게를 과감히 쥐고 마늘과 고기를 겉바속촉 미디움 웰던 규격으로 구워 교감 선생님과 동료들의 식판에 조용히 얹어준다. (성공률 70% -> 동료관계 +15, hp +5, 멘탈 +10 / 실패 -> 동료관계 -10, 멘탈 -10, hp -5)',
         intent: '고기 굽기 신공 아부',
+        successRate: 70,
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
           { stat: 'hp', value: 5 },
           { stat: 'mental', value: 10 }
         ],
-        resultText: '교감 선생님은 노릇노릇한 삼겹살을 드시고 "음! 고기 굽는 솜씨를 보니 행정 공문 처리 솜씨도 명품이겠군!"이라며 대만족을 선언하셨습니다.'
+        successResultText: '교감 선생님은 노릇노릇한 삼겹살을 드시고 "음! 고기 굽는 솜씨를 보니 행정 공문 처리 솜씨도 명품이겠군!"이라며 대만족을 선언하셨습니다.',
+        failEffects: [
+          { stat: 'colleagueRelation', value: -10 },
+          { stat: 'mental', value: -10 },
+          { stat: 'hp', value: -5 }
+        ],
+        failResultText: '불판 화력 조절에 실패하여 삼겹살이 새까맣게 타며 유독 가스가 테이블을 지배했습니다. 교감 선생님이 연신 기침을 하시며 "김 선생은 펜대만 굴리는 게 낫겠군" 하고 핀잔을 주셨습니다. 분위기가 아찔해졌습니다.',
+        resultText: '삼겹살 굽기 결과'
       },
       {
         id: 'choice_funny_colleague_30_2',
