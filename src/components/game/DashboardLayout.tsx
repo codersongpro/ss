@@ -705,7 +705,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
             }`}
           >
             <h3 className="font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-2 flex items-center gap-1.5 text-base">
-              <span>📊 주인공 교사 스탯 (8대 핵심 지표)</span>
+              <span>📊 주인공 스테이터스</span>
             </h3>
             <p className="text-xs text-slate-400 font-medium">항목별 터치/마우스 오버 시 세부 정보와 생존 조건이 표시됩니다.</p>
             
