@@ -21,6 +21,8 @@ import { gameEvents } from '@/data/events';
 import { colleagueDialogueEvents, studentDialogueEvents } from '@/data/npcDialoguesData';
 import { parentMessengerEvents, colleaguePrivateEvents } from '@/data/parentMessengerData';
 import { positiveEvents } from '@/data/positiveEventsData';
+import { taskTemplates } from '@/data/tasksData';
+
 
 // 전역 BGM 오디오 싱글톤 객체 및 볼륨 조절 헬퍼 [NEW]
 let globalBgm: HTMLAudioElement | null = null;
@@ -106,6 +108,7 @@ interface GameState {
   selectChoice: (choice: GameChoice) => void;
   progressTime: () => void;
   completeTask: (taskId: string) => void;
+  completeTaskWithChoice: (taskId: string, choiceEffects: { stat: string; value: number }[], resultText: string) => void;
   delegateTask: (taskId: string) => void;
   triggerDelayedEffectsForToday: () => void;
   showToast: (msg: string) => void;
@@ -780,8 +783,33 @@ export const useGameStore = create<GameState>()(
               nextBurnout100Days = 0;
             }
 
-            // 업무 기한 리셋/업데이트 (일정 날짜에 새 업무 할당)
+            // 업무 기한 리셋/업데이트 (일정 날짜에 새 업무 할당 + 45% 확률로 랜덤 행정 업무 1~2개 추가)
             let updatedTasks = [...tasks];
+            
+            if (Math.random() < 0.45) {
+              const taskCount = Math.floor(Math.random() * 2) + 1; // 1~2개
+              for (let c = 0; c < taskCount; c++) {
+                const randomTemplate = taskTemplates[Math.floor(Math.random() * taskTemplates.length)];
+                // 중복 가드
+                if (!updatedTasks.some(t => !t.isCompleted && t.title === randomTemplate.title)) {
+                  updatedTasks.push({
+                    id: `task_dynamic_${nextDay}_${Math.random().toString(36).substring(2, 7)}`,
+                    title: randomTemplate.title,
+                    category: randomTemplate.category,
+                    urgency: randomTemplate.urgency,
+                    importance: randomTemplate.importance,
+                    estimatedTime: randomTemplate.estimatedTime,
+                    stressCost: randomTemplate.stressCost,
+                    reputationReward: randomTemplate.reputationReward,
+                    deadlineDay: nextDay + randomTemplate.deadlineLimit,
+                    canDelegate: randomTemplate.canDelegate,
+                    canNegotiate: randomTemplate.canNegotiate !== undefined ? randomTemplate.canNegotiate : true,
+                    isCompleted: false
+                  });
+                }
+              }
+            }
+
             if (nextDay === 10) {
               updatedTasks.push({
                 id: 'task_04',
@@ -866,6 +894,38 @@ export const useGameStore = create<GameState>()(
         });
         
         get().showToast(`[업무완료] "${target.title}"을 완수하여 평판이 올랐습니다!`);
+        get().checkFailureConditions();
+      },
+
+      // 5-2. 선택지 기반 행정 업무 완료 (다이나믹 스탯 반영)
+      completeTaskWithChoice: (taskId: string, choiceEffects: { stat: string; value: number }[], resultText: string) => {
+        const { tasks, actionPoints, stats } = get();
+        const target = tasks.find(t => t.id === taskId);
+
+        if (!target || target.isCompleted) return;
+        if (actionPoints < target.estimatedTime) {
+          get().showToast('교사력(TP)이 부족하여 업무를 완료할 수 없습니다.');
+          return;
+        }
+
+        const newStats = { ...stats };
+        // 선택지별 커스텀 스탯 효과 적용
+        choiceEffects.forEach((eff) => {
+          const key = eff.stat as keyof Stats;
+          if (key in newStats) {
+            newStats[key] = clamp((newStats[key] as number) + eff.value);
+          }
+        });
+        // 기본 행정력 보상은 항상 적용
+        newStats.adminPower = clamp(newStats.adminPower + 3);
+
+        set({
+          tasks: tasks.map(t => t.id === taskId ? { ...t, isCompleted: true } : t),
+          actionPoints: actionPoints - target.estimatedTime,
+          stats: syncNewStats(newStats)
+        });
+
+        get().showToast(`[결재완료] "${target.title}" — ${resultText}`);
         get().checkFailureConditions();
       },
 
@@ -1327,13 +1387,14 @@ export const useGameStore = create<GameState>()(
         let steps: DialogueStep[] = [];
         let eventIdx = 0;
 
-        // npcId가 student_ 로 시작하는 경우 학생 대화 50선 연동
+        // npcId가 student_ 로 시작하는 경우 학생 대화 150선 연동
         if (npcId.startsWith('student_')) {
           const completedIdxs = completedNpcEvents[npcId] || [];
-          let candidates = Array.from({ length: 50 }, (_, i) => i).filter(i => !completedIdxs.includes(i));
+          const dialogueCount = studentDialogueEvents.length;
+          let candidates = Array.from({ length: dialogueCount }, (_, i) => i).filter(i => !completedIdxs.includes(i));
           
           if (candidates.length === 0) {
-            candidates = Array.from({ length: 50 }, (_, i) => i);
+            candidates = Array.from({ length: dialogueCount }, (_, i) => i);
             completedNpcEvents[npcId] = [];
           }
 
@@ -1344,13 +1405,14 @@ export const useGameStore = create<GameState>()(
           const role = student ? `${student.name} (우리 반 학생)` : '학생';
           steps = evt.generateSteps(npcName, role);
         } 
-        // 그 외에는 교직원 대화 50선 연동
+        // 그 외에는 교직원 대화 150선 연동
         else {
           const completedIdxs = completedNpcEvents[npcId] || [];
-          let candidates = Array.from({ length: 50 }, (_, i) => i).filter(i => !completedIdxs.includes(i));
+          const dialogueCount = colleagueDialogueEvents.length;
+          let candidates = Array.from({ length: dialogueCount }, (_, i) => i).filter(i => !completedIdxs.includes(i));
           
           if (candidates.length === 0) {
-            candidates = Array.from({ length: 50 }, (_, i) => i);
+            candidates = Array.from({ length: dialogueCount }, (_, i) => i);
             completedNpcEvents[npcId] = [];
           }
 
@@ -1368,7 +1430,6 @@ export const useGameStore = create<GameState>()(
           else if (npcId.startsWith('staff_')) {
             if (npcId === 'staff_admin_chief') role = '행정실장';
             else if (npcId === 'staff_admin_worker') role = '행정 주무관';
-            else if (npcId === 'staff_nutritionist') role = '영양 교사';
             else if (npcId === 'staff_cook') role = '조리원';
             else if (npcId === 'staff_librarian') role = '사서 교사';
             else if (npcId === 'staff_counselor') role = '전문 상담 교사';
@@ -2026,35 +2087,6 @@ export const useGameStore = create<GameState>()(
               text: '일정 지연의 양해를 구하고 서류의 정합성과 학부모 동의를 철저히 검증하여 사고 책임을 미연에 방지했습니다.'
             }
           ];
-        } else if (npcId === 'staff_nutritionist') {
-          steps = [
-            {
-              speaker: '영양 교사',
-              text: '"선생님, 오늘 점심에 나간 \'마라 떡볶이\' 식단 말이에요. 몇몇 학부모님들께서 아이들이 배가 아프다고 학교 홈페이지에 매운맛 자제를 요하는 민원을 올리셨다는데, 학급 학생들의 의견은 어땠나요?"',
-              choices: [
-                {
-                  text: '“아이들은 매우 맛있게 먹었으나, 매운맛 조절이 어려운 저학년 및 위장이 약한 아이들을 위해 덜 매운 식단으로 조정을 건의드립니다.” (민원 수용적 중재)',
-                  nextStepIndex: 1,
-                  effects: [{ stat: 'parentTrust', value: 6 }, { stat: 'colleagueRelation', value: 4 }, { stat: 'colleagueSolidarity', value: 5 }, { stat: 'parentComplaint', value: -5 }, { stat: 'studentTrust', value: -2 }],
-                  resultText: '"그렇군요. 학부모님들 걱정도 일리가 있으니, 다음 식단 편성 시에는 고춧가루 비율을 줄여 백 마라나 순한 맛으로 변경할게요."'
-                },
-                {
-                  text: '“요즘 학생들의 다양한 트렌드 식단 선호도와 식사 자율성을 존중할 필요가 있습니다. 민원 제기자만을 위한 과도한 규제는 피하는 게 맞습니다.” (급식 자율성 옹호)',
-                  nextStepIndex: 2,
-                  effects: [{ stat: 'studentTrust', value: 6 }, { stat: 'educationSoshin', value: 5 }, { stat: 'colleagueSolidarity', value: -2 }, { stat: 'parentComplaint', value: 5 }, { stat: 'parentTrust', value: -4 }],
-                  resultText: '"하긴... 급식 때 애들 눈빛이 마라 떡볶이 보고 엄청 반짝이긴 했죠. 다각도로 수렴해서 맛과 영양, 민원의 절충안을 찾아볼게요."'
-                }
-              ]
-            },
-            {
-              speaker: '영양 교사',
-              text: '민원을 합리적으로 조율하여 급식실 식단 안전 조정을 유도하고 학부모 신뢰를 지켜냈습니다.'
-            },
-            {
-              speaker: '영양 교사',
-              text: '학생들의 선호도를 수호하여 학생들의 행복 지수를 높였으나 매운 음식에 대한 학부모 일부 불만은 지속됩니다.'
-            }
-          ];
         } else if (npcId === 'staff_cook') {
           steps = [
             {
@@ -2608,12 +2640,11 @@ export const useGameStore = create<GameState>()(
         ];
         const adminNPCs = [...adminPool].sort(() => Math.random() - 0.5).slice(0, Math.floor(Math.random() * 2) + 1);
 
-        // 7. 급식실: 영양교사, 조리원아주머니 중 1~2명
+        // 7. 급식실: 조리원 아주머니 배치
         const cookPool = [
-          { id: 'staff_nutritionist', name: '영양 교사', role: '급식 식단 관리자' },
           { id: 'staff_cook', name: '조리원 아주머니', role: '조리 배식 담당' }
         ];
-        const cookNPCs = [...cookPool].sort(() => Math.random() - 0.5).slice(0, Math.floor(Math.random() * 2) + 1);
+        const cookNPCs = [...cookPool];
 
         // 8. 도서실: 사서교사 상주 + 40% 확률로 자습 학생
         const libraryNPCs = [{ id: 'staff_librarian', name: '사서 교사', role: '도서관 도서 관리자' }];
@@ -3121,9 +3152,10 @@ export const useGameStore = create<GameState>()(
             const isParentComplaint = Math.random() < 0.7; // 부정 딜레마 안에서 70% 확률로 학부모 민원
 
             if (isParentComplaint) {
-              let candidates = Array.from({ length: 50 }, (_, i) => i).filter(i => !completedParentEvents.includes(i));
+              const complaintsCount = parentMessengerEvents.length;
+              let candidates = Array.from({ length: complaintsCount }, (_, i) => i).filter(i => !completedParentEvents.includes(i));
               if (candidates.length === 0) {
-                candidates = Array.from({ length: 50 }, (_, i) => i);
+                candidates = Array.from({ length: complaintsCount }, (_, i) => i);
                 set({ completedParentEvents: [] });
               }
               const randomIdx = candidates[Math.floor(Math.random() * candidates.length)];
@@ -3448,8 +3480,33 @@ export const useGameStore = create<GameState>()(
           // 6) 5대 핵심 스탯 동기화
           const syncedStats = syncNewStats(overtimeStats);
 
-          // 7) 신규 업무 업데이트
+          // 7) 신규 업무 업데이트 (일정 날짜 고정 업무 + 45% 확률로 랜덤 행정 업무 1~2개 추가)
           let updatedTasks = [...tasks];
+          
+          if (Math.random() < 0.45) {
+            const taskCount = Math.floor(Math.random() * 2) + 1; // 1~2개
+            for (let c = 0; c < taskCount; c++) {
+              const randomTemplate = taskTemplates[Math.floor(Math.random() * taskTemplates.length)];
+              // 중복 가드
+              if (!updatedTasks.some(t => !t.isCompleted && t.title === randomTemplate.title)) {
+                updatedTasks.push({
+                  id: `task_dynamic_${nextDay}_${Math.random().toString(36).substring(2, 7)}`,
+                  title: randomTemplate.title,
+                  category: randomTemplate.category,
+                  urgency: randomTemplate.urgency,
+                  importance: randomTemplate.importance,
+                  estimatedTime: randomTemplate.estimatedTime,
+                  stressCost: randomTemplate.stressCost,
+                  reputationReward: randomTemplate.reputationReward,
+                  deadlineDay: nextDay + randomTemplate.deadlineLimit,
+                  canDelegate: randomTemplate.canDelegate,
+                  canNegotiate: randomTemplate.canNegotiate !== undefined ? randomTemplate.canNegotiate : true,
+                  isCompleted: false
+                });
+              }
+            }
+          }
+
           if (nextDay === 10) {
             updatedTasks.push({
               id: 'task_04',

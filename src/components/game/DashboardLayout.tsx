@@ -194,6 +194,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
     selectChoice,
     progressTime,
     completeTask,
+    completeTaskWithChoice,
     delegateTask,
     clearToast,
     endingId, // [NEW] 번아웃 100% 모달 조건에 쓰일 엔딩 여부 상태 추가
@@ -254,6 +255,104 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
 
   // 오늘 하루 번아웃 경고 팝업 가리기 상태 [NEW]
   const [hideBurnoutWarningToday, setHideBurnoutWarningToday] = useState<boolean>(false);
+
+  // 캐러셀 카드 통합 상태 및 핸들러 [NEW]
+  const [currentCardIndex, setCurrentCardIndex] = useState<number>(0);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  // 행정업무 선택지 정보 상태 (null = 선택중, string = 활성 선택지 id)
+  const [activeTaskChoice, setActiveTaskChoice] = useState<string | null>(null);
+  const [taskChoiceResult, setTaskChoiceResult] = useState<{ choiceText: string; resultText: string; effects: { stat: string; value: number }[] } | null>(null);
+
+  // 통합 카드 목록 구성
+  const getActiveEvents = () => {
+    const list: any[] = [];
+    
+    // 미결 행정 업무 리스트 추가
+    tasks.filter(t => !t.isCompleted).forEach(task => {
+      list.push({
+        id: `task-${task.id}`,
+        type: 'task',
+        title: '📂 미결 행정 업무 리스트',
+        data: task
+      });
+    });
+
+    // 학교 메신저 (공무전용) 추가
+    messengerNotifications.forEach(notif => {
+      list.push({
+        id: `messenger-${notif.id}`,
+        type: 'messenger',
+        title: '🏫 학교 메신저 (공무전용)',
+        data: notif
+      });
+    });
+
+    // 개인 스마트폰 추가
+    phoneAndTextNotifications.forEach(notif => {
+      list.push({
+        id: `phone-${notif.id}`,
+        type: 'phone',
+        title: '📱 개인 스마트폰 (전화 & 문자)',
+        data: notif
+      });
+    });
+
+    return list;
+  };
+
+  const combinedCards = getActiveEvents();
+
+  // 카드 목록 실시간 개수 변동 시 인덱스 보정
+  useEffect(() => {
+    if (combinedCards.length > 0 && currentCardIndex >= combinedCards.length) {
+      setCurrentCardIndex(Math.max(0, combinedCards.length - 1));
+    }
+  }, [combinedCards.length, currentCardIndex]);
+
+  // 튜토리얼 단계를 수행할 때 강제로 포커싱 카드 이동
+  useEffect(() => {
+    if (isTutorialActive) {
+      if (tutorialStep === 4) {
+        const idx = combinedCards.findIndex(c => c.type === 'task');
+        if (idx !== -1) setCurrentCardIndex(idx);
+      } else if (tutorialStep === 5) {
+        const idx = combinedCards.findIndex(c => c.type === 'messenger');
+        if (idx !== -1) setCurrentCardIndex(idx);
+      }
+    }
+  }, [isTutorialActive, tutorialStep]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diffX = touchStartX - touchEndX;
+
+    if (diffX > 50) {
+      handleNextCard();
+    } else if (diffX < -50) {
+      handlePrevCard();
+    }
+    setTouchStartX(null);
+  };
+
+  const handlePrevCard = () => {
+    if (combinedCards.length <= 1) return;
+    setTaskChoiceResult(null);
+    setActiveTaskChoice(null);
+    setCurrentCardIndex((prev) => (prev > 0 ? prev - 1 : combinedCards.length - 1));
+  };
+
+  const handleNextCard = () => {
+    if (combinedCards.length <= 1) return;
+    setTaskChoiceResult(null);
+    setActiveTaskChoice(null);
+    setCurrentCardIndex((prev) => (prev < combinedCards.length - 1 ? prev + 1 : 0));
+  };
 
   // 날짜가 변경되면 번아웃 경고 팝업 가리기 설정을 리셋합니다. [NEW]
   useEffect(() => {
@@ -1646,137 +1745,297 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
           )}
         </section>
 
-        {/* ================= 우측 패널 (lg:col-span-3): 업무보드 & 스마트폰 ================= */}
+        {/* ================= 우측 패널 (lg:col-span-3): 통합 캐러셀 카드 보드 ================= */}
         <section className={`lg:col-span-3 space-y-4 ${activeTab === 'right' ? 'block' : 'hidden lg:block'} transition-all duration-300 ${
           isTutorialActive && (tutorialStep === 4 || tutorialStep === 5) ? 'z-[1000] relative' : ''
         }`}>
-          {/* 업무 보드 */}
           <div 
-            id="tutorial-tasks-panel"
-            className={`paper-card bg-white p-4 transition-all duration-300 ${
-              isTutorialActive && tutorialStep === 4 
-                ? 'ring-4 ring-[#FF007F] ring-offset-2 border-[#FF007F] scale-[1.01]' 
-                : isTutorialActive && tutorialStep === 5
-                  ? 'opacity-20 pointer-events-none' 
-                  : ''
-            }`}
+            className="paper-card bg-white p-5 flex flex-col justify-between min-h-[380px] border-4 border-black rounded-2xl shadow-school-deep"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
           >
-            <h3 className="font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-2 mb-3 flex items-center gap-1.5">
-              <FileText className="w-5 h-5 text-emerald-600" />
-              미결 행정 업무 리스트
-            </h3>
-            
-            {tasks.filter(t => !t.isCompleted).length > 0 ? (
-              <div className="space-y-3 max-h-[280px] overflow-y-auto pr-1">
-                {tasks.filter(t => !t.isCompleted).map(task => (
-                  <div key={task.id} className="border-2 border-black rounded-lg p-2.5 bg-slate-50 text-xs flex flex-col justify-between gap-2 shadow-school-press">
-                    <div>
-                      <div className="font-bold text-slate-900 leading-tight mb-1 flex items-start gap-1 justify-between">
-                        <span>{task.title}</span>
-                        <span className="text-xs bg-red-100 text-red-700 px-1 py-0.5 rounded flex-shrink-0 font-normal">
-                          기한 {task.deadlineDay}일차
-                        </span>
-                      </div>
-                      <div className="flex gap-2 text-xs text-slate-500 font-semibold mb-2">
-                        <span>요구 TP: {task.estimatedTime}TP</span>
-                        <span>피로도: +{task.stressCost}</span>
-                      </div>
-                    </div>
+            {combinedCards.length > 0 ? (
+              (() => {
+                const card = combinedCards[currentCardIndex];
+                
+                // 1. 미결 행정 업무 카드 UI
+                if (card.type === 'task') {
+                  const task = card.data;
+                  
+                  // 튜토리얼 4단계 강조 스타일
+                  const isHighlighted = isTutorialActive && tutorialStep === 4;
+                  const cardStyle = isHighlighted
+                    ? 'ring-4 ring-[#FF007F] ring-offset-2 border-[#FF007F] scale-[1.01]'
+                    : 'border-2 border-black bg-slate-50';
 
-                    <div className="flex gap-1.5">
-                      <button
-                        onClick={() => completeTask(task.id)}
-                        className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold border border-black rounded p-1 text-xs transition-colors active:translate-y-0.5 shadow-school-press"
-                      >
-                        직접 결재 처리
-                      </button>
-                      {task.canDelegate && (
-                        <button
-                          onClick={() => delegateTask(task.id)}
-                          className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold border border-black rounded p-1 text-xs transition-colors active:translate-y-0.5 shadow-school-press"
-                        >
-                          선배위임
-                        </button>
+                  // 태스크 코드기반 다이나믹 선택지 생성 함수
+                  const getTaskChoices = (t: typeof task) => {
+                    const titleLower = t.title.toLowerCase();
+                    const cat = t.category;
+
+                    // ---- 1) 미마간마 그 업무에 맞는 특수 선택지 로직 (keyword-based) ----
+                    if (titleLower.includes('생활기록부') || titleLower.includes('나이스') || titleLower.includes('neis')) {
+                      return [
+                        { id: 'a', text: '퇈퇈히 수작업하여 마감 기한내 완백하게 제출', effects: [{ stat: 'adminPower', value: 8 }, { stat: 'expert', value: 5 }, { stat: 'burnout', value: 12 }, { stat: 'hp', value: -5 }], resultText: '의지적인 마감 전진으로 엄격한 기록부 시즈율을 다젖으나 다소 지쳨습니다.' },
+                        { id: 'b', text: '동학년 교사와 공동 스프레드시트를 활용해 취압한 족본 제출', effects: [{ stat: 'colleagueRelation', value: 6 }, { stat: 'adminPower', value: 5 }, { stat: 'burnout', value: 5 }], resultText: '동료와 형포를 나눅어 효율적으로 처리했습니다.' },
+                        { id: 'c', text: '교무부장에게 조력을 구해 렉리로 탙탙하게 마감 확인 후 하루 이내 제출', effects: [{ stat: 'adminPower', value: 4 }, { stat: 'colleagueRelation', value: 4 }, { stat: 'burnout', value: 3 }, { stat: 'mental', value: 2 }], resultText: '전문가의 도움으로 효율적으로 처리를 마쳨습니다.' },
+                        { id: 'd', text: '문서 마감 타임슬롯 연장을 요청하는 공문을 협의 후 기한 포기 조율', effects: [{ stat: 'adminTrust', value: -4 }, { stat: 'hp', value: 5 }, { stat: 'burnout', value: -3 }, { stat: 'mental', value: 3 }], resultText: '나를 위한 인정으로 하루 여유를 확보했으나 관리자 평판에 약간 영향을 주었습니다.' }
+                      ];
+                    }
+                    if (titleLower.includes('학부모') || titleLower.includes('상담') || titleLower.includes('면담')) {
+                      return [
+                        { id: 'a', text: '먹쳤 상담 노트를 준비하여 서제 상담으로 체계적 대응', effects: [{ stat: 'parentTrust', value: 10 }, { stat: 'expert', value: 5 }, { stat: 'burnout', value: 8 }], resultText: '침스한 전문 대없으로 학부모를 안심시켰습니다.' },
+                        { id: 'b', text: '전화로 먼저 직접 또는 문자로 상황 안내 도드림', effects: [{ stat: 'parentTrust', value: 6 }, { stat: 'hp', value: -3 }, { stat: 'mental', value: -2 }], resultText: '빠른 대스로 블를 엄대했으나 에너지 소모가 있었습니다.' },
+                        { id: 'c', text: '상담 전 Wee클래스와 사전 협의하여 전문가 연계 상담 권유', effects: [{ stat: 'parentTrust', value: 5 }, { stat: 'expert', value: 6 }, { stat: 'mental', value: 2 }], resultText: '전문가 네트워크를 활용해 함께 해결책을 제시했습니다.' },
+                        { id: 'd', text: '학부모 요쫘은 수용하되 학교 규정 범위 내에서만 대응 가능함을 명확히 함', effects: [{ stat: 'educationSoshin', value: 8 }, { stat: 'parentTrust', value: -3 }, { stat: 'parentComplaint', value: 5 }], resultText: '원칙으로 대응하여 소신을 지켰으나 학부모의 불만이 높아졌습니다.' }
+                      ];
+                    }
+                    if (titleLower.includes('안전') || titleLower.includes('소방') || titleLower.includes('훈련') || titleLower.includes('점검')) {
+                      return [
+                        { id: 'a', text: '전체 학급을 맞춰 실제 단력 훈련을 직접 지휘 및 실습 진행', effects: [{ stat: 'expert', value: 6 }, { stat: 'studentTrust', value: 5 }, { stat: 'hp', value: -4 }, { stat: 'burnout', value: 6 }], resultText: '실전 훈련으로 안전 인식을 높였으나 체력 소모가 잘례지죠.' },
+                        { id: 'b', text: '당번 학급 담임에게 루틴으로 다음 달 당번으로 수배 제안', effects: [{ stat: 'colleagueRelation', value: 4 }, { stat: 'hp', value: 3 }, { stat: 'adminPower', value: 3 }], resultText: '공평한 분담 조율로 정리했습니다.' },
+                        { id: 'c', text: '안전교육 전요 교사에게 중심 진행을 이관 후 서면 보고만 제출', effects: [{ stat: 'adminPower', value: 5 }, { stat: 'expert', value: 3 }, { stat: 'hp', value: 4 }], resultText: '전문가 연계로 효율적으로 처리했습니다.' },
+                        { id: 'd', text: '주최부서에 소방서 연락을 요청하고 공식 프로그램으로 진행 유도', effects: [{ stat: 'adminTrust', value: 7 }, { stat: 'expert', value: 5 }, { stat: 'burnout', value: 3 }], resultText: '외부 전문 인력과의 협업으로 팀각 있는 안전교육을 완성했습니다.' }
+                      ];
+                    }
+                    if (titleLower.includes('공문') || titleLower.includes('보고서') || titleLower.includes('기안') || titleLower.includes('결재')) {
+                      return [
+                        { id: 'a', text: '모든 영역을 스스로 안전하게 작성 후 교감 선생님께 도급 상신', effects: [{ stat: 'adminTrust', value: 8 }, { stat: 'adminPower', value: 6 }, { stat: 'burnout', value: 10 }, { stat: 'hp', value: -4 }], resultText: '체계적인 문서로 신뢰를 다졌으나 시간과 체력 소모가 컸니다.' },
+                        { id: 'b', text: '예년도 유사 양식을 예시로 참조하여 최대한 빠르게 작성', effects: [{ stat: 'adminPower', value: 5 }, { stat: 'expert', value: 3 }, { stat: 'burnout', value: 4 }], resultText: '레퍼런스를 중심으로 효율적으로 처리했습니다.' },
+                        { id: 'c', text: '동료 교사님과 협업하여 미리 만들어둔 공용 마스터 양식을 사용', effects: [{ stat: 'colleagueRelation', value: 6 }, { stat: 'adminPower', value: 4 }, { stat: 'burnout', value: 2 }], resultText: '팀워크로 효율적으로 완성했습니다.' },
+                        { id: 'd', text: '교육청 가이드라인을 먼저 확인한 후 정확한 규정에 따라 작성', effects: [{ stat: 'expert', value: 7 }, { stat: 'adminTrust', value: 5 }, { stat: 'burnout', value: 6 }], resultText: '공식 지침에 따라 완벽하게 대응했습니다.' }
+                      ];
+                    }
+                    if (titleLower.includes('수업') || titleLower.includes('교욕과정') || titleLower.includes('연구수업') || titleLower.includes('학습')) {
+                      return [
+                        { id: 'a', text: '스스로 특새로운 교수법을 연구하여 개성있는 수업안 설계', effects: [{ stat: 'teachingResearch', value: 8 }, { stat: 'expert', value: 6 }, { stat: 'burnout', value: 8 }, { stat: 'educationSoshin', value: 5 }], resultText: '독창적인 수업 우수연구로 연수에만존하지 않는 수업력을 케웠습니다.' },
+                        { id: 'b', text: '학습 켥엠츠를 동학년과 공유하여 평준화된 형포를 만들어 진행', effects: [{ stat: 'colleagueSolidarity', value: 8 }, { stat: 'expert', value: 4 }, { stat: 'burnout', value: 3 }], resultText: '동학년 협력으로 더 탄탄한 수업을 완성했습니다.' },
+                        { id: 'c', text: '와성 또는 EBS 콘텐츠를 적극 활용하여 살집 수업 포인트 구성', effects: [{ stat: 'expert', value: 5 }, { stat: 'teachingResearch', value: 5 }, { stat: 'burnout', value: 2 }], resultText: '양질 콘텐츠 활용으로 효율적 수업 설계를 해냈습니다.' },
+                        { id: 'd', text: '학생들의 실제 궁금점을 수집하여 답하는 프로젝트 기반 수업으로 재편성', effects: [{ stat: 'studentTrust', value: 7 }, { stat: 'teachingResearch', value: 6 }, { stat: 'educationSoshin', value: 5 }], resultText: '학생과 함께 만들어가는 수업으로 큰 호응을 얻었습니다.' }
+                      ];
+                    }
+                    if (titleLower.includes('예산') || titleLower.includes('정산') || titleLower.includes('영수증') || titleLower.includes('거래') || titleLower.includes('방순')) {
+                      return [
+                        { id: 'a', text: '직접 영수증을 전부 확인하며 수기무작 정확하게 정리 제출', effects: [{ stat: 'adminPower', value: 8 }, { stat: 'adminTrust', value: 6 }, { stat: 'burnout', value: 10 }, { stat: 'hp', value: -6 }], resultText: '왕성한 수글능력으로 학교 업무 신뢰를 올렸습니다.' },
+                        { id: 'b', text: '연관 텐플릿을 사용해 구간별 자동 정렬 후 트리플 확인만 하여 제출', effects: [{ stat: 'adminPower', value: 5 }, { stat: 'expert', value: 4 }, { stat: 'burnout', value: 4 }], resultText: '효율적인 트리플 매칩으로 빠르게 마무리했습니다.' },
+                        { id: 'c', text: '행정실에 수납 요청하여 전시스템 연동로 자동 정산 마무리', effects: [{ stat: 'adminPower', value: 4 }, { stat: 'colleagueRelation', value: 4 }, { stat: 'burnout', value: 2 }], resultText: '시스템 연동으로 목표를 성취했습니다.' },
+                        { id: 'd', text: '설명 자료 만들어 모든 항목을 쳀쭙한 후 교감 선생님 청구', effects: [{ stat: 'adminTrust', value: 7 }, { stat: 'expert', value: 5 }, { stat: 'burnout', value: 8 }], resultText: '투명한 수치 보고로 신뢰를 다졌습니다.' }
+                      ];
+                    }
+                    if (titleLower.includes('동아리') || titleLower.includes('동학년') || titleLower.includes('협의') || titleLower.includes('회의')) {
+                      return [
+                        { id: 'a', text: '전체 회의를 주재하여 모두의 의견을 수렴하는 민주적 협의 진행', effects: [{ stat: 'colleagueSolidarity', value: 10 }, { stat: 'colleagueRelation', value: 6 }, { stat: 'burnout', value: 6 }], resultText: '조률자로서의 역할을 무난히 해냈습니다.' },
+                        { id: 'b', text: '슈아란 구성원만 모아 빠르게 함의를 도출', effects: [{ stat: 'adminPower', value: 5 }, { stat: 'hp', value: 3 }, { stat: 'colleagueSolidarity', value: 3 }], resultText: '효율적으로 팬을 매십니다.' },
+                        { id: 'c', text: '아지트 애플리케이션으로 시간 좌표를 구성하여 효율적 속기진 처리', effects: [{ stat: 'adminPower', value: 4 }, { stat: 'expert', value: 4 }, { stat: 'burnout', value: 2 }], resultText: '디지털 도구를 활용해 효율적으로 처리했습니다.' },
+                        { id: 'd', text: '협의 내용을 실시간 문서화하여 전체 교직원 참조 가능 화시', effects: [{ stat: 'colleagueRelation', value: 6 }, { stat: 'adminTrust', value: 5 }, { stat: 'burnout', value: 4 }], resultText: '투명한 협업 문서로 신뢰를 다졌습니다.' }
+                      ];
+                    }
+
+                    // ---- 2) 카테고리별 기본 선택지 풀 (5세트 실로대식 순환) ----
+                    const adminChoiceSets = [
+                      [
+                        { id: 'a', text: '직접 처리: 용건을 스스로 빈칈히 작성하여 기한내 제출', effects: [{ stat: 'adminPower', value: 8 }, { stat: 'burnout', value: 10 }, { stat: 'hp', value: -4 }], resultText: '엄격한 자세로 처리하여 행정력을 인정받았다.' },
+                        { id: 'b', text: '협업 처리: 동료를 활용하여 공유 탕플릿으로 빠르게 업무 완료', effects: [{ stat: 'colleagueRelation', value: 6 }, { stat: 'adminPower', value: 4 }, { stat: 'burnout', value: 3 }], resultText: '팀워크로 효율적으로 마무리했다.' },
+                        { id: 'c', text: '위임 처리: 전합 업무 중 하나를 적임 있는 후임 동료에게 이덕', effects: [{ stat: 'colleagueRelation', value: -5 }, { stat: 'hp', value: 6 }, { stat: 'mental', value: 4 }], resultText: '정신적 에너지를 아끌었다.' },
+                        { id: 'd', text: '컨설팅 처리: 교육청 담당 장학사에게 고춳 부탁한 후 공식 가이드 수령', effects: [{ stat: 'expert', value: 7 }, { stat: 'adminTrust', value: 5 }, { stat: 'burnout', value: 4 }], resultText: '공식 컨설팅으로 주도해 완료했다.' }
+                      ],
+                      [
+                        { id: 'a', text: '저녀까지 남아 남은 업무를 왕성히 처리 (TP 2 추가 소모)', effects: [{ stat: 'adminPower', value: 10 }, { stat: 'adminTrust', value: 6 }, { stat: 'hp', value: -6 }, { stat: 'burnout', value: 12 }], resultText: '임무를 완후한 느낌으로 빠르게 처리했다.' },
+                        { id: 'b', text: '온라인 시스템을 활용해 한 번에 일괄 입력 후 승인 요청', effects: [{ stat: 'adminPower', value: 6 }, { stat: 'expert', value: 4 }, { stat: 'burnout', value: 5 }], resultText: '디지털 시스템으로 대폭 절감했다.' },
+                        { id: 'c', text: '쳤크리스트를 활용해 메니페스트 작성 후 한 음라도 먼저 실행', effects: [{ stat: 'adminPower', value: 5 }, { stat: 'mental', value: 3 }, { stat: 'burnout', value: 6 }], resultText: '체계적 업무 관리로 빠르게 했다.' },
+                        { id: 'd', text: '직듀 상스에게 이 업무는 내 업무 범위가 아님을 단호히 설명하고 이의 신청', effects: [{ stat: 'educationSoshin', value: 7 }, { stat: 'adminTrust', value: -4 }, { stat: 'hp', value: 4 }], resultText: '소신으로 대해 원칙적으로 대응했다.' }
+                      ],
+                      [
+                        { id: 'a', text: '업무 대상을 분석하여 우선순위를 정하고 중요도가 높은 것부터 처리', effects: [{ stat: 'adminPower', value: 7 }, { stat: 'expert', value: 5 }, { stat: 'burnout', value: 7 }], resultText: '전략적으로 업무를 수행했다.' },
+                        { id: 'b', text: '업무 준비 중 한 가지가 먹혘음을 발견하고 교감에게 기한 연장 요청', effects: [{ stat: 'adminTrust', value: -3 }, { stat: 'hp', value: 5 }, { stat: 'burnout', value: -4 }], resultText: '여유를 확보했으나 평판에 약간 영향이 생산다.' },
+                        { id: 'c', text: '교무실 업무 부장교사에게 아이디어를 얻어 보다 효과적으로 진행', effects: [{ stat: 'colleagueRelation', value: 6 }, { stat: 'adminPower', value: 5 }, { stat: 'burnout', value: 3 }], resultText: '선배의 정험을 활용해 극복했다.' },
+                        { id: 'd', text: '조용히 스늤로 방식으로 에러를 수정하고 굤이 보고하지 않는 실용적 선택', effects: [{ stat: 'adminPower', value: 4 }, { stat: 'mental', value: 3 }, { stat: 'burnout', value: 2 }], resultText: '실용적 선택으로 비교적 슬기롭게 마무리했다.' }
+                      ],
+                      [
+                        { id: 'a', text: '업무 주청 일지를 작성하고 활동 충돌 가능성을 사전 점검한 후 진행', effects: [{ stat: 'adminPower', value: 7 }, { stat: 'expert', value: 5 }, { stat: 'burnout', value: 6 }], resultText: '첢저한 사전 준비로 멋지게 쮘리했다.' },
+                        { id: 'b', text: '교유청에 표준 양식이 있는지 똑다보고 신마렇으로 따라서 작성', effects: [{ stat: 'expert', value: 6 }, { stat: 'adminTrust', value: 5 }, { stat: 'burnout', value: 7 }], resultText: '규정에 충실함으로써 신뢰를 다졌다.' },
+                        { id: 'c', text: '동학년 담임들과 퓸 뭐들고 의견을 나눈 후 합의된 방식으로 진행', effects: [{ stat: 'colleagueSolidarity', value: 8 }, { stat: 'adminPower', value: 4 }, { stat: 'burnout', value: 3 }], resultText: '히맙를 합쳐 이레 효율적으로 마무리했다.' },
+                        { id: 'd', text: '객관적인 예시를 도물로 해 스스로 서승하여 완분한 제출물 완성', effects: [{ stat: 'adminPower', value: 6 }, { stat: 'expert', value: 4 }, { stat: 'hp', value: -3 }], resultText: '종수 원칙에 따라 완백한 제출물을 완성했다.' }
+                      ],
+                      [
+                        { id: 'a', text: '이른 아침 출근하여 혼자 조용히 통지하지 않고 증적없이 업무 처리', effects: [{ stat: 'adminPower', value: 5 }, { stat: 'hp', value: -3 }, { stat: 'burnout', value: 5 }], resultText: '조용한 액션으로 불필요한 노쳙에 희말리지 않았다.' },
+                        { id: 'b', text: '모든 교직원에게 결과를 사전에 알리고 지지와 협조를 구하여 진행', effects: [{ stat: 'colleagueRelation', value: 7 }, { stat: 'adminPower', value: 5 }, { stat: 'burnout', value: 5 }], resultText: '모두가 동의하는 방향으로 진행하여 께끈하게 처리했다.' },
+                        { id: 'c', text: '수령한 업무를 일수서해 난뒤 뉴스레터로 학교 전체에 결과 발송', effects: [{ stat: 'adminPower', value: 6 }, { stat: 'adminTrust', value: 5 }, { stat: 'burnout', value: 6 }], resultText: '업무 완료 후 모두에게 알림으로 븶리 전파했다.' },
+                        { id: 'd', text: '문제가 될 쓰 있는 부분만 선별하여 최소한으로 별도 보고 없이 정리', effects: [{ stat: 'adminPower', value: 3 }, { stat: 'mental', value: 4 }, { stat: 'hp', value: 3 }], resultText: '효율적인 필터링으로 불필요한 에너지를 아꼴다.' }
+                      ]
+                    ];
+
+                    const teachingChoiceSets = [
+                      [
+                        { id: 'a', text: '학생들을 직접 참여시켜 수업 개선 방안을 함께 설계', effects: [{ stat: 'studentTrust', value: 8 }, { stat: 'teachingResearch', value: 6 }, { stat: 'educationSoshin', value: 5 }], resultText: '학생이 중심이 된 수업으로 큰 보람이 있었다.' },
+                        { id: 'b', text: '연구학교 동료와 수업 ꪰ시를 교환하여 새 아이디어 변용', effects: [{ stat: 'teachingResearch', value: 7 }, { stat: 'colleagueSolidarity', value: 5 }, { stat: 'burnout', value: 3 }], resultText: '외부 인사이트를 활용한 풍성한 수업라인을 완성했다.' },
+                        { id: 'c', text: '실질적인 학습 목표 설정 후 학생별 맞춤형 개별화 지도 설계', effects: [{ stat: 'expert', value: 7 }, { stat: 'studentTrust', value: 6 }, { stat: 'burnout', value: 8 }], resultText: '개인별 최적화 수업으로 문터를 돌렸다.' },
+                        { id: 'd', text: '수업에 게임화 요소를 담아 모둥활동도 지싄으로 진행', effects: [{ stat: 'studentTrust', value: 7 }, { stat: 'teachingResearch', value: 5 }, { stat: 'classManagement', value: 4 }], resultText: '에너지 넘치는 수업 분위기로 학생참여를 유도했다.' }
+                      ],
+                      [
+                        { id: 'a', text: '안전하고 쳤쾘인트를 제시하여 단돌 학교 수업 참여 가능 방법 선택', effects: [{ stat: 'studentTrust', value: 6 }, { stat: 'expert', value: 6 }, { stat: 'hp', value: -2 }], resultText: '안전한 학습어환경으로 수업 만족도를 높였다.' },
+                        { id: 'b', text: '근거 있는 학습 몛지 자료를 제작하여 수업 후 배노트 형태로 학생 바로 배포', effects: [{ stat: 'teachingResearch', value: 7 }, { stat: 'studentTrust', value: 5 }, { stat: 'burnout', value: 6 }], resultText: '질 높은 자료로 수업 재만도를 높였다.' },
+                        { id: 'c', text: '문제풀이 학습보다 체험 하이라이트 스프린트 수업으로 기획', effects: [{ stat: 'classManagement', value: 7 }, { stat: 'studentTrust', value: 6 }, { stat: 'educationSoshin', value: 5 }], resultText: '학생들에게 기억에 남는 특별한 수업이 되었다.' },
+                        { id: 'd', text: '예상 범위 외 상황이 발생하면 즉시 학교 수업설계 대안을 할설하기 위한 긍기 준비', effects: [{ stat: 'expert', value: 6 }, { stat: 'teachingResearch', value: 5 }, { stat: 'burnout', value: 5 }], resultText: '위기 대처 능력으로 수업 품질을 부드럽게 유지했다.' }
+                      ]
+                    ];
+
+                    // 실로대식 선택지 반환 (task.id를 기준으로 상이한 세트 선택)
+                    if (cat === 'teaching') {
+                      const setIdx = parseInt(t.id.replace(/\D/g, '') || '0') % teachingChoiceSets.length;
+                      return teachingChoiceSets[setIdx];
+                    }
+                    const setIdx = parseInt(t.id.replace(/\D/g, '') || '0') % adminChoiceSets.length;
+                    return adminChoiceSets[setIdx];
+                  };
+
+                  const taskChoices = getTaskChoices(task);
+
+                  // 선택지 코드으로 작동 중인지 확인
+                  const taskKey = `${task.id}`;
+                  const isThisTaskExpanded = activeTaskChoice === taskKey;
+
+                  return (
+                    <div 
+                      id="tutorial-tasks-panel" 
+                      className="flex-1 flex flex-col justify-between animate-fade-in"
+                    >
+                      <div>
+                        <h3 className="font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-2 mb-4 flex items-center gap-1.5 text-xs md:text-sm">
+                          <FileText className="w-5 h-5 text-emerald-600" />
+                          {card.title}
+                        </h3>
+                        <div className={`p-3 rounded-xl shadow-school-press flex flex-col justify-between transition-all duration-300 ${cardStyle}`}>
+                          <div>
+                            <div className="font-extrabold text-slate-900 text-xs md:text-sm leading-snug mb-2">
+                              {task.title}
+                            </div>
+                            <div className="flex flex-wrap gap-2 text-[10px] font-semibold text-slate-500 mb-2">
+                              <span className="bg-emerald-150 text-emerald-800 px-2 py-0.5 rounded border border-emerald-300">
+                                기한: {task.deadlineDay}일차
+                              </span>
+                              <span className="bg-slate-200 text-slate-700 px-2 py-0.5 rounded border border-slate-300">
+                                요구 TP: {task.estimatedTime}TP
+                              </span>
+                              <span className="bg-rose-100 text-rose-800 px-2 py-0.5 rounded border border-rose-300">
+                                피로도: +{task.stressCost}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 선택지 표시 (taskChoiceResult가 없을 때만) */}
+                        {taskChoiceResult && activeTaskChoice === taskKey ? (
+                          <div className="mt-3 p-3 bg-amber-50 border-2 border-amber-400 rounded-xl animate-fade-in">
+                            <p className="text-xs font-bold text-amber-900 mb-2">✅ {taskChoiceResult.choiceText}</p>
+                            <p className="text-xs text-slate-700 leading-relaxed">{taskChoiceResult.resultText}</p>
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {taskChoiceResult.effects.map((eff, i) => (
+                                <span key={i} className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
+                                  eff.value > 0 ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-rose-100 text-rose-700 border-rose-300'
+                                }`}>
+                                  {STAT_LABELS[eff.stat]?.icon}{STAT_LABELS[eff.stat]?.label} {eff.value > 0 ? '+' : ''}{eff.value}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="mt-3 space-y-2">
+                            {taskChoices.map((choice) => (
+                              <button
+                                key={choice.id}
+                                onClick={() => {
+                                  setPrevStats({ ...stats });
+                                  setActiveTaskChoice(taskKey);
+                                  setTaskChoiceResult({ choiceText: choice.text, resultText: choice.resultText, effects: choice.effects });
+                                  completeTaskWithChoice(task.id, choice.effects, choice.resultText);
+                                }}
+                                className="w-full text-left py-2 px-3 bg-white hover:bg-emerald-50 border-2 border-slate-200 hover:border-emerald-400 text-slate-800 font-semibold rounded-xl text-[11px] leading-snug transition-all active:translate-y-0.5 shadow-sm"
+                              >
+                                <span className="inline-block mr-1 font-extrabold text-emerald-700">{choice.id.toUpperCase()}.</span>
+                                {choice.text}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 위임 버튼 (태스크 결과 전만 표시) */}
+                      {!taskChoiceResult && task.canDelegate && (
+                        <div className="mt-3">
+                          <button
+                            onClick={() => delegateTask(task.id)}
+                            className="w-full py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-extrabold border-2 border-black rounded-xl text-xs transition-all active:translate-y-0.5 shadow-school-press"
+                          >
+                            🤝 동료에게 위임하기 (동료관계 -15 필요)
+                          </button>
+                        </div>
                       )}
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center p-6 text-slate-400 text-xs italic bg-slate-50 rounded-lg border-2 border-dashed border-slate-300">
-                <CheckCircle className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-                모든 긴급 행무 서류가 기한 내에 결재 완료되었습니다! 평화로운 교실입니다.
-              </div>
-            )}
-          </div>
+                  );
+                }
 
-          {/* 가상 스마트폰 메신저 피드 (공무 전용) */}
-          <div 
-            id="tutorial-alerts-panel"
-            className={`paper-card bg-white p-4 transition-all duration-300 ${
-              isTutorialActive && tutorialStep === 5 
-                ? 'ring-4 ring-[#FF007F] ring-offset-2 border-[#FF007F] scale-[1.01]' 
-                : isTutorialActive && tutorialStep === 4
-                  ? 'opacity-20 pointer-events-none' 
-                  : ''
-            }`}
-          >
-            <h3 className="font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-2 mb-3 flex items-center gap-1.5">
-              <Smartphone className="w-5 h-5 text-emerald-600" />
-              🏫 학교 메신저 (공무전용)
-            </h3>
-            
-            <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
-              {messengerNotifications.length > 0 ? (
-                messengerNotifications.map((notif) => (
-                  <button
-                    key={notif.id}
-                    onClick={() => triggerMessengerAction(notif.id)}
-                    className={`w-full text-left p-2.5 rounded-xl border-2 border-black text-xs transition-all active:translate-y-0.5 shadow-school-press flex items-start gap-2 ${
-                      notif.isRead ? 'bg-slate-50 border-slate-300 shadow-none' : 'bg-sky-50 border-sky-500 font-bold'
-                    }`}
-                  >
-                    <AlertCircle className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${notif.isRead ? 'text-slate-400' : 'text-sky-600 animate-pulse'}`} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-center text-xs text-slate-500 mb-0.5">
-                        <span className="font-extrabold">{notif.sender}</span>
-                        {!notif.isRead && <span className="bg-sky-600 text-white text-xs px-1 rounded font-normal">NEW</span>}
+                // 2. 학교 메신저 카드 UI
+                if (card.type === 'messenger') {
+                  const notif = card.data;
+                  
+                  // 튜토리얼 5단계 강조 스타일
+                  const isHighlighted = isTutorialActive && tutorialStep === 5;
+                  const cardStyle = isHighlighted
+                    ? 'ring-4 ring-[#FF007F] ring-offset-2 border-[#FF007F] scale-[1.01]'
+                    : notif.isRead 
+                      ? 'bg-slate-50 border-slate-300 shadow-none' 
+                      : 'bg-sky-50 border-sky-500 font-bold';
+
+                  return (
+                    <div 
+                      id="tutorial-alerts-panel" 
+                      className="flex-1 flex flex-col justify-between animate-fade-in"
+                    >
+                      <div>
+                        <h3 className="font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-2 mb-4 flex items-center gap-1.5 text-xs md:text-sm">
+                          <Smartphone className="w-5 h-5 text-sky-600" />
+                          {card.title}
+                        </h3>
+                        <div className={`p-4 rounded-xl border-2 shadow-school-press transition-all flex flex-col justify-between min-h-[140px] ${cardStyle}`}>
+                          <div>
+                            <div className="flex justify-between items-center text-xs text-slate-500 mb-2">
+                              <span className="font-extrabold text-slate-800">발신: {notif.sender}</span>
+                              {!notif.isRead && <span className="bg-sky-600 text-white text-[10px] px-1.5 py-0.5 rounded font-normal">NEW</span>}
+                            </div>
+                            <p className="leading-relaxed text-slate-800 text-xs">{notif.previewText}</p>
+                          </div>
+                        </div>
                       </div>
-                      <p className="leading-snug truncate text-slate-800 text-xs">{notif.previewText}</p>
-                    </div>
-                  </button>
-                ))
-              ) : (
-                <div className="text-slate-400 text-xs text-center p-4 italic bg-slate-50 rounded-lg">
-                  메신저에 새로운 공무 알림이 없습니다.
-                </div>
-              )}
-            </div>
-          </div>
 
-          {/* 개인 스마트폰 수신함 */}
-          <div className="paper-card bg-white p-4">
-            <h3 className="font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-2 mb-3 flex items-center gap-1.5">
-              <Smartphone className="w-5 h-5 text-rose-500" />
-              📱 개인 스마트폰 (전화 & 문자)
-            </h3>
-            
-            <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-              {phoneAndTextNotifications.length > 0 ? (
-                phoneAndTextNotifications.map((notif) => {
+                      <button
+                        onClick={() => triggerMessengerAction(notif.id)}
+                        className="w-full mt-4 py-3 bg-sky-600 hover:bg-sky-500 text-white font-extrabold border-2 border-black rounded-xl text-xs md:text-sm transition-all active:translate-y-0.5 shadow-school-press"
+                      >
+                        메신저 공무 확인하기
+                      </button>
+                    </div>
+                  );
+                }
+
+                // 3. 개인 스마트폰 카드 UI
+                if (card.type === 'phone') {
+                  const notif = card.data;
                   const isPositive = notif.id.includes('positive');
                   const isPhone = notif.type === 'phone';
                   
-                  let cardBg = 'bg-rose-50/50 border-rose-250';
+                  let cardBg = 'bg-rose-50/50 border-rose-300';
                   let iconColor = 'text-rose-500';
                   let badgeText = '💝 감사격려';
-                  let badgeBg = 'bg-rose-100 text-rose-850';
+                  let badgeBg = 'bg-rose-100 text-rose-800';
+                  let checkBtnBg = 'bg-rose-500 hover:bg-rose-400';
 
                   if (!isPositive) {
-                    cardBg = 'bg-violet-50/40 border-violet-250';
+                    cardBg = 'bg-violet-50/40 border-violet-300';
                     iconColor = 'text-violet-500';
                     badgeText = '🚨 민원부탁';
                     badgeBg = 'bg-violet-100 text-violet-850';
+                    checkBtnBg = 'bg-violet-600 hover:bg-violet-500';
                   }
 
                   if (notif.isRead) {
@@ -1784,41 +2043,95 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                   }
 
                   return (
-                    <button
-                      key={notif.id}
-                      onClick={() => triggerPhoneAndTextAction(notif.id)}
-                      className={`w-full text-left p-2.5 rounded-xl border-2 border-black text-xs transition-all active:translate-y-0.5 shadow-school-press flex items-start gap-2 ${cardBg}`}
-                    >
-                      <span className={`text-sm mt-0.5 flex-shrink-0 ${iconColor}`}>
-                        {isPhone ? '☎️' : '💬'}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-center text-xs text-slate-500 mb-0.5">
-                          <span className="font-extrabold text-slate-800">{notif.sender}</span>
-                          <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${badgeBg}`}>
-                            {badgeText}
-                          </span>
+                    <div className="flex-1 flex flex-col justify-between animate-fade-in">
+                      <div>
+                        <h3 className="font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-2 mb-4 flex items-center gap-1.5 text-xs md:text-sm">
+                          <Smartphone className="w-5 h-5 text-rose-500" />
+                          {card.title}
+                        </h3>
+                        <div className={`p-4 rounded-xl border-2 shadow-school-press min-h-[140px] flex flex-col justify-between ${cardBg}`}>
+                          <div>
+                            <div className="flex justify-between items-center text-xs text-slate-500 mb-2">
+                              <span className="font-extrabold text-slate-800">발신: {notif.sender}</span>
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${badgeBg}`}>
+                                {isPhone ? '☎️ ' : '💬 '}{badgeText}
+                              </span>
+                            </div>
+                            <p className="leading-relaxed text-slate-800 text-xs">{notif.previewText}</p>
+                          </div>
                         </div>
-                        <p className="leading-snug truncate text-slate-750 text-xs">{notif.previewText}</p>
                       </div>
-                    </button>
-                  );
-                })
-              ) : (
-                <div className="text-slate-400 text-xs text-center p-4 italic bg-slate-50 rounded-lg">
-                  스마트폰 알림 수신함이 비어있습니다.
-                </div>
-              )}
 
-              {/* 최근 역사 로그 간이 표출 */}
-              <div className="border-t border-slate-200 pt-3 mt-2">
-                <h4 className="font-bold text-xs text-slate-400 uppercase tracking-wider mb-1.5">최근 행동 이력</h4>
-                <div className="space-y-1 font-mono text-xs text-slate-500 overflow-y-auto max-h-[80px]">
-                  {recentLogs.slice(0, 5).map((log, i) => (
-                    <div key={i} className="truncate">{log}</div>
+                      <button
+                        onClick={() => triggerPhoneAndTextAction(notif.id)}
+                        className={`w-full mt-4 py-3 text-white font-extrabold border-2 border-black rounded-xl text-xs transition-all active:translate-y-0.5 shadow-school-press ${checkBtnBg}`}
+                      >
+                        {isPhone ? '전화 수신하기' : '문자 연락 확인하기'}
+                      </button>
+                    </div>
+                  );
+                }
+
+                return null;
+              })()
+            ) : (
+              // 카드가 모두 완료되었을 때의 힐링 보드
+              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-fade-in">
+                <CheckCircle className="w-10 h-10 mb-3 text-emerald-500 animate-bounce" />
+                <h3 className="text-xs md:text-sm font-extrabold text-slate-800 mb-1">오늘의 모든 업무와 연락 완료</h3>
+                <p className="text-[11px] text-slate-500 leading-relaxed font-semibold">
+                  미결 서류, 메신저 알림, 학부모 민원이 정리되었습니다.<br/>
+                  학교 맵에서 추가 활동을 진행하거나 퇴근하세요!
+                </p>
+              </div>
+            )}
+
+            {/* 하단 캐러셀 내비게이션 바 및 인디케이터 도트 */}
+            {combinedCards.length > 1 && (
+              <div className="flex flex-col items-center mt-5 pt-3 border-t border-slate-100 gap-2.5">
+                <div className="flex items-center gap-6">
+                  <button 
+                    onClick={handlePrevCard}
+                    className="w-8 h-8 border-2 border-black rounded-xl bg-slate-100 hover:bg-slate-200 transition-all font-extrabold text-xs active:translate-y-0.5 shadow-school-press flex items-center justify-center"
+                    title="이전 카드"
+                  >
+                    ◀
+                  </button>
+                  <span className="font-school font-extrabold text-slate-700 text-xs bg-slate-50 border border-slate-200 px-3 py-1 rounded-full">
+                    {currentCardIndex + 1} / {combinedCards.length}
+                  </span>
+                  <button 
+                    onClick={handleNextCard}
+                    className="w-8 h-8 border-2 border-black rounded-xl bg-slate-100 hover:bg-slate-200 transition-all font-extrabold text-xs active:translate-y-0.5 shadow-school-press flex items-center justify-center"
+                    title="다음 카드"
+                  >
+                    ▶
+                  </button>
+                </div>
+                
+                {/* 도트 인디케이터 */}
+                <div className="flex gap-2">
+                  {combinedCards.map((_, idx) => (
+                    <div 
+                      key={idx} 
+                      onClick={() => setCurrentCardIndex(idx)}
+                      className={`w-2.5 h-2.5 rounded-full border border-black cursor-pointer transition-all ${
+                        idx === currentCardIndex ? 'bg-emerald-500 scale-110 shadow-sm' : 'bg-slate-200 hover:bg-slate-300'
+                      }`}
+                    />
                   ))}
                 </div>
               </div>
+            )}
+          </div>
+          
+          {/* 최근 행동 이력 간이 뷰 */}
+          <div className="paper-card bg-white p-4 border-2 border-black rounded-2xl shadow-school-press">
+            <h4 className="font-bold text-xs text-slate-400 uppercase tracking-wider mb-2">최근 행동 이력</h4>
+            <div className="space-y-1 font-mono text-xs text-slate-500 overflow-y-auto max-h-[80px]">
+              {recentLogs.slice(0, 5).map((log, i) => (
+                <div key={i} className="truncate">{log}</div>
+              ))}
             </div>
           </div>
         </section>

@@ -174,29 +174,7 @@ export const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onBackToTitl
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm md:text-base font-bold text-slate-800 mb-2">담임 임명</label>
-              <div className="flex gap-4">
-                <button
-                  type="button"
-                  onClick={() => setIsClassTeacher(true)}
-                  className={`flex-1 p-3 border-2 rounded-xl font-extrabold text-sm md:text-base transition-all ${
-                    isClassTeacher ? 'bg-emerald-500 text-white border-black shadow-school-press' : 'bg-slate-50 border-black hover:bg-slate-100'
-                  }`}
-                >
-                  학급 담임 교사
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsClassTeacher(false)}
-                  className={`flex-1 p-3 border-2 rounded-xl font-extrabold text-sm md:text-base transition-all ${
-                    !isClassTeacher ? 'bg-emerald-500 text-white border-black shadow-school-press' : 'bg-slate-50 border-black hover:bg-slate-100'
-                  }`}
-                >
-                  교과 전담 교사
-                </button>
-              </div>
-            </div>
+            {/* 담임/전담교사 선택지가 제거되고 학급담임으로 자동 고정됩니다 */}
           </div>
         )}
 
@@ -297,7 +275,7 @@ export const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onBackToTitl
                 <Award className="w-5 h-5" /> [최종 요약 서류]
               </h4>
               <p>• 성명: {name} 교사 ({labelsForExp(experience)})</p>
-              <p>• 배정: {grade}학년 {isClassTeacher ? '학급담임' : '교과전담'}</p>
+              <p>• 배정: {grade}학년 학급담임</p>
               <p>• 배경: {labelsForFamily(familyState)} | {schoolType}</p>
               <p>• 선택 특성: {selectedTraits.join(', ')}</p>
               <p className="text-amber-300 font-semibold">• 게임 난이도: {difficulty === 'warm' ? '쉬움 (독신)' : difficulty === 'realistic' ? '보통 (기혼 자녀없음)' : '어려움 (기혼 자녀양육)'}</p>
