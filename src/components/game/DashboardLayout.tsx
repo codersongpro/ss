@@ -2,9 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useGameStore } from '@/store/useGameStore';
 import type { TimeOfDay } from '@/store/useGameStore';
 import { 
-  Heart, 
-  Brain, 
-  Flame, 
   Calendar, 
   Clock, 
   Users, 
@@ -475,7 +472,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
     <div className="min-h-screen bg-[#F0ECE3] flex flex-col text-slate-800 transition-colors duration-300">
       {/* 1. 상단 바: 날짜 및 교사력 (체력/멘탈/번아웃은 8대 통합 스탯으로 이동) */}
       <header className={`bg-white border-b-4 border-slate-900 px-4 py-3 sticky top-0 shadow-md transition-all duration-300 ${
-        isTutorialActive && tutorialStep === 1 ? 'z-[1001] relative' : 'z-30'
+        isTutorialActive && tutorialStep === 1 ? 'z-[1000] relative' : 'z-30'
       }`}>
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           {/* 날짜, 신상 정보 (1단계 가이드 중 비타겟이므로 흐리게 처리) */}
@@ -504,7 +501,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
               id="tutorial-hp-bar"
               className={`flex items-center gap-1.5 bg-yellow-100 border-2 border-yellow-400 rounded-xl px-3 py-1.5 shadow-school-press relative group cursor-help transition-all duration-300 ${
                 isTutorialActive && tutorialStep === 1 
-                  ? 'z-[1000] relative ring-4 ring-[#FF007F] ring-offset-4 ring-offset-slate-900 animate-pulse border-[#FF007F]' 
+                  ? 'ring-4 ring-[#FF007F] ring-offset-2 border-[#FF007F] scale-105' 
                   : ''
               }`}
             >
@@ -565,16 +562,16 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
         
         {/* ================= 좌측 패널 (lg:col-span-3): 학급현황 ================= */}
         <section className={`lg:col-span-3 space-y-4 ${activeTab === 'left' ? 'block' : 'hidden lg:block'} transition-all duration-300 ${
-          isTutorialActive && (tutorialStep === 2 || tutorialStep === 3) ? 'z-[1001] relative' : ''
+          isTutorialActive && (tutorialStep === 2 || tutorialStep === 3) ? 'z-[1000] relative' : ''
         }`}>
           {/* 1. [상단 배치] 8대 핵심 교직 스탯 (생존 및 역량 스탯 통합) */}
           <div 
             id="tutorial-stats-panel"
             className={`paper-card bg-white p-4 space-y-3.5 transition-all duration-300 ${
               isTutorialActive && tutorialStep === 2 
-                ? 'z-[1000] relative ring-4 ring-[#FF007F] ring-offset-4 ring-offset-slate-900 animate-pulse border-[#FF007F]' 
-                : isTutorialActive 
-                  ? 'opacity-30 pointer-events-none' 
+                ? 'ring-4 ring-[#FF007F] ring-offset-2 border-[#FF007F] scale-[1.01]' 
+                : isTutorialActive && tutorialStep === 3
+                  ? 'opacity-20 pointer-events-none' 
                   : ''
             }`}
           >
@@ -726,9 +723,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
             id="tutorial-students-panel"
             className={`paper-card bg-white p-4 transition-all duration-300 ${
               isTutorialActive && tutorialStep === 3 
-                ? 'z-[1000] relative ring-4 ring-[#FF007F] ring-offset-4 ring-offset-slate-900 animate-pulse border-[#FF007F]' 
-                : isTutorialActive 
-                  ? 'opacity-30 pointer-events-none' 
+                ? 'ring-4 ring-[#FF007F] ring-offset-2 border-[#FF007F] scale-[1.01]' 
+                : isTutorialActive && tutorialStep === 2
+                  ? 'opacity-20 pointer-events-none' 
                   : ''
             }`}
           >
@@ -1383,16 +1380,16 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
 
         {/* ================= 우측 패널 (lg:col-span-3): 업무보드 & 스마트폰 ================= */}
         <section className={`lg:col-span-3 space-y-4 ${activeTab === 'right' ? 'block' : 'hidden lg:block'} transition-all duration-300 ${
-          isTutorialActive && (tutorialStep === 4 || tutorialStep === 5) ? 'z-[1001] relative' : ''
+          isTutorialActive && (tutorialStep === 4 || tutorialStep === 5) ? 'z-[1000] relative' : ''
         }`}>
           {/* 업무 보드 */}
           <div 
             id="tutorial-tasks-panel"
             className={`paper-card bg-white p-4 transition-all duration-300 ${
               isTutorialActive && tutorialStep === 4 
-                ? 'z-[1000] relative ring-4 ring-[#FF007F] ring-offset-4 ring-offset-slate-900 animate-pulse border-[#FF007F]' 
-                : isTutorialActive 
-                  ? 'opacity-30 pointer-events-none' 
+                ? 'ring-4 ring-[#FF007F] ring-offset-2 border-[#FF007F] scale-[1.01]' 
+                : isTutorialActive && tutorialStep === 5
+                  ? 'opacity-20 pointer-events-none' 
                   : ''
             }`}
           >
@@ -1450,9 +1447,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
             id="tutorial-alerts-panel"
             className={`paper-card bg-white p-4 transition-all duration-300 ${
               isTutorialActive && tutorialStep === 5 
-                ? 'z-[1000] relative ring-4 ring-[#FF007F] ring-offset-4 ring-offset-slate-900 animate-pulse border-[#FF007F]' 
-                : isTutorialActive 
-                  ? 'opacity-30 pointer-events-none' 
+                ? 'ring-4 ring-[#FF007F] ring-offset-2 border-[#FF007F] scale-[1.01]' 
+                : isTutorialActive && tutorialStep === 4
+                  ? 'opacity-20 pointer-events-none' 
                   : ''
             }`}
           >
@@ -2027,13 +2024,18 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
 
       {/* iorad 스타일 첫날 튜토리얼 오버레이 */}
       {isTutorialActive && (
-        <div className="fixed inset-0 z-[990] pointer-events-none select-none">
-          {/* 어두운 마스크 레이어 */}
-          <div className="absolute inset-0 bg-black/60 pointer-events-auto" />
+        <>
+          {/* 어두운 반투명 마스크 - pointer-events-none 으로 하이라이트 요소 클릭 막지 않음 */}
+          <div className="fixed inset-0 z-[990] bg-black/65 pointer-events-none select-none" />
 
-          {/* 설명 말풍선 카드 */}
+          {/* 설명 말풍선 카드 - 항상 최상단(z-[1100])에 고정 배치 */}
           <div 
-            className={`absolute z-[1000] pointer-events-auto max-w-md w-full bg-white border-4 border-black rounded-2xl p-6 shadow-[8px_8px_0_#000] text-slate-800 animate-fade-in animate-duration-300 font-sans ${TUTORIAL_STEPS[tutorialStep].positionClass}`}
+            className={`fixed z-[1100] pointer-events-auto max-w-sm w-[calc(100vw-2rem)] bg-white border-4 border-black rounded-2xl p-5 shadow-[8px_8px_0_#000] text-slate-800 animate-fade-in animate-duration-300 font-sans ${
+              // 스텝 0은 정중앙, 이후 단계는 뷰포트 하단 고정
+              tutorialStep === 0
+                ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'
+                : 'bottom-4 left-1/2 -translate-x-1/2'
+            }`}
           >
             {/* 상단 진행률 바 */}
             <div className="flex justify-between items-center text-xs text-slate-400 font-bold mb-3">
@@ -2042,12 +2044,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
             </div>
 
             {/* 타이틀 */}
-            <h4 className="font-extrabold text-base md:text-lg text-slate-900 mb-3 flex items-center gap-1.5 leading-tight">
+            <h4 className="font-extrabold text-sm md:text-base text-slate-900 mb-2 flex items-center gap-1.5 leading-tight">
               {TUTORIAL_STEPS[tutorialStep].title}
             </h4>
 
             {/* 설명 본문 */}
-            <p className="text-sm text-slate-600 font-semibold leading-relaxed mb-5 whitespace-pre-line">
+            <p className="text-xs text-slate-600 font-semibold leading-relaxed mb-4 whitespace-pre-line line-clamp-6">
               {TUTORIAL_STEPS[tutorialStep].desc}
             </p>
 
@@ -2060,14 +2062,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                 }}
                 className="text-xs text-slate-400 hover:text-rose-500 font-extrabold underline transition-colors"
               >
-                가이드 건너뛰기
+                건너뛰기
               </button>
 
               <div className="flex gap-2">
                 {tutorialStep > 0 && (
                   <button
                     onClick={() => setTutorialStep(prev => prev - 1)}
-                    className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold border-2 border-black rounded-xl px-3.5 py-1.5 text-xs md:text-sm active:translate-y-0.5"
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold border-2 border-black rounded-xl px-3 py-1.5 text-xs active:translate-y-0.5"
                   >
                     이전
                   </button>
@@ -2082,14 +2084,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                       setIsTutorialActive(false);
                     }
                   }}
-                  className="bg-[#FF007F] hover:bg-[#E00070] text-white font-extrabold border-2 border-black rounded-xl px-4 py-1.5 text-xs md:text-sm active:translate-y-0.5 shadow-[2px_2px_0_#000]"
+                  className="bg-[#FF007F] hover:bg-[#E00070] text-white font-extrabold border-2 border-black rounded-xl px-4 py-1.5 text-xs active:translate-y-0.5 shadow-[2px_2px_0_#000]"
                 >
                   {tutorialStep === TUTORIAL_STEPS.length - 1 ? '출근하기! ➔' : '다음 단계'}
                 </button>
               </div>
             </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

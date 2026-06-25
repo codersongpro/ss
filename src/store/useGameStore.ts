@@ -455,10 +455,10 @@ export const useGameStore = create<GameState>()(
       startGame: (info: PlayerInfo) => {
         const initialStats = getInitialStats(info.difficulty, info.traits);
         
-        // 난이도 및 교직 경력에 따른 행동 포인트 한도 조절
-        let maxAP = 5;
-        if (info.traits.includes('교사력왕')) maxAP = 6;
-        if (info.difficulty === 'hard') maxAP = 4;
+        // 난이도 및 교직 경력에 따른 교사력(TP) 한도 조절
+        let maxTP = 5;
+        if (info.traits.includes('교사력왕')) maxTP = 6;
+        if (info.difficulty === 'hard') maxTP = 4;
 
         // Fisher-Yates 셔플 알고리즘으로 학생 풀 40명 셔플링
         const shuffledStudents = [...initialStudents];
@@ -501,8 +501,8 @@ export const useGameStore = create<GameState>()(
           selectedChoice: null,
           eventResultText: null,
           dayEffectsTriggered: [],
-          actionPoints: maxAP,
-          maxActionPoints: maxAP,
+          actionPoints: maxTP,
+          maxActionPoints: maxTP,
           recentLogs: ['새 학기 첫 출근을 시작했습니다. 30일 교사 서사가 막을 올립니다.']
         });
 
@@ -727,11 +727,11 @@ export const useGameStore = create<GameState>()(
               }
             });
 
-            // 매일 아침 행동 포인트(AP) 갱신 (체력이 바닥이거나 번아웃이 극심하면 AP 차감)
-            let dailyAP = maxActionPoints;
-            if (penaltyStats.hp < 30) dailyAP -= 1;
-            if (penaltyStats.burnout > 80) dailyAP -= 1;
-            dailyAP = Math.max(1, dailyAP);
+            // 매일 아침 교사력(TP) 갱신 (체력이 바닥이거나 번아웃이 극심하면 TP 차감)
+            let dailyTP = maxActionPoints;
+            if (penaltyStats.hp < 30) dailyTP -= 1;
+            if (penaltyStats.burnout > 80) dailyTP -= 1;
+            dailyTP = Math.max(1, dailyTP);
 
             // 5대 핵심 스탯 동기화 및 즉시 게임오버 검사
             const syncedStats = syncNewStats(penaltyStats);
@@ -775,7 +775,7 @@ export const useGameStore = create<GameState>()(
               day: nextDay,
               timeOfDay: 'morning',
               stats: syncedStats,
-              actionPoints: dailyAP,
+              actionPoints: dailyTP,
               currentLocation: null,
               currentNpcDialogue: null,
               currentEvent: null, // 지도를 보고 아침 활동 시작
@@ -1051,7 +1051,7 @@ export const useGameStore = create<GameState>()(
         });
       },
 
-      // 11. RPG 장소 탐색 (사건 트리거, AP 1 소모)
+      // 11. RPG 장소 탐색 (사건 트리거, TP 1 소모)
       exploreLocation: () => {
         const { currentLocation, day, hiddenFlags, recentLogs, actionPoints } = get();
         if (!currentLocation) return;
@@ -1254,8 +1254,8 @@ export const useGameStore = create<GameState>()(
         get().checkFailureConditions();
       },
 
-      // 13. RPG 캐릭터 대화 개시 (AP를 소모하지 않는 이벤트성 대화)
-      // 13. RPG 캐릭터 대화 개시 (체력 1 소모 및 100선 랜덤 대화 연동)
+      // 13. RPG 캐릭터 대화 개시 (TP를 소모하지 않는 이벤트성 대화)
+      // 13. RPG 캐릭터 대화 개시 (TP 1 소모 및 100선 랜덤 대화 연동)
       talkToNPC: (npcId: string, npcName: string) => {
         const { day, recentLogs, completedNpcDialoguesToday, completedNpcEvents, actionPoints } = get();
 
@@ -2287,7 +2287,7 @@ export const useGameStore = create<GameState>()(
       counselStudent: (studentId, actionType) => {
         const { actionPoints, students, stats, day, recentLogs } = get();
 
-        // 1. 체력(AP) 체크
+        // 1. 교사력(TP) 체크
         if (actionPoints < 1) {
           get().showToast('교사력(TP)이 부족하여 학생을 지도할 수 없습니다.');
           return null;
