@@ -250,6 +250,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
   // 층간 상태 (1층 ⇄ 2층)
   const [currentFloor, setCurrentFloor] = useState<1 | 2>(1);
 
+  // 주말 여부 판정 (6일차/7일차 등 토요일/일요일에 주말 힐링 보너스 대응)
+  const isWeekend = day % 7 === 6 || day % 7 === 0;
+
   // 스탯 전후 변화 추적용 로컬 상태
   const [prevStats, setPrevStats] = useState<any>(null);
 
@@ -1210,32 +1213,36 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                   onClick={handleProgressTime}
                   className="w-full btn-school flex items-center justify-center gap-1.5 py-3 text-lg bg-slate-100 hover:bg-slate-200 border-2 border-black text-slate-800 font-bold transition-all shadow-school-press"
                 >
-                  교무수첩을 덮고 퇴근하기
+                  {isWeekend ? '주말 일과 마무리하기' : '교무수첩을 덮고 퇴근하기'}
                   <ChevronRight className="w-5 h-5" />
                 </button>
                 <div className="text-center text-[11px] text-slate-500 -mt-2 mb-1">
-                  (추가적인 부작용 없이 다음 날로 넘어갑니다.)
+                  {isWeekend ? '(주말 휴식을 마치고 다음 날로 넘어갑니다.)' : '(추가적인 부작용 없이 다음 날로 넘어갑니다.)'}
                 </div>
 
-                <button
-                  onClick={() => {
-                    overtimeWork();
-                  }}
-                  className="w-full btn-school-accent flex items-center justify-center gap-1.5 py-3 text-lg bg-amber-500 hover:bg-amber-600 border-2 border-black text-white font-bold transition-all shadow-school-deep"
-                >
-                  🔥 퇴근 대신 야근하기
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-                <div className="text-xs text-slate-600 bg-amber-50 border border-amber-300 rounded-lg p-2.5 space-y-1">
-                  <div className="font-bold text-amber-900 text-center">⚠️ 야근 선택 시 예상되는 변화:</div>
-                  <div className="grid grid-cols-2 gap-1 text-[11px] text-left px-1">
-                    <span className="text-emerald-700">📈 행정실무 +15, 전문성 +10, 관리자신뢰 +5</span>
-                    <span className="text-red-600">📉 건강 -15, 멘탈 -10, 가정만족 -15, 번아웃 +15</span>
-                  </div>
-                  <div className="text-[10px] text-slate-500 font-semibold italic border-t border-amber-200 pt-1 mt-1 text-center">
-                    💡 다음 날 교사력(TP) +1 보너스를 추가로 얻습니다.
-                  </div>
-                </div>
+                {!isWeekend && (
+                  <>
+                    <button
+                      onClick={() => {
+                        overtimeWork();
+                      }}
+                      className="w-full btn-school-accent flex items-center justify-center gap-1.5 py-3 text-lg bg-amber-500 hover:bg-amber-600 border-2 border-black text-white font-bold transition-all shadow-school-deep"
+                    >
+                      🔥 퇴근 대신 야근하기
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                    <div className="text-xs text-slate-600 bg-amber-50 border border-amber-300 rounded-lg p-2.5 space-y-1">
+                      <div className="font-bold text-amber-900 text-center">⚠️ 야근 선택 시 예상되는 변화:</div>
+                      <div className="grid grid-cols-2 gap-1 text-[11px] text-left px-1">
+                        <span className="text-emerald-700">📈 행정실무 +15, 전문성 +10, 관리자신뢰 +5</span>
+                        <span className="text-red-600">📉 건강 -15, 멘탈 -10, 가정만족 -15, 번아웃 +15</span>
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-semibold italic border-t border-amber-200 pt-1 mt-1 text-center">
+                        💡 다음 날 교사력(TP) +1 보너스를 추가로 얻습니다.
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           ) : (

@@ -53,6 +53,7 @@ export interface MessengerEvent {
     effects: StatEffect[];
     resultText: string;
   }[];
+  notificationId?: string; // [NEW] 대응되는 알림의 고유 ID를 기록하여 해결 시 리스트에서 제거 가능하게 함
 }
 
 // Zustand 스토어 상태 인터페이스
@@ -263,6 +264,319 @@ const getInitialStats = (difficulty: 'warm' | 'realistic' | 'hard', traits: stri
 
   // 5대 핵심 교사 역량 동기화 반영 후 반환
   return syncNewStats(baseStats);
+};
+
+// [NEW] 주말용 힐링 이벤트 생성 헬퍼 함수 (자녀 유무에 따른 동적 분기)
+const getWeekendHealingEvent = (day: number, familyState?: string): GameEvent => {
+  const isSaturday = day % 7 === 6;
+  const dayName = isSaturday ? '토요일' : '일요일';
+  const isParent = familyState === 'parent';
+
+  if (isParent) {
+    // 자녀가 있는 교사를 위한 주말 이벤트 5종
+    const parentEvents = [
+      {
+        id: `weekend_parent_amusement_${day}`,
+        title: `🏡 주말(${dayName}) 자녀와 놀이공원 나들이`,
+        category: 'random',
+        situation: 'weekend',
+        weight: 1,
+        tags: ['weekend'],
+        narratorText: `즐거운 주말 아침이 밝았습니다! 오늘은 자녀와 함께 테마파크 놀이공원으로 나들이를 떠납니다. 다리가 아플 것 같지만 자녀의 활짝 웃는 얼굴이 눈에 아른거립니다. 오늘 어떻게 나들이를 즐기시겠습니까?`,
+        choices: [
+          {
+            id: 'weekend_parent_choice_play_hard',
+            text: '아이의 손을 잡고 타고 싶다는 놀이기구를 끝까지 다 같이 타며 온몸으로 놀아주기 (가족관계 +30, 멘탈 +20, 건강 -15, 번아웃 -10)',
+            intent: '열정양육',
+            immediateEffects: [
+              { stat: 'familySatisfaction', value: 30 },
+              { stat: 'mental', value: 20 },
+              { stat: 'hp', value: -15 },
+              { stat: 'burnout', value: -10 }
+            ],
+            resultText: '아이와 회전목마부터 롤러코스터까지 열정적으로 탔습니다. 온몸은 땀과 피로로 찌들었지만, 세상을 다 가진 듯 기뻐하는 자녀의 미소에 정신적 피로가 눈 녹듯 사라집니다.'
+          },
+          {
+            id: 'weekend_parent_choice_play_calm',
+            text: '아늑한 벤치에 앉아 아이스크림을 먹으며 자녀의 모습을 따뜻하게 지켜보기 (가족관계 +15, 멘탈 +15, 건강 +10, 번아웃 -15)',
+            intent: '온화양육',
+            immediateEffects: [
+              { stat: 'familySatisfaction', value: 15 },
+              { stat: 'mental', value: 15 },
+              { stat: 'hp', value: 10 },
+              { stat: 'burnout', value: -15 }
+            ],
+            resultText: '따스한 햇살 아래 자녀가 안전하게 뛰노는 모습을 바라보며 달콤한 휴식을 취했습니다. 가족과의 따뜻한 교감과 함께 육체적 피로도 회복되었습니다.'
+          },
+          {
+            id: 'weekend_parent_choice_play_work',
+            text: '아이가 놀이기구를 타는 동안 돗자리를 펴고 누워 노트북으로 교육청 업무 공문 검토하기 (전문성 +10, 가족관계 -10, 건강 +5, 번아웃 +5)',
+            intent: '업무병행',
+            immediateEffects: [
+              { stat: 'expert', value: 10 },
+              { stat: 'familySatisfaction', value: -10 },
+              { stat: 'hp', value: 5 },
+              { stat: 'burnout', value: 5 }
+            ],
+            resultText: '돗자리 위에서 한눈을 파는 사이 자녀가 토라졌습니다. 다음 주 공무 준비는 일부 마쳤지만, 자녀의 서운한 눈빛에 마음이 다소 무겁습니다.'
+          }
+        ],
+        dayRange: [1, 30]
+      },
+      {
+        id: `weekend_parent_study_${day}`,
+        title: `🏡 주말(${dayName}) 자녀와 홈스쿨링 & 독서`,
+        category: 'random',
+        situation: 'weekend',
+        weight: 1,
+        tags: ['weekend'],
+        narratorText: `주말 아침, 자녀의 학교 주간 학습 안내장을 봅니다. 밀린 단어 받아쓰기 연습과 숙제 지도가 필요한 시점입니다. 현직 초등교사로서의 전문성을 발휘할 때가 왔습니다. 어떻게 자녀를 지도하시겠습니까?`,
+        choices: [
+          {
+            id: 'weekend_parent_choice_study_pro',
+            text: '교직 전문 지식을 총동원하여 게임화 놀이 형식의 특급 독서 지도 홈스쿨링 열기 (가족관계 +20, 전문성 +10, 번아웃 -5)',
+            intent: '전문교육',
+            immediateEffects: [
+              { stat: 'familySatisfaction', value: 20 },
+              { stat: 'expert', value: 10 },
+              { stat: 'burnout', value: -5 }
+            ],
+            resultText: '역시 현직 교사의 노하우는 다릅니다! 아이가 공부를 놀이처럼 느끼며 대만족합니다. 부모로서의 든든한 권위와 교사로서의 전문적 보람을 동시에 충족했습니다.'
+          },
+          {
+            id: 'weekend_parent_choice_study_read',
+            text: '자녀와 서재방에 나란히 앉아 각자 좋아하는 책을 조용히 읽는 시간 갖기 (가족관계 +15, 멘탈 +20, 건강 +10, 번아웃 -15)',
+            intent: '조용한독서',
+            immediateEffects: [
+              { stat: 'familySatisfaction', value: 15 },
+              { stat: 'mental', value: 20 },
+              { stat: 'hp', value: 10 },
+              { stat: 'burnout', value: -15 }
+            ],
+            resultText: '클래식 음악을 틀어놓고 자녀와 함께 차분하게 책장을 넘겼습니다. 집안에 흐르는 평화로운 지적 충만감 속에 쌓인 피로가 정화됩니다.'
+          },
+          {
+            id: 'weekend_parent_choice_study_phone',
+            text: '숙제 대충 동그라미 쳐주고 자녀에게 스마트폰 유튜브를 보여준 뒤 침대에 누워 자기 (가족관계 -5, 멘탈 +10, 건강 +15, 번아웃 -10)',
+            intent: '방임휴식',
+            immediateEffects: [
+              { stat: 'familySatisfaction', value: -5 },
+              { stat: 'mental', value: 10 },
+              { stat: 'hp', value: 15 },
+              { stat: 'burnout', value: -10 }
+            ],
+            resultText: '아이가 스마트폰 화면에 빠져있는 동안 침대에 누워 푹 잤습니다. 체력은 회복되었으나 자녀의 미디어 과몰입과 교육적 방임에 마음 한구석이 찌뿌둥합니다.'
+          }
+        ],
+        dayRange: [1, 30]
+      },
+      {
+        id: `weekend_parent_cooking_${day}`,
+        title: `🏡 주말(${dayName}) 자녀와 홈베이킹 쿠킹 클래스`,
+        category: 'random',
+        situation: 'weekend',
+        weight: 1,
+        tags: ['weekend'],
+        narratorText: `아이가 주방에서 밀가루 놀이와 과자 굽기를 하고 싶다고 졸라댑니다. 뒤처리와 설거지가 눈앞에 선하지만 자녀와의 소중한 식생활 교육 추억을 만들 기회입니다. 어떻게 대처하시겠습니까?`,
+        choices: [
+          {
+            id: 'weekend_parent_choice_cook_hard',
+            text: '밀가루와 반죽을 뒤집어쓰며 자녀와 정성껏 피자와 쿠키 굽기 (가족관계 +25, 멘탈 +20, 건강 -10, 번아웃 -10)',
+            intent: '직접쿠킹',
+            immediateEffects: [
+              { stat: 'familySatisfaction', value: 25 },
+              { stat: 'mental', value: 20 },
+              { stat: 'hp', value: -10 },
+              { stat: 'burnout', value: -10 }
+            ],
+            resultText: '주방이 초토화되었지만 고소한 빵 냄새 속에 자녀가 환하게 웃습니다. 싱크대 가득한 설거지는 버겁지만 최고의 오감 만족 힐링을 선사했습니다.'
+          },
+          {
+            id: 'weekend_parent_choice_cook_easy',
+            text: '전자레인지 밀키트나 간편 냉동 식품으로 가볍게 함께 조리하며 놀기 (가족관계 +15, 멘탈 +15, 건강 +5, 번아웃 -10)',
+            intent: '간편조리',
+            immediateEffects: [
+              { stat: 'familySatisfaction', value: 15 },
+              { stat: 'mental', value: 15 },
+              { stat: 'hp', value: 5 },
+              { stat: 'burnout', value: -10 }
+            ],
+            resultText: '초간단 밀키트로 아이와 아기자기하게 요리하고 깔끔하게 뒷정리했습니다. 큰 육체적 무리 없이 평화로운 주말 간식을 마쳤습니다.'
+          },
+          {
+            id: 'weekend_parent_choice_cook_game',
+            text: '음식은 배달 치킨으로 대체하고 남은 시간 동안 거실에서 보드게임 놀이하기 (가족관계 +20, 멘탈 +15, 건강 +10, 번아웃 -15)',
+            intent: '배달보드게임',
+            immediateEffects: [
+              { stat: 'familySatisfaction', value: 20 },
+              { stat: 'mental', value: 15 },
+              { stat: 'hp', value: 10 },
+              { stat: 'burnout', value: -15 }
+            ],
+            resultText: '요리의 번거로움 대신 편하게 치킨을 시켜 먹고 자녀와 부드러운 룰 보드게임을 즐겼습니다. 가족 모두가 편하고 행복한 주말 오후가 되었습니다.'
+          }
+        ],
+        dayRange: [1, 30]
+      },
+      {
+        id: `weekend_parent_sports_${day}`,
+        title: `🏡 주말(${dayName}) 자녀 스포츠 클럽 응원`,
+        category: 'random',
+        situation: 'weekend',
+        weight: 1,
+        tags: ['weekend'],
+        narratorText: `주말 아침, 자녀의 어린이 동네 축구 리그 경기(또는 태권도 학원 공개 심사)가 열립니다. 관중석에 부모님들이 가득 모여 있습니다. 어떻게 자녀를 응원하시겠습니까?`,
+        choices: [
+          {
+            id: 'weekend_parent_choice_sport_hard',
+            text: '관중석 맨 앞에서 목청껏 자녀의 이름을 외치며 열정적으로 격려하고 경기 후 고기 구워주기 (가족관계 +30, 멘탈 +20, 건강 -15, 번아웃 -10)',
+            intent: '열혈응원',
+            immediateEffects: [
+              { stat: 'familySatisfaction', value: 30 },
+              { stat: 'mental', value: 20 },
+              { stat: 'hp', value: -15 },
+              { stat: 'burnout', value: -10 }
+            ],
+            resultText: '목이 완전히 쉬어버렸고 다리도 아프지만, 자녀는 관중석의 부모를 보며 최고로 자신감 넘치는 골을 넣었습니다. 아이에게 평생 잊지 못할 자부심을 심어주었습니다.'
+          },
+          {
+            id: 'weekend_parent_choice_sport_video',
+            text: '뒤편 벤치에서 캠코더와 스마트폰으로 자녀의 경기 동작을 묵묵히 기록하며 격려하기 (가족관계 +20, 멘탈 +15, 건강 +5, 번아웃 -10)',
+            intent: '기록응원',
+            immediateEffects: [
+              { stat: 'familySatisfaction', value: 20 },
+              { stat: 'mental', value: 15 },
+              { stat: 'hp', value: 5 },
+              { stat: 'burnout', value: -10 }
+            ],
+            resultText: '차분하게 경기 영상을 녹화하고 하이라이트 편집본을 자녀에게 보여주었습니다. 자녀가 자신의 멋진 활약상을 되돌아보며 무척 신나합니다.'
+          },
+          {
+            id: 'weekend_parent_choice_sport_chat',
+            text: '경기장에서 한눈팔며 스마트폰으로 동료 학년 단톡방 및 밀린 교육 행정 연락 대응하기 (학부모민원 -10, 가족관계 -10, 번아웃 +5)',
+            intent: '행정처리',
+            immediateEffects: [
+              { stat: 'parentComplaint', value: -10 },
+              { stat: 'familySatisfaction', value: -10 },
+              { stat: 'burnout', value: 5 }
+            ],
+            resultText: '밀린 학교 연락은 신속히 수습했으나, 아이가 "엄마/아빠는 나 축구하는 거 안 보고 계속 핸드폰만 했잖아"라며 입술을 비쭉 내밉니다. 아이의 기가 꺾였습니다.'
+          }
+        ],
+        dayRange: [1, 30]
+      },
+      {
+        id: `weekend_parent_camping_${day}`,
+        title: `🏡 주말(${dayName}) 가족 자연 휴양 캠핑`,
+        category: 'random',
+        situation: 'weekend',
+        weight: 1,
+        tags: ['weekend'],
+        narratorText: `도시의 요란함과 번잡한 학부모 카톡 알림을 완전히 잊기 위해 자연 속 숲속 캠핑장(또는 글램핑)으로 떠납니다. 완벽한 디지털 디톡스 데이입니다. 어떤 스타일로 캠핑을 즐기시겠습니까?`,
+        choices: [
+          {
+            id: 'weekend_parent_choice_camp_tent',
+            text: '불편하지만 직접 텐트를 치고 자녀와 모닥불을 피우며 마시멜로 구우며 대화하기 (가족관계 +30, 멘탈 +25, 건강 -10, 번아웃 -20)',
+            intent: '야생캠핑',
+            immediateEffects: [
+              { stat: 'familySatisfaction', value: 30 },
+              { stat: 'mental', value: 25 },
+              { stat: 'hp', value: -10 },
+              { stat: 'burnout', value: -20 }
+            ],
+            resultText: '텐트를 치느라 진땀을 뺐지만 모닥불 앞에서 나눈 진솔한 대화는 자녀와의 거리를 좁혀주었습니다. 자연 속 타오르는 불꽃 아래 완벽히 번아웃을 떨쳐냅니다.'
+          },
+          {
+            id: 'weekend_parent_choice_camp_glam',
+            text: '쾌적한 글램핑이나 숲속 통나무 카라반을 대여해 편하고 안락하게 자연 힐링하기 (가족관계 +20, 멘탈 +20, 건강 +15, 번아웃 -20)',
+            intent: '글램핑힐링',
+            immediateEffects: [
+              { stat: 'familySatisfaction', value: 20 },
+              { stat: 'mental', value: 20 },
+              { stat: 'hp', value: 15 },
+              { stat: 'burnout', value: -20 }
+            ],
+            resultText: '몸이 무척 편안한 럭셔리 캠핑을 즐겼습니다. 쾌적한 잠자리 덕분에 육체 피로가 확실히 리셋되었으며 맑은 피톤치드를 한껏 머금었습니다.'
+          },
+          {
+            id: 'weekend_parent_choice_camp_photo',
+            text: '캠핑 숲 속을 돌아다니며 다음 주 과학 환경 교육 수업에 쓸 곤충 및 식물 사진 채집하기 (전문성 +10, 가족관계 +10, 번아웃 -5)',
+            intent: '수업자료수집',
+            immediateEffects: [
+              { stat: 'expert', value: 10 },
+              { stat: 'familySatisfaction', value: 10 },
+              { stat: 'burnout', value: -5 }
+            ],
+            resultText: '자녀와 함께 채집통을 들고 숲을 걸으며 신기한 무당벌레와 풀잎을 수집해 멋진 교육 슬라이드 소스를 다량 건졌습니다. 자녀에게도 나름의 생태 탐구 추억이 되었습니다.'
+          }
+        ],
+        dayRange: [1, 30]
+      }
+    ];
+
+    // 날짜별로 균등하게 5종 자녀 이벤트를 분산 추첨
+    const eventIndex = (day + 3) % parentEvents.length;
+    return parentEvents[eventIndex] as GameEvent;
+  }
+
+  // 자녀가 없는 교사(독신/무자녀)를 위한 기존 주말 힐링 이벤트
+  return {
+    id: `weekend_healing_${day}`,
+    title: `🏡 주말(${dayName}) 힐링 활동`,
+    category: 'random',
+    situation: 'weekend',
+    weight: 1,
+    tags: ['weekend'],
+    narratorText: `즐거운 주말(${dayName}) 아침이 밝았습니다! 오늘은 학교 업무에서 벗어나 온전히 나를 위한 시간을 보낼 수 있습니다. 오늘 하루를 어떻게 보내시겠습니까?`,
+    choices: [
+      {
+        id: 'weekend_choice_rest',
+        text: '집에서 아무것도 하지 않고 푹 쉬며 수면 보충하기 (건강 +20, 멘탈 +20, 번아웃 -20)',
+        intent: '휴식',
+        immediateEffects: [
+          { stat: 'hp', value: 20 },
+          { stat: 'mental', value: 20 },
+          { stat: 'burnout', value: -20 }
+        ],
+        resultText: '하루 종일 침대와 한 몸이 되어 밀린 잠을 청했습니다. 몸의 피로가 싹 가시고 정신이 맑아집니다.'
+      },
+      {
+        id: 'weekend_choice_exercise',
+        text: '가벼운 조깅이나 등산 등 야외 운동 즐기기 (건강 +15, 멘탈 +25, 번아웃 -15)',
+        intent: '운동',
+        immediateEffects: [
+          { stat: 'hp', value: 15 },
+          { stat: 'mental', value: 25 },
+          { stat: 'burnout', value: -15 }
+        ],
+        resultText: '맑은 공기를 마시며 구슬땀을 흘렸습니다. 신선한 에너지가 솟구치고 멘탈이 상쾌해집니다.'
+      },
+      {
+        id: 'weekend_choice_hobby',
+        text: '친구를 만나거나 취미 및 문화생활 즐기기 (건강 +10, 멘탈 +30, 번아웃 -15)',
+        intent: '취미',
+        immediateEffects: [
+          { stat: 'hp', value: 10 },
+          { stat: 'mental', value: 30 },
+          { stat: 'burnout', value: -15 }
+        ],
+        resultText: '평소 해보고 싶었던 문화생활과 취미에 몰두하며 스트레스를 해소했습니다. 큰 정신적 위안을 얻었습니다.'
+      },
+      {
+        id: 'weekend_choice_work',
+        text: '불안한 마음을 달래기 위해 다음 주 수업 자료 및 밀린 행정 업무 정리하기 (전문성 +12, 행정력 +12, 건강 -10, 번아웃 +10)',
+        intent: '업무',
+        immediateEffects: [
+          { stat: 'expert', value: 12 },
+          { stat: 'adminPower', value: 12 },
+          { stat: 'hp', value: -10 },
+          { stat: 'burnout', value: 10 }
+        ],
+        resultText: '결국 일거리를 붙잡았습니다. 다음 주 업무 준비는 철저해졌으나, 주말 휴식을 온전히 누리지 못해 피로가 누적됩니다.'
+      }
+    ],
+    dayRange: [1, 30]
+  };
 };
 
 // 특정 날짜 범위 및 조건에 맞는 이벤트 추첨 헬퍼
@@ -662,14 +976,28 @@ export const useGameStore = create<GameState>()(
 
         if (timeOfDay === 'morning') {
           // 아침 -> 오후 (지도를 통해 다시 이동하도록 location을 null로 초기화)
-          set({
-            timeOfDay: 'afternoon',
-            currentLocation: null,
-            currentEvent: null,
-            selectedChoice: null,
-            eventResultText: null,
-            currentNpcDialogue: null
-          });
+          // 주말(토, 일)인 경우 바로 정산(summary)으로 건너뜀
+          const isWeekend = day % 7 === 6 || day % 7 === 0;
+          if (isWeekend) {
+            set({
+              timeOfDay: 'summary',
+              currentLocation: null,
+              currentEvent: null,
+              selectedChoice: null,
+              eventResultText: null,
+              currentNpcDialogue: null
+            });
+            get().triggerDelayedEffectsForToday();
+          } else {
+            set({
+              timeOfDay: 'afternoon',
+              currentLocation: null,
+              currentEvent: null,
+              selectedChoice: null,
+              eventResultText: null,
+              currentNpcDialogue: null
+            });
+          }
         } else if (timeOfDay === 'afternoon') {
           // 오후 -> 저녁 (저녁은 집/개인 활동이므로 기존 방식대로 저녁 이벤트를 자동 추점)
           const nextEvent = getEventForTime(day, 'evening', hiddenFlags, recentLogs, playerInfo?.familyState);
@@ -706,6 +1034,15 @@ export const useGameStore = create<GameState>()(
             const overdueTasks = tasks.filter(t => !t.isCompleted && t.deadlineDay < nextDay);
             const penaltyStats = { ...get().stats };
             const penaltyMessages: string[] = [];
+
+            // [NEW] 칼퇴(일반 퇴근) 시 힐링 보너스 (평일인 경우만 적용)
+            const isWeekend = day % 7 === 6 || day % 7 === 0;
+            if (!isWeekend) {
+              penaltyStats.hp = clamp(penaltyStats.hp + 5);
+              penaltyStats.mental = clamp(penaltyStats.mental + 5);
+              penaltyStats.burnout = clamp(penaltyStats.burnout - 5);
+              penaltyMessages.push(`[정시 퇴근 보너스] 야근 없이 정시 퇴근하여 건강 +5, 멘탈 +5 회복 및 번아웃 -5 감소했습니다.`);
+            }
 
             // 1) 미결 업무 방치 패널티 정산
             overdueTasks.forEach(t => {
@@ -843,6 +1180,10 @@ export const useGameStore = create<GameState>()(
               });
             }
 
+            // 다음 날이 주말(토, 일)인지 확인하여 주말 힐링 이벤트 설정
+            const isNextDayWeekend = nextDay % 7 === 6 || nextDay % 7 === 0;
+            const nextEvent = isNextDayWeekend ? getWeekendHealingEvent(nextDay, playerInfo?.familyState) : null;
+
             set({
               day: nextDay,
               timeOfDay: 'morning',
@@ -851,7 +1192,7 @@ export const useGameStore = create<GameState>()(
               burnout100Days: nextBurnout100Days,
               currentLocation: null,
               currentNpcDialogue: null,
-              currentEvent: null, // 지도를 보고 아침 활동 시작
+              currentEvent: nextEvent, // [MODIFIED] 주말인 경우 힐링 이벤트 강제 세팅
               selectedChoice: null,
               eventResultText: null,
               dayEffectsTriggered: penaltyMessages, // 아침 브리핑용 패널티 메시지 저장
@@ -2732,7 +3073,7 @@ export const useGameStore = create<GameState>()(
       // [NEW] 매일 아침 학교 메신저 메시지 일일 생성
       // [NEW] 매일 아침 학교 메신저 메시지 일일 생성 (대한민국 현실 민원 50선 랜덤 연동)
       generateMessengerNotifications: () => {
-        const { day, completedParentEvents } = get();
+        const { day } = get();
         const newNotifs: MessengerNotification[] = [];
 
         // 1. 교육청/학교 긴급 공문 알림 (항상 1개)
@@ -2753,26 +3094,6 @@ export const useGameStore = create<GameState>()(
             previewText: '교내 과학 체험 창의 융합 축전 행사용 보조교사 지원 요청',
             type: 'messenger_event',
             targetId: 'messenger_evt_school_01',
-            isRead: false
-          });
-        }
-
-        // 3. 대한민국 현실 학부모 민원 알림 (70% 확률로 출현)
-        if (Math.random() < 0.7) {
-          let candidates = Array.from({ length: 50 }, (_, i) => i).filter(i => !completedParentEvents.includes(i));
-          if (candidates.length === 0) {
-            candidates = Array.from({ length: 50 }, (_, i) => i);
-            set({ completedParentEvents: [] });
-          }
-          const randomIdx = candidates[Math.floor(Math.random() * candidates.length)];
-          const parentEvt = parentMessengerEvents[randomIdx];
-
-          newNotifs.push({
-            id: `msg_parent_${day}_${randomIdx}`,
-            sender: parentEvt.sender,
-            previewText: `${parentEvt.sender}: "${parentEvt.previewText.slice(0, 35)}..."`,
-            type: 'messenger_event',
-            targetId: `parent_msg_${randomIdx}`,
             isRead: false
           });
         }
@@ -2804,8 +3125,11 @@ export const useGameStore = create<GameState>()(
           )
         });
 
-        // 1. NPC 대화 연계인 경우
+        // 1. NPC 대화 연계인 경우 (바로 리스트에서 제거)
         if (target.type === 'npc_dialogue') {
+          set({
+            messengerNotifications: get().messengerNotifications.filter(n => n.id !== notificationId)
+          });
           get().talkToNPC(target.targetId, target.targetName || '동료 교사');
         } 
         // 2. 메신저 전용 A/B 선택형 사건인 경우
@@ -2826,7 +3150,8 @@ export const useGameStore = create<GameState>()(
                   text: c.text,
                   effects: c.effects,
                   resultText: c.resultText
-                }))
+                })),
+                notificationId: target.id // [NEW] 알림 고유 ID 매핑
               };
             }
           } 
@@ -2849,7 +3174,8 @@ export const useGameStore = create<GameState>()(
                   effects: [{ stat: 'colleagueSolidarity', value: 10 }, { stat: 'hp', value: -3 }, { stat: 'burnout', value: -5 }],
                   resultText: '행정 부서 간 조율을 거치며 동료들과 협동적 연대를 다졌고 오늘 밤 야근을 피했습니다. 단, 공문 마감일이 밀려 행정실의 깐깐한 결재 압박은 약간 남아있습니다.'
                 }
-              ]
+              ],
+              notificationId: target.id // [NEW] 알림 고유 ID 매핑
             };
           } else if (target.targetId === 'messenger_evt_school_01') {
             eventDetails = {
@@ -2869,7 +3195,8 @@ export const useGameStore = create<GameState>()(
                   effects: [{ stat: 'studentTrust', value: 8 }, { stat: 'colleagueSolidarity', value: -5 }, { stat: 'mental', value: 3 }],
                   resultText: '체육 축제나 과학 행사 동원 대신 교실에서 지현이와 민준이 등 위기 학생과의 밀착 상담에 집중해 학생들의 절대적인 지지와 신뢰를 얻어냈습니다.'
                 }
-              ]
+              ],
+              notificationId: target.id // [NEW] 알림 고유 ID 매핑
             };
           }
 
@@ -2960,19 +3287,6 @@ export const useGameStore = create<GameState>()(
             previewText: '교내 과학 체험 창의 융합 축전 행사용 보조교사(부스 운영 전담) 긴급 자원 요청의 건',
             type: 'messenger_event',
             targetId: 'messenger_evt_school_01',
-            isRead: false
-          });
-        }
-
-        // 3. 학부모 주간 상담 (30% 확률)
-        if (Math.random() < 0.30) {
-          const id = `msg_parent_${day}_${Math.floor(Math.random() * 1000)}`;
-          newNotifs.push({
-            id,
-            sender: '학부모 상담 채널',
-            previewText: '민준 어머님: "선생님, 이번 주 민준이의 단원 평가 학습 태도 피드백을 쪽지로 받아보고 싶습니다."',
-            type: 'messenger_event',
-            targetId: 'messenger_evt_parent_01',
             isRead: false
           });
         }
@@ -3111,8 +3425,16 @@ export const useGameStore = create<GameState>()(
         get().checkFailureConditions();
       },
 
-      // [NEW] 메신저 팝업 닫기
+      // [NEW] 메신저 팝업 닫기 (알림 제거 연동)
       closeMessengerEvent: () => {
+        const { activeMessengerEvent, messengerNotifications } = get();
+        if (activeMessengerEvent && activeMessengerEvent.notificationId) {
+          set({
+            messengerNotifications: messengerNotifications.filter(
+              n => n.id !== activeMessengerEvent.notificationId
+            )
+          });
+        }
         set({ activeMessengerEvent: null });
       },
 
@@ -3241,7 +3563,8 @@ export const useGameStore = create<GameState>()(
                 text: c.text,
                 effects: c.effects,
                 resultText: c.resultText
-              }))
+              })),
+              notificationId: target.id // [NEW] 알림 고유 ID 매핑
             };
           }
         } else if (target.targetId.startsWith('colleague_phone_text_')) {
@@ -3257,7 +3580,8 @@ export const useGameStore = create<GameState>()(
                 text: c.text,
                 effects: c.effects,
                 resultText: c.resultText
-              }))
+              })),
+              notificationId: target.id // [NEW] 알림 고유 ID 매핑
             };
           }
         } else if (target.targetId.startsWith('positive_phone_text_')) {
@@ -3273,7 +3597,8 @@ export const useGameStore = create<GameState>()(
                 text: c.text,
                 effects: c.effects,
                 resultText: c.resultText
-              }))
+              })),
+              notificationId: target.id // [NEW] 알림 고유 ID 매핑
             };
           }
         }
@@ -3375,8 +3700,16 @@ export const useGameStore = create<GameState>()(
         get().checkFailureConditions();
       },
 
-      // [NEW] 스마트폰 팝업 닫기
+      // [NEW] 스마트폰 팝업 닫기 (알림 제거 연동)
       closePhoneAndTextEvent: () => {
+        const { activePhoneAndTextEvent, phoneAndTextNotifications } = get();
+        if (activePhoneAndTextEvent && activePhoneAndTextEvent.notificationId) {
+          set({
+            phoneAndTextNotifications: phoneAndTextNotifications.filter(
+              n => n.id !== activePhoneAndTextEvent.notificationId
+            )
+          });
+        }
         set({ activePhoneAndTextEvent: null });
       },
 
@@ -3540,6 +3873,11 @@ export const useGameStore = create<GameState>()(
             });
           }
 
+          // 다음 날이 주말(토, 일)인지 확인하여 주말 힐링 이벤트 설정
+          const { playerInfo } = get();
+          const isNextDayWeekend = nextDay % 7 === 6 || nextDay % 7 === 0;
+          const nextEvent = isNextDayWeekend ? getWeekendHealingEvent(nextDay, playerInfo?.familyState) : null;
+
           // 상태 커밋
           set({
             day: nextDay,
@@ -3548,7 +3886,7 @@ export const useGameStore = create<GameState>()(
             actionPoints: dailyTP,
             currentLocation: null,
             currentNpcDialogue: null,
-            currentEvent: null, 
+            currentEvent: nextEvent, // [MODIFIED] 주말인 경우 힐링 이벤트 강제 세팅
             selectedChoice: null,
             eventResultText: null,
             dayEffectsTriggered: [
