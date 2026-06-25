@@ -63,11 +63,11 @@ export const PrologueScreen: React.FC<PrologueScreenProps> = ({ playerInfo, onFi
       onClick={handleContainerClick}
       className="fixed inset-0 z-50 bg-black text-slate-100 flex flex-col items-center justify-center p-6 font-serif select-none animate-fade-in animate-duration-1000 cursor-pointer"
     >
-      {/* 우측 상단 영화 스킵 버튼 */}
+      {/* 화면 상단 중앙 오프닝 스킵 버튼 [수정] */}
       {activeStep < prologueTexts.length && (
         <button
           onClick={onFinish}
-          className="absolute top-6 right-6 flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-200 transition-colors font-sans font-bold bg-slate-950/60 border border-slate-800 rounded-lg px-3 py-1.5 cursor-pointer shadow-lg active:scale-95 z-10"
+          className="absolute top-6 left-1/2 -translate-x-1/2 flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-200 transition-colors font-sans font-bold bg-slate-950/60 border border-slate-800 rounded-lg px-3 py-1.5 cursor-pointer shadow-lg active:scale-95 z-10"
         >
           <Film className="w-3.5 h-3.5" />
           <span>오프닝 스킵 (Skip ➔)</span>
