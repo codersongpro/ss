@@ -2205,5 +2205,366 @@ export const gameEvents: GameEvent[] = [
         resultText: '아이들은 가장 즐겁고 기억에 남는 담임 교사와의 인생 샷을 건졌다며 소리를 지르고 쾌활하게 교실을 뛰어나갔습니다.'
       }
     ]
+  },
+
+  // ==================== [자녀 양육 교사 전용 정기 자녀 이벤트 5종 (5, 10, 15, 20, 25일차 저녁)] ====================
+  {
+    id: 'evt_child_event_01',
+    dayRange: [5, 5],
+    title: '아픈 자녀 병간호 딜레마',
+    category: 'family',
+    situation: '집',
+    narratorText: '집에 퇴근해보니 어린 자녀가 감기로 열이 펄펄 끓고 있습니다. 배우자도 야근이라 병원에 데려가야 하는데, 내일 아침까지 준비해야 하는 공개 수업 교안 기획서 원고 마감이 머릿속을 맴돕니다.',
+    weight: 9999,
+    tags: ['육아', '병간호', '가족'],
+    choices: [
+      {
+        id: 'choice_child_01_1',
+        text: '공개 수업 계획을 잠시 보류하고 밤새 자녀의 곁을 지키며 헌신적으로 간호한다.',
+        intent: '가족 돌봄 최우선',
+        immediateEffects: [
+          { stat: 'hp', value: -15 },
+          { stat: 'mental', value: -10 },
+          { stat: 'familySatisfaction', value: 20 },
+          { stat: 'teachingResearch', value: -10 }
+        ],
+        resultText: '해열제와 물수건으로 밤새 자녀를 보살펴 열이 내렸고, 가정의 끈끈한 유대를 다졌습니다. 하지만 밤샘으로 심한 피로가 쌓였고 다음 날 아침 수업 구상은 다소 엉성하게 진행되었습니다.'
+      },
+      {
+        id: 'choice_child_01_2',
+        text: '자녀에게 비상 감기약을 먹이고 우선 재운 뒤, 내일 공개 수업에 쓸 에듀테크 피피티와 활동지를 밤새 완성한다.',
+        intent: '교직 전문성 수호',
+        immediateEffects: [
+          { stat: 'hp', value: -5 },
+          { stat: 'mental', value: -5 },
+          { stat: 'familySatisfaction', value: -15 },
+          { stat: 'teachingResearch', value: 15 }
+        ],
+        resultText: '완벽한 시각 자료를 마련해 공개 수업은 호평을 얻었으나, 자녀의 열이 아침에 다시 올라 배우자와 심한 마찰을 빚고 가정 신뢰가 하락했습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_child_event_02',
+    dayRange: [10, 10],
+    title: '자녀의 학교 다툼과 훈육',
+    category: 'family',
+    situation: '집',
+    narratorText: '초등학생 자녀가 학교에서 짝꿍과 가벼운 다툼 후 속상해서 울며 귀가했습니다. 교사인 당신에게 눈물 섞인 한탄을 털어놓으며 위로를 바랍니다. 마침 교육청에서 내려온 긴급 보안 실무 교육 확인서 마감이 오늘 자정까지인데...',
+    weight: 9999,
+    tags: ['육아', '가족소통', '훈육'],
+    choices: [
+      {
+        id: 'choice_child_02_1',
+        text: '보안 실무 작성을 멈추고 자녀의 이야기에 귀를 기울여 주며 따뜻하게 위로하고 정서적 공감을 보낸다.',
+        intent: '자녀 정서 지원',
+        immediateEffects: [
+          { stat: 'mental', value: 15 },
+          { stat: 'familySatisfaction', value: 20 },
+          { stat: 'adminPower', value: -10 }
+        ],
+        resultText: '부모의 깊은 공감 덕분에 자녀는 웃음을 찾았고 가정에 든든한 정서적 평화가 자리잡았습니다. 다만 마감 공문을 자정까지 메우지 못해 행정 기록에 패널티 리스크가 가해집니다.'
+      },
+      {
+        id: 'choice_child_02_2',
+        text: '자녀에게 "싸운 것은 양쪽 다 잘못이 있는 법"이라며 차분하고 이성적인 원칙 중심의 훈육을 건네고 공무 문서를 마저 처리한다.',
+        intent: '원칙 훈육 및 업무 완수',
+        immediateEffects: [
+          { stat: 'mental', value: -5 },
+          { stat: 'familySatisfaction', value: -10 },
+          { stat: 'educationSoshin', value: 15 },
+          { stat: 'adminPower', value: 10 }
+        ],
+        resultText: '공무 처리는 깔끔하게 결재를 올렸으나, 자녀는 집에서도 선생님처럼 딱딱하게 원칙만 따지는 부모에게 서운함을 느끼고 방으로 훌쩍이며 들어갔습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_child_event_03',
+    dayRange: [15, 15],
+    title: '자녀의 학업 스트레스 토로',
+    category: 'family',
+    situation: '집',
+    narratorText: '중학생 자녀가 시험 성적표를 들고 오더니 학업 스트레스로 눈물을 보입니다. 학원을 그만두고 주말에 가족들과 잠시 바람을 쐬고 싶다고 하소연합니다. 마침 이번 주말에는 교육 대학교 주관 동료 장학 연구 모임 발제 보고서 작성이 예약되어 있습니다.',
+    weight: 9999,
+    tags: ['육아', '학업고민', '주말'],
+    choices: [
+      {
+        id: 'choice_child_03_1',
+        text: '장학 발제 원고를 양해를 구하고 취소한 후, 이번 주말에 자녀와 함께 캠핑을 다녀오며 힐링의 시간을 갖는다.',
+        intent: '가족 리프레시',
+        immediateEffects: [
+          { stat: 'hp', value: 15 },
+          { stat: 'mental', value: 10 },
+          { stat: 'familySatisfaction', value: 25 },
+          { stat: 'expert', value: -10 }
+        ],
+        resultText: '바람을 쐬고 온 자녀가 얼굴이 한결 밝아지며 학업에 다시 집중할 활력을 얻었습니다. 비록 교과 전문 학술 발제는 놓쳤으나 가정의 사랑을 건졌습니다.'
+      },
+      {
+        id: 'choice_child_03_2',
+        text: '자녀에게 "학창 시절의 공부는 누구나 견뎌야 하는 성장통"이라고 냉철하게 타일러 학원으로 보내고, 주말 내내 방에 틀어박혀 연구 보고서 발제 원고를 작성한다.',
+        intent: '성취 지향 및 학술 준비',
+        immediateEffects: [
+          { stat: 'hp', value: -10 },
+          { stat: 'mental', value: -10 },
+          { stat: 'familySatisfaction', value: -15 },
+          { stat: 'expert', value: 20 }
+        ],
+        resultText: '완벽한 발제 보고서로 동료 교사 모임에서 전문 지식을 뽐냈으나, 자녀는 문을 잠그고 밥을 거부하는 등 가정 만족도가 심각하게 곤두박질쳤습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_child_event_04',
+    dayRange: [20, 20],
+    title: '자녀의 학예회 초대와 수업',
+    category: 'family',
+    situation: '집',
+    narratorText: '자녀가 이번 금요일 오전 유치원(학교)에서 학예회 연극 발표회를 한다며 부모님이 꼭 보러 와달라고 카드를 내밀었습니다. 하지만 금요일 아침은 우리 반 학생들의 생활 지도 및 기안 마감이 집중되어 교무실을 비우기가 극히 어려운 상황입니다.',
+    weight: 9999,
+    tags: ['육아', '학예회', '사명감'],
+    choices: [
+      {
+        id: 'choice_child_04_1',
+        text: '교장선생님께 조퇴 결재를 올리고, 우리 반 아침 지도를 동료 학년 교사에게 인계한 뒤 자녀의 학예회를 관람하러 간다.',
+        intent: '가족의 기념일 수호',
+        immediateEffects: [
+          { stat: 'hp', value: 15 },
+          { stat: 'familySatisfaction', value: 30 },
+          { stat: 'adminTrust', value: -15 },
+          { stat: 'workCapacity', value: -15 }
+        ],
+        resultText: '연극 무대에서 당신을 발견하고 환하게 웃는 자녀를 보며 잊지 못할 부모로서의 보람을 다졌습니다. 단, 학년실 교사들에게 신세를 져서 다소 눈치가 보입니다.'
+      },
+      {
+        id: 'choice_child_04_2',
+        text: '자녀에게 "선생님 반 아이들의 등교 지도가 정말 중요해서 갈 수 없다"고 울먹이는 아이를 타일러 보낸 후, 정시 출근해 교실 아침 종례와 기안 결재를 완수한다.',
+        intent: '공직 사명감 및 기결 완수',
+        immediateEffects: [
+          { stat: 'hp', value: -10 },
+          { stat: 'familySatisfaction', value: -25 },
+          { stat: 'adminTrust', value: 15 },
+          { stat: 'workCapacity', value: 15 }
+        ],
+        resultText: '철저한 교무실 상주로 행정 기안을 정시에 통과시키고 기율을 지켰으나, 상심한 자녀는 일기장에 "우리 부모님은 나보다 학교를 더 사랑한다"며 서글픈 낙서를 남겼습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_child_event_05',
+    dayRange: [25, 25],
+    title: '자녀의 깊은 고민과 진로 상담',
+    category: 'family',
+    situation: '집',
+    narratorText: '자녀가 최근 고등학교(대학) 입시나 진로 방향에 대해 큰 혼란을 겪으며 밤늦게 방문을 두드렸습니다. 교사 부모로서의 전문적인 코칭을 기대하고 있습니다. 마침 다음 날 아침은 타 시도 교육 연수 교재 원고 마감 최종일이라 에너지가 고갈 직전입니다.',
+    weight: 9999,
+    tags: ['육아', '진로상담', '자기계발'],
+    choices: [
+      {
+        id: 'choice_child_05_1',
+        text: '연수 교재 원고 보완을 내려놓고, 밤새 자녀의 소질과 성향 카드를 분석하며 적성에 맞는 교육 로드맵을 함께 상담한다.',
+        intent: '가정 멘토링 집중',
+        immediateEffects: [
+          { stat: 'hp', value: -15 },
+          { stat: 'mental', value: -10 },
+          { stat: 'familySatisfaction', value: 25 },
+          { stat: 'expert', value: 10 }
+        ],
+        resultText: '부모가 보여준 교직 노하우가 빛을 발해 자녀의 진로 불투명성이 완전히 걷히고 밝은 자신감을 얻었습니다. 원고 마감은 다소 지연되었으나 마음의 행복을 다졌습니다.'
+      },
+      {
+        id: 'choice_child_05_2',
+        text: '자녀에게 진로 안내 브로셔를 건네주며 "스스로 결정하는 자립심이 중요하다"고 조용히 대답해 돌려보내고, 마감 원고를 완벽하게 집필한다.',
+        intent: '자율성 격려 및 업무 완수',
+        immediateEffects: [
+          { stat: 'hp', value: 10 },
+          { stat: 'familySatisfaction', value: 10 },
+          { stat: 'expert', value: 15 }
+        ],
+        resultText: '교재 원고를 무사히 탈고하여 평판 가점이 승인되었습니다. 자녀는 스스로 진로를 궁리해보기 시작하여 예상외로 자립도가 조금 늘어났습니다.'
+      }
+    ]
+  },
+
+  // ==================== [무자녀/독신/자녀독립 교사 전용 주말 활동 선택 이벤트 5종 (5, 10, 15, 20, 25일차 저녁)] ====================
+  {
+    id: 'evt_single_weekend_01',
+    dayRange: [5, 5],
+    title: '독신/무자녀 교사의 주말 취미 딜레마',
+    category: 'family',
+    situation: '집',
+    narratorText: '금요일 저녁, 오래간만에 동호회 회원들로부터 주말 취미 워크숍 참여 연락이 왔습니다. 스트레스를 풀기 좋은 기회이지만, 한편으로는 내일 아침 교무실에서 조용히 내년도 교육과정 혁신 기획서를 작성하려던 계획이 마음을 무겁게 짓누릅니다.',
+    weight: 9999,
+    tags: ['독신주말', '취미생활', '업무'],
+    choices: [
+      {
+        id: 'choice_single_01_1',
+        text: '학교 업무를 완전히 잊고 주말 내내 취미 동호회 워크숍에 참여해 온전한 개인 생활을 누린다.',
+        intent: '개인 워라밸 향수',
+        immediateEffects: [
+          { stat: 'hp', value: 25 },
+          { stat: 'mental', value: 20 },
+          { stat: 'familySatisfaction', value: 20 },
+          { stat: 'workCapacity', value: -10 }
+        ],
+        resultText: '동호회 사람들과 자연 속에서 액티비티를 즐겨 번아웃이 대폭 씻겨나가고 활력을 얻었습니다. 월요일 아침 출근길에 가벼운 콧노래가 나옵니다.'
+      },
+      {
+        id: 'choice_single_01_2',
+        text: '동호회 초청을 정중히 거절하고, 토요일 아침 조용히 교무실로 출근하여 혁신 계획 공문을 정밀 분석하여 작성한다.',
+        intent: '행정 실무력 연마',
+        immediateEffects: [
+          { stat: 'hp', value: -10 },
+          { stat: 'mental', value: -10 },
+          { stat: 'expert', value: 20 },
+          { stat: 'workCapacity', value: 20 }
+        ],
+        resultText: '차세대 교육과정 모델 기획을 완성해 기결 라인에 탑재하여 교감의 두터운 칭찬을 이끌어내고 행정력을 과시했습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_single_weekend_02',
+    dayRange: [10, 10],
+    title: '고향 부모님 댁 방문 vs 교원 직무 연수',
+    category: 'family',
+    situation: '집',
+    narratorText: '주말을 앞두고 고향의 부모님으로부터 "바쁘지 않으면 내려와서 같이 밥 한 끼 먹자"는 연락이 왔습니다. 마침 교직원 간담회에서 추천된 원격 인공지능 디지털 활용 교육 30시간 직무 연수의 이수 마감이 다가왔습니다.',
+    weight: 9999,
+    tags: ['독신주말', '효도', '직무연수'],
+    choices: [
+      {
+        id: 'choice_single_02_1',
+        text: '직무 연수 신청을 다음 기회로 미루고, 주말 기차표를 예매해 고향 부모님 댁으로 가 정겨운 집밥을 먹으며 효도한다.',
+        intent: '가족 유대 및 리프레시',
+        immediateEffects: [
+          { stat: 'hp', value: 30 },
+          { stat: 'mental', value: 25 },
+          { stat: 'familySatisfaction', value: 25 },
+          { stat: 'expert', value: -5 }
+        ],
+        resultText: '부모님이 지어주신 따뜻한 한식과 편안한 휴식 덕에 피로가 크게 복구되었습니다. 가족관계가 더없이 훈훈해집니다.'
+      },
+      {
+        id: 'choice_single_02_2',
+        text: '부모님께 업무 사정으로 양해 문자를 보낸 후, 주말 이틀 내내 온라인 강의창을 띄워 AI 디지털 교수 도구 활용 연수를 완수한다.',
+        intent: '에듀테크 역량 증진',
+        immediateEffects: [
+          { stat: 'hp', value: -15 },
+          { stat: 'mental', value: -10 },
+          { stat: 'expert', value: 25 },
+          { stat: 'adminTrust', value: 15 }
+        ],
+        resultText: '에듀테크 전문 이수증을 획득하여 동료 교사들 사이에서 스마트한 기술 선도 교사로 평판이 오르고 행정 만족이 가미되었습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_single_weekend_03',
+    dayRange: [15, 15],
+    title: '친구들과의 사교 vs 연구 수업 자료 정리',
+    category: 'family',
+    situation: '집',
+    narratorText: '대학 동창생들로부터 주말 강남역에서의 오랜만의 저녁 술자리 모임 번개가 상정되었습니다. 스트레스를 풀기 좋은 사교 기회이지만, 다음 주 월요일 2교시로 다가온 교내 연구수업 교육학 지도안 프레젠테이션 정리가 마음에 걸립니다.',
+    weight: 9999,
+    tags: ['독신주말', '친구모임', '연구수업'],
+    choices: [
+      {
+        id: 'choice_single_03_1',
+        text: '친구들을 만나 맛있는 안주와 맥주를 마시며 학교 밖 교외 소식과 사교로 교직 스트레스를 날려 보낸다.',
+        intent: '사회적 스트레스 해소',
+        immediateEffects: [
+          { stat: 'hp', value: -10 },
+          { stat: 'mental', value: 30 },
+          { stat: 'familySatisfaction', value: 15 },
+          { stat: 'teachingResearch', value: -10 }
+        ],
+        resultText: '오랜 친구들과 대화하며 시야를 넓히고 정신적 위안을 얻었습니다. 다음 주 수업 발표 준비는 주말 야간 벼락치기로 대충 갈무리했습니다.'
+      },
+      {
+        id: 'choice_single_03_2',
+        text: '친구들과의 약속을 정중히 거절하고, 주말 아침부터 조용한 카페에 앉아 연구 수업용 활동지와 교사용 교육학 모형 슬라이드를 고도화한다.',
+        intent: '수업 연구 몰입',
+        immediateEffects: [
+          { stat: 'hp', value: 5 },
+          { stat: 'mental', value: -10 },
+          { stat: 'expert', value: 25 },
+          { stat: 'teachingResearch', value: 25 }
+        ],
+        resultText: '최신 교육 패러다임이 반영된 격조 높은 연구 수업 지도안을 준비해 교사로서의 든든한 학문적 자부심과 실력을 장착했습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_single_weekend_04',
+    dayRange: [20, 20],
+    title: '템플스테이 요양 vs 에듀테크 포럼 참가',
+    category: 'family',
+    situation: '집',
+    narratorText: '주말 동안 조용한 자연 속 산사로 내려가 머리를 비우는 템플스테이 힐링 휴양을 예약해 두었습니다. 하필 인근 대학 강당에서 전국 교원 에듀테크 수업 사례 공유 포럼이 개최되어 교무부장님이 참가 신청 여부를 묻습니다.',
+    weight: 9999,
+    tags: ['독신주말', '디톡스요양', '포럼'],
+    choices: [
+      {
+        id: 'choice_single_04_1',
+        text: '산사 템플스테이에 예정대로 참가하여 맑은 차를 마시고 숲길을 걸으며 완전한 정서적 디톡스를 이룬다.',
+        intent: '정신 치유 요양',
+        immediateEffects: [
+          { stat: 'hp', value: 30 },
+          { stat: 'mental', value: 35 },
+          { stat: 'familySatisfaction', value: 20 }
+        ],
+        resultText: '지쳤던 마음의 상처와 교실 내 소음 피로가 완전히 씻겨 내려갔습니다. 고요하고 강인한 멘탈을 사수하여 월요일 활력이 넘칩니다.'
+      },
+      {
+        id: 'choice_single_04_2',
+        text: '템플스테이를 다음으로 취소하고, 토요일 아침 일찍 대학 포럼에 참석해 전국 혁신 교사들의 실천 사례를 경청하고 토론한다.',
+        intent: '글로벌 교육 트렌드 획득',
+        immediateEffects: [
+          { stat: 'hp', value: -15 },
+          { stat: 'expert', value: 30 },
+          { stat: 'reputation', value: 15 },
+          { stat: 'teachingResearch', value: 20 }
+        ],
+        resultText: '수업 아이디어가 샘솟는 혁신적인 스마트 교구 세미나를 정독하여 교육 전문 지식의 정점을 다지고 부장님의 눈도장을 찍었습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_single_weekend_05',
+    dayRange: [25, 25],
+    title: '재능 기부 봉사 vs 완벽한 방콕 휴식',
+    category: 'family',
+    situation: '집',
+    narratorText: '주말을 맞아 지역 아동 복지 센터에서 취약계층 아동을 위한 기초 영어수업 멘토링 교육 봉사자를 모집하고 있습니다. 뜻깊은 사회공헌 기회이나, 누적된 번아웃으로 주말 내내 집안 청소를 하고 침대에 누워 넷플릭스나 보고 싶은 맘도 굴뚝같습니다.',
+    weight: 9999,
+    tags: ['독신주말', '교육봉사', '방콕휴식'],
+    choices: [
+      {
+        id: 'choice_single_05_1',
+        text: '아동 센터로 향해 한글과 기초 파닉스를 가르치는 재능 기부 학습 도우미 교육 봉사를 실천한다.',
+        intent: '사회 공헌 및 교육적 사명',
+        immediateEffects: [
+          { stat: 'hp', value: -15 },
+          { stat: 'mental', value: 20 },
+          { stat: 'educationSoshin', value: 25 },
+          { stat: 'reputation', value: 20 }
+        ],
+        resultText: '당신을 반갑게 안아주는 취약 아동들을 보며 교사로서 처음 임용을 보던 초발심과 따뜻한 인성 보람이 되살아나 마음의 요람을 채웠습니다.'
+      },
+      {
+        id: 'choice_single_05_2',
+        text: '봉사를 양해 구하고, 주말 내내 이불 밖으로 한 발자국도 나가지 않은 채 넷플릭스와 스마트폰 배달 음식으로 완벽한 누워서 쉬기를 사수한다.',
+        intent: '신체적 에너지 방어',
+        immediateEffects: [
+          { stat: 'hp', value: 30 },
+          { stat: 'mental', value: 20 },
+          { stat: 'burnout', value: -20 },
+          { stat: 'expert', value: -10 }
+        ],
+        resultText: '육체적 번아웃 수치가 극적으로 하락했습니다! 어깨 뭉침과 목 디스크 통증이 완화되며 가장 원초적인 건강 게이지를 최대로 사수해 냈습니다.'
+      }
+    ]
   }
 ];

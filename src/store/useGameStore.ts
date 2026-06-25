@@ -266,7 +266,8 @@ const getEventForTime = (
   day: number, 
   time: TimeOfDay, 
   hiddenFlags: string[],
-  history: string[]
+  history: string[],
+  familyState?: string
 ): GameEvent | null => {
   let category: GameEvent['category'][] = [];
   
@@ -278,6 +279,17 @@ const getEventForTime = (
     category = ['parent', 'family', 'career', 'random'];
   } else {
     return null;
+  }
+
+  // 5, 10, 15, 20, 25일차 저녁(evening)에는 기획된 자녀/주말 이벤트를 강제로 반환 [NEW]
+  if (time === 'evening' && [5, 10, 15, 20, 25].includes(day)) {
+    const targetSuffix = String(day / 5).padStart(2, '0'); // 5->01, 10->02, 15->03, 20->04, 25->05
+    const isParent = familyState === 'parent';
+    const targetEventId = isParent ? `evt_child_event_${targetSuffix}` : `evt_single_weekend_${targetSuffix}`;
+    const targetEvt = gameEvents.find(evt => evt.id === targetEventId);
+    if (targetEvt) {
+      return targetEvt;
+    }
   }
 
   const candidates = gameEvents.filter(evt => {
@@ -639,7 +651,8 @@ export const useGameStore = create<GameState>()(
           timeOfDay, 
           recentLogs, 
           hiddenFlags, 
-          maxActionPoints 
+          maxActionPoints,
+          playerInfo
         } = get();
 
         if (timeOfDay === 'morning') {
@@ -654,7 +667,7 @@ export const useGameStore = create<GameState>()(
           });
         } else if (timeOfDay === 'afternoon') {
           // 오후 -> 저녁 (저녁은 집/개인 활동이므로 기존 방식대로 저녁 이벤트를 자동 추점)
-          const nextEvent = getEventForTime(day, 'evening', hiddenFlags, recentLogs);
+          const nextEvent = getEventForTime(day, 'evening', hiddenFlags, recentLogs, playerInfo?.familyState);
           set({
             timeOfDay: 'evening',
             currentLocation: null,
@@ -902,6 +915,10 @@ export const useGameStore = create<GameState>()(
 
       // 8. 30일차 최종 엔딩 조건 계산
       checkEndingConditions: () => {
+        const currentEnding = get().endingId;
+        // 이미 게임오버나 다른 엔딩 상태가 세팅되어 있다면 즉시 반환하여 중복 해금을 차단합니다. [NEW]
+        if (currentEnding) return;
+
         const { stats, hiddenFlags } = get();
         let finalEnding = 'ending_general'; // 기본 디폴트 평교사 엔딩
 
@@ -1035,6 +1052,9 @@ export const useGameStore = create<GameState>()(
       
       // 즉시 실패(게임오버) 판정 헬퍼 [NEW]
       checkFailureConditions: () => {
+        // 이미 엔딩이나 실패 상태가 설정되어 있다면 추가 갱신 없이 즉시 잠급니다. [NEW]
+        if (get().endingId) return true;
+
         const { stats } = get();
         if (stats.hp <= 0) {
           set({ endingId: 'ending_gameover_hp' });

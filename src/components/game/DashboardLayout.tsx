@@ -21,6 +21,75 @@ import {
 } from 'lucide-react';
 import type { Student } from '@/game/types';
 
+// 스탯명 한글화 및 이모지 매핑 테이블 [NEW]
+const STAT_LABELS: Record<string, { label: string; icon: string }> = {
+  hp: { label: "건강", icon: "🏥" },
+  mental: { label: "멘탈", icon: "🧠" },
+  burnout: { label: "번아웃", icon: "😓" },
+  expert: { label: "전문성", icon: "📚" },
+  studentTrust: { label: "학생신뢰", icon: "👥" },
+  parentTrust: { label: "학부모신뢰", icon: "👪" },
+  colleagueRelation: { label: "동료관계", icon: "🤝" },
+  adminTrust: { label: "관리자신뢰", icon: "📋" },
+  adminPower: { label: "행정실무", icon: "💻" },
+  familySatisfaction: { label: "가정만족", icon: "🏠" },
+  educationSoshin: { label: "교육소신", icon: "💡" },
+  reputation: { label: "평판", icon: "🌟" },
+  careerPoint: { label: "커리어점수", icon: "🏆" },
+  teachingSatisfaction: { label: "교육보람", icon: "⭐" },
+  colleagueSolidarity: { label: "동료연대", icon: "🛡️" },
+  parentComplaint: { label: "학부모민원", icon: "⚠️" },
+  
+  // 5대 역량 스탯
+  workCapacity: { label: "업무능력", icon: "⚙️" },
+  interpersonal: { label: "인간관계", icon: "🌐" },
+  familyRelation: { label: "가족관계", icon: "👨‍👩‍👧" },
+  classManagement: { label: "학급운영", icon: "🏫" },
+  teachingResearch: { label: "수업연구", icon: "🧪" }
+};
+
+// 스탯 변동 전후 팝업 상세 브리핑 헬퍼 컴포넌트 [NEW]
+const StatChangeBriefing: React.FC<{ prev: any; current: any }> = ({ prev, current }) => {
+  if (!prev || !current) return null;
+  
+  const changes = Object.keys(current).filter(key => {
+    return key in prev && prev[key] !== current[key] && key !== 'careerPoint'; // 커리어점수 제외 또는 포함
+  });
+
+  if (changes.length === 0) return null;
+
+  return (
+    <div className="mt-4 bg-slate-900 text-white rounded-xl p-3 border border-slate-700 space-y-1.5 shadow-xl animate-fade-in text-left">
+      <div className="text-[11px] font-bold text-slate-400 border-b border-slate-700 pb-1 flex items-center justify-between">
+        <span>📊 실시간 지표 변동 결과 피드백</span>
+        <span className="text-emerald-400 font-mono text-[10px]">이전 수치 ➔ 현재 잔량 (변동치)</span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+        {changes.map(key => {
+          const info = STAT_LABELS[key] || { label: key, icon: "📈" };
+          const pVal = prev[key];
+          const cVal = current[key];
+          const diff = cVal - pVal;
+          const diffText = diff > 0 ? `+${diff}` : `${diff}`;
+          const diffColor = diff > 0 ? 'text-emerald-400 font-extrabold' : 'text-rose-400 font-extrabold';
+          
+          return (
+            <div key={key} className="flex justify-between items-center bg-black/30 px-2 py-1.5 rounded-lg border border-slate-800">
+              <span className="text-slate-300 font-medium">
+                {info.icon} {info.label}
+              </span>
+              <span className="font-mono font-semibold">
+                {pVal} ➔ <strong className="text-white">{cVal}</strong>
+                <span className={`ml-2 ${diffColor} text-[10px]`}>({diffText})</span>
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 interface TutorialStepData {
   title: string;
   desc: string;
@@ -153,6 +222,37 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
   
   // 층간 상태 (1층 ⇄ 2층)
   const [currentFloor, setCurrentFloor] = useState<1 | 2>(1);
+
+  // 스탯 전후 변화 추적용 로컬 상태
+  const [prevStats, setPrevStats] = useState<any>(null);
+
+  // 1. 일반 선택지 클릭 래퍼 핸들러
+  const handleSelectChoice = (choice: any) => {
+    setPrevStats({ ...stats });
+    selectChoice(choice);
+  };
+
+  // 2. 학생 개별 지도 래핑 핸들러
+  const handleCounselStudent = (
+    studentId: string, 
+    actionType: 'empathy' | 'rational' | 'strict' | 'strength' | 'mentoring'
+  ) => {
+    setPrevStats({ ...stats });
+    const result = counselStudent(studentId, actionType);
+    setCounselResult(result);
+  };
+
+  // 3. 메신저 선택지 클릭 래핑 핸들러
+  const handleSelectMessengerChoice = (choiceId: string, effects: any[], resultText: string) => {
+    setPrevStats({ ...stats });
+    selectMessengerChoice(choiceId, effects, resultText);
+  };
+
+  // 4. 스마트폰 선택지 클릭 래핑 핸들러
+  const handleSelectPhoneAndTextChoice = (choiceId: string, effects: any[], resultText: string) => {
+    setPrevStats({ ...stats });
+    selectPhoneAndTextChoice(choiceId, effects, resultText);
+  };
 
   // 개별 학생 1:1 지도 결과 피드백 로컬 상태
   const [counselResult, setCounselResult] = useState<{ feedbackText: string; effectsText: string } | null>(null);
@@ -1004,10 +1104,16 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                           </div>
                         )}
 
+                        {/* 스탯 변동 상세 브리핑 추가 [NEW] */}
+                        <StatChangeBriefing prev={prevStats} current={stats} />
+
                         {/* 복귀/진행 버튼 분기 */}
                         {timeOfDay === 'evening' ? (
                           <button
-                            onClick={handleProgressTime}
+                            onClick={() => {
+                              handleProgressTime();
+                              setPrevStats(null);
+                            }}
                             className="w-full btn-school-accent flex items-center justify-center gap-1 py-2 text-sm"
                           >
                             하루 정리하러 가기
@@ -1015,7 +1121,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                           </button>
                         ) : (
                           <button
-                            onClick={closeEventResult}
+                            onClick={() => {
+                              closeEventResult();
+                              setPrevStats(null);
+                            }}
                             className="w-full btn-school-accent flex items-center justify-center gap-1 py-2 text-sm"
                           >
                             장소로 돌아가기
@@ -1029,7 +1138,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                         {currentEvent.choices.map((choice, index) => (
                           <button
                             key={choice.id}
-                            onClick={() => selectChoice(choice)}
+                            onClick={() => handleSelectChoice(choice)}
                             className="w-full text-left p-3 md:p-4 rounded-xl border-2 border-white/40 bg-white/5 hover:bg-white/15 active:bg-white/20 transition-all duration-150 flex items-start gap-3 group text-xs md:text-sm"
                           >
                             <span className="bg-emerald-800 text-emerald-200 border border-emerald-600 rounded-full w-5 h-5 flex items-center justify-center font-bold text-xs flex-shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
@@ -1752,8 +1861,15 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                   <div className="text-[11px] bg-white border border-amber-300 rounded px-2.5 py-1.5 font-bold text-emerald-800 font-mono">
                     {counselResult.effectsText}
                   </div>
+
+                  {/* 스탯 변동 상세 브리핑 추가 [NEW] */}
+                  <StatChangeBriefing prev={prevStats} current={stats} />
+
                   <button
-                    onClick={() => setCounselResult(null)}
+                    onClick={() => {
+                      setCounselResult(null);
+                      setPrevStats(null);
+                    }}
                     className="w-full mt-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold py-1.5 rounded-lg text-xs border border-black shadow-school-press"
                   >
                     확인
@@ -1763,10 +1879,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                 /* 지도 버튼 목록 */
                 <div className="grid grid-cols-2 gap-2 text-xs font-bold">
                   <button
-                    onClick={() => {
-                      const res = counselStudent(selectedStudent.id, 'empathy');
-                      if (res) setCounselResult(res);
-                    }}
+                    onClick={() => handleCounselStudent(selectedStudent.id, 'empathy')}
                     className="bg-emerald-50 hover:bg-emerald-100 text-emerald-850 p-2.5 rounded-xl border border-emerald-300 transition-colors flex flex-col items-center gap-1"
                     title="유리멘탈, 내성적 아동에 상성 보충"
                   >
@@ -1774,10 +1887,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                     <span className="text-[9px] font-normal text-emerald-600">신뢰·자존감 회복</span>
                   </button>
                   <button
-                    onClick={() => {
-                      const res = counselStudent(selectedStudent.id, 'rational');
-                      if (res) setCounselResult(res);
-                    }}
+                    onClick={() => handleCounselStudent(selectedStudent.id, 'rational')}
                     className="bg-indigo-50 hover:bg-indigo-100 text-indigo-850 p-2.5 rounded-xl border border-indigo-300 transition-colors flex flex-col items-center gap-1"
                     title="우등생, 성실파 아동에 상성 보충"
                   >
@@ -1785,10 +1895,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                     <span className="text-[9px] font-normal text-indigo-600">학력·동기 상승</span>
                   </button>
                   <button
-                    onClick={() => {
-                      const res = counselStudent(selectedStudent.id, 'strict');
-                      if (res) setCounselResult(res);
-                    }}
+                    onClick={() => handleCounselStudent(selectedStudent.id, 'strict')}
                     className="bg-rose-50 hover:bg-rose-100 text-rose-850 p-2.5 rounded-xl border border-rose-300 transition-colors flex flex-col items-center gap-1"
                     title="트러블메이커, 규칙위반 아동에 상성 보충"
                   >
@@ -1796,10 +1903,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                     <span className="text-[9px] font-normal text-rose-600">행동교정·기강 확립</span>
                   </button>
                   <button
-                    onClick={() => {
-                      const res = counselStudent(selectedStudent.id, 'strength');
-                      if (res) setCounselResult(res);
-                    }}
+                    onClick={() => handleCounselStudent(selectedStudent.id, 'strength')}
                     className="bg-amber-50 hover:bg-amber-100 text-amber-850 p-2.5 rounded-xl border border-amber-300 transition-colors flex flex-col items-center gap-1"
                     title="예체능 특기자, 끼 있는 아동에 상성 보충"
                   >
@@ -1807,10 +1911,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                     <span className="text-[9px] font-normal text-amber-600">재능·자아 인정</span>
                   </button>
                   <button
-                    onClick={() => {
-                      const res = counselStudent(selectedStudent.id, 'mentoring');
-                      if (res) setCounselResult(res);
-                    }}
+                    onClick={() => handleCounselStudent(selectedStudent.id, 'mentoring')}
                     className="col-span-2 bg-sky-50 hover:bg-sky-100 text-sky-850 p-2.5 rounded-xl border border-sky-300 transition-colors flex flex-col items-center gap-1"
                     title="부진아, 잠만보 아동에 상성 보충"
                   >
@@ -1975,7 +2076,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                 activeMessengerEvent.choices.map((choice) => (
                   <button
                     key={choice.id}
-                    onClick={() => selectMessengerChoice(choice.id, choice.effects, choice.resultText)}
+                    onClick={() => handleSelectMessengerChoice(choice.id, choice.effects, choice.resultText)}
                     className="w-full text-left p-3.5 rounded-xl border border-sky-500/40 bg-sky-950/20 hover:bg-sky-900/30 active:bg-sky-900/50 transition-all font-semibold text-xs md:text-sm text-slate-200 flex items-start gap-3 group animate-fade-in"
                   >
                     <div className="flex-1 leading-snug">
@@ -1984,12 +2085,19 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                   </button>
                 ))
               ) : (
-                <button
-                  onClick={closeMessengerEvent}
-                  className="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold border border-black rounded-xl py-3 active:translate-y-0.5 shadow-school-press text-xs md:text-sm transition-all animate-fade-in"
-                >
-                  확인 및 닫기
-                </button>
+                <>
+                  {/* 스탯 변동 상세 브리핑 추가 [NEW] */}
+                  <StatChangeBriefing prev={prevStats} current={stats} />
+                  <button
+                    onClick={() => {
+                      closeMessengerEvent();
+                      setPrevStats(null);
+                    }}
+                    className="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold border border-black rounded-xl py-3 active:translate-y-0.5 shadow-school-press text-xs md:text-sm transition-all animate-fade-in"
+                  >
+                    확인 및 닫기
+                  </button>
+                </>
               )}
             </div>
             
@@ -2047,7 +2155,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                   activePhoneAndTextEvent.choices.map((choice) => (
                     <button
                       key={choice.id}
-                      onClick={() => selectPhoneAndTextChoice(choice.id, choice.effects, choice.resultText)}
+                      onClick={() => handleSelectPhoneAndTextChoice(choice.id, choice.effects, choice.resultText)}
                       className={`w-full text-left p-3.5 rounded-xl border transition-all font-semibold text-xs md:text-sm flex items-start gap-3 group active:translate-y-0.5 shadow-school-press ${choiceBtnStyle}`}
                     >
                       <div className="flex-1 leading-snug">
@@ -2056,12 +2164,19 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                     </button>
                   ))
                 ) : (
-                  <button
-                    onClick={closePhoneAndTextEvent}
-                    className={`w-full font-bold py-3 active:translate-y-0.5 shadow-school-press text-xs md:text-sm transition-all ${closeBtnStyle}`}
-                  >
-                    확인 및 닫기
-                  </button>
+                  <>
+                    {/* 스탯 변동 상세 브리핑 추가 [NEW] */}
+                    <StatChangeBriefing prev={prevStats} current={stats} />
+                    <button
+                      onClick={() => {
+                        closePhoneAndTextEvent();
+                        setPrevStats(null);
+                      }}
+                      className={`w-full font-bold py-3 active:translate-y-0.5 shadow-school-press text-xs md:text-sm transition-all ${closeBtnStyle}`}
+                    >
+                      확인 및 닫기
+                    </button>
+                  </>
                 )}
               </div>
               
