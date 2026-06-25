@@ -1,6 +1,16 @@
 import type { GameEvent } from '@/game/types';
+import { funnyStudentEvents } from './funnyStudentEvents';
+import { funnyParentEvents } from './funnyParentEvents';
+import { funnyColleagueEvents } from './funnyColleagueEvents';
+import { funnyAdminEvents } from './funnyAdminEvents';
+import { funnyRandomEvents } from './funnyRandomEvents';
 
 export const gameEvents: GameEvent[] = [
+  ...funnyStudentEvents,
+  ...funnyParentEvents,
+  ...funnyColleagueEvents,
+  ...funnyAdminEvents,
+  ...funnyRandomEvents,
   // ==================== [학부모 악성 민원 사건군 (evt_complaint_01 ~ 03) [NEW]] ====================
   {
     id: 'evt_complaint_01',
