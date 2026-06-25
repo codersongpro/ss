@@ -1879,7 +1879,7 @@ export const useGameStore = create<GameState>()(
           else if (npcId.startsWith('staff_')) {
             if (npcId === 'staff_admin_chief') role = '행정실장';
             else if (npcId === 'staff_admin_worker') role = '행정 주무관';
-            else if (npcId === 'staff_cook') role = '조리원';
+            else if (npcId === 'staff_cook') role = '조리사님';
             else if (npcId === 'staff_librarian') role = '사서 교사';
             else if (npcId === 'staff_counselor') role = '전문 상담 교사';
             else if (npcId === 'staff_science_assistant') role = '과학 실무사';
@@ -2539,7 +2539,7 @@ export const useGameStore = create<GameState>()(
         } else if (npcId === 'staff_cook') {
           steps = [
             {
-              speaker: '조리원 아주머니',
+              speaker: '급식 조리사님',
               text: '"선생님! 매일 애들 데리고 밥 묵이느라 땀 뻘뻘 흘리는 모습 보니 내 자식 같아 짠하네. 오늘 힘내라고 계란후라이 서비스 하나 더 얹어줄 테니 팍팍 묵어라!" 배식대에서 푸근하게 권하십니다.',
               choices: [
                 {
@@ -2557,11 +2557,11 @@ export const useGameStore = create<GameState>()(
               ]
             },
             {
-              speaker: '조리원 아주머니',
-              text: '조리원분들과 끈끈한 인간미를 나누며 마음의 힐링과 풍성한 영양 보충을 완료했습니다.'
+              speaker: '급식 조리사님',
+              text: '조리사님들과 끈끈한 인간미를 나누며 마음의 힐링과 풍성한 영양 보충을 완료했습니다.'
             },
             {
-              speaker: '조리원 아주머니',
+              speaker: '급식 조리사님',
               text: '배식량 규칙 준수를 철저히 실천하여 한 치의 특혜나 불공정 시비를 원천 배제하는 청렴성을 지켰습니다.'
             }
           ];
@@ -3089,9 +3089,9 @@ export const useGameStore = create<GameState>()(
         ];
         const adminNPCs = [...adminPool].sort(() => Math.random() - 0.5).slice(0, Math.floor(Math.random() * 2) + 1);
 
-        // 7. 급식실: 조리원 아주머니 배치
+        // 7. 급식실: 급식 조리사님 배치
         const cookPool = [
-          { id: 'staff_cook', name: '조리원 아주머니', role: '조리 배식 담당' }
+          { id: 'staff_cook', name: '급식 조리사님', role: '조리 배식 담당' }
         ];
         const cookNPCs = [...cookPool];
 
