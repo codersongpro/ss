@@ -95,8 +95,8 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
         </div>
 
 
-        {/* 칠판 내부 포스트잇 장식 (3장) — 버튼 아래 하단 영역에 배치 */}
-        <div className="mt-6 w-full grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl">
+        {/* 칠판 내부 포스트잇 장식 (2장) — 버튼 아래 하단 영역에 배치 */}
+        <div className="mt-6 w-full grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
           {/* 포스트잇 1: 교무수첩 꿀팁 (노란색) */}
           <div className="bg-school-postit-yellow border-2 border-black p-3 shadow-school-flat text-xs text-slate-700 rotate-1 hover:rotate-0 transition-transform">
             <h4 className="font-bold border-b border-black/30 pb-1 mb-1">💡 교무수첩 꿀팁</h4>
@@ -108,16 +108,10 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
             <h4 className="font-bold border-b border-black/30 pb-1 mb-1">📌 경고 사항</h4>
             실제 학생의 개인정보나 학교 정보는 입력하지 마십시오!
           </div>
-
-          {/* 포스트잇 3: 면책 조항 (연두/민트색) */}
-          <div className="bg-emerald-100 border-2 border-black p-3 shadow-school-flat text-xs text-slate-700 rotate-1 hover:rotate-0 transition-transform">
-            <h4 className="font-bold border-b border-black/30 pb-1 mb-1">⚖️ 면책 고지</h4>
-            이 게임은 학교생활에서 일어날 수 있는 다양한 상황을 재구성한 가상의 이야기입니다. 등장하는 인물·학교·사건은 모두 허구이며, 특정 개인·기관을 지칭하거나 비하할 의도가 없습니다. 풍자와 상상력을 바탕으로 제작된 엔터테인먼트 콘텐츠이므로, 실제 상황과 구분하여 가볍게 즐겨 주시기 바랍니다.
-          </div>
         </div>
         {/* 개발 정보 및 가상 이야기 고지 */}
         <div className="mt-8 text-center text-slate-500 text-xs md:text-sm max-w-xl space-y-1.5 select-none font-sans font-medium">
-          <p className="font-extrabold text-slate-700 text-sm">개발: Antigravity & Coder Song Pro</p>
+          <p className="font-extrabold text-slate-700 text-sm">개발: Dustin</p>
           <p className="leading-relaxed">
             이 게임은 학교생활을 소재로 한 가상의 이야기입니다. 등장인물과 사건은 모두 허구이며, 특정 개인·학교·기관을 지칭하거나 비하할 의도가 없습니다. 실제 상황과 구분하여 재미로 즐겨 주세요.
           </p>
