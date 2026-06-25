@@ -17,7 +17,8 @@ import {
   Info,
   Volume2,
   VolumeX,
-  Volume1
+  Volume1,
+  Activity
 } from 'lucide-react';
 import type { Student } from '@/game/types';
 
@@ -49,39 +50,61 @@ const STAT_LABELS: Record<string, { label: string; icon: string }> = {
 };
 
 // 스탯 변동 전후 팝업 상세 브리핑 헬퍼 컴포넌트 [NEW]
+// 이전 수치 가이드와 현재 잔여량 프로그레스 바를 시각적으로 연출합니다.
 const StatChangeBriefing: React.FC<{ prev: any; current: any }> = ({ prev, current }) => {
   if (!prev || !current) return null;
   
   const changes = Object.keys(current).filter(key => {
-    return key in prev && prev[key] !== current[key] && key !== 'careerPoint'; // 커리어점수 제외 또는 포함
+    return key in prev && prev[key] !== current[key] && key !== 'careerPoint'; // 커리어점수 제외
   });
 
   if (changes.length === 0) return null;
 
   return (
-    <div className="mt-4 bg-slate-900 text-white rounded-xl p-3 border border-slate-700 space-y-1.5 shadow-xl animate-fade-in text-left">
+    <div className="mt-4 bg-slate-900 text-white rounded-xl p-3 border border-slate-700 space-y-2 shadow-xl animate-fade-in text-left">
       <div className="text-[11px] font-bold text-slate-400 border-b border-slate-700 pb-1 flex items-center justify-between">
         <span>📊 실시간 지표 변동 결과 피드백</span>
         <span className="text-emerald-400 font-mono text-[10px]">이전 수치 ➔ 현재 잔량 (변동치)</span>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
         {changes.map(key => {
           const info = STAT_LABELS[key] || { label: key, icon: "📈" };
-          const pVal = prev[key];
-          const cVal = current[key];
+          const pVal = prev[key] ?? 0;
+          const cVal = current[key] ?? 0;
           const diff = cVal - pVal;
           const diffText = diff > 0 ? `+${diff}` : `${diff}`;
-          const diffColor = diff > 0 ? 'text-emerald-400 font-extrabold' : 'text-rose-400 font-extrabold';
+          
+          // 위험 스탯(번아웃, 민원) 여부 판정
+          const isDangerStat = key === 'burnout' || key === 'parentComplaint';
+          // 긍정적 변화(일반 스탯은 증가 시, 위험 스탯은 감소 시)
+          const isPositiveChange = isDangerStat ? diff < 0 : diff > 0;
+          const diffColor = isPositiveChange ? 'text-emerald-400 font-extrabold' : 'text-rose-400 font-extrabold';
+          const barColor = isPositiveChange ? 'bg-emerald-500' : 'bg-rose-500';
           
           return (
-            <div key={key} className="flex justify-between items-center bg-black/30 px-2 py-1.5 rounded-lg border border-slate-800">
-              <span className="text-slate-300 font-medium">
-                {info.icon} {info.label}
-              </span>
-              <span className="font-mono font-semibold">
-                {pVal} ➔ <strong className="text-white">{cVal}</strong>
-                <span className={`ml-2 ${diffColor} text-[10px]`}>({diffText})</span>
-              </span>
+            <div key={key} className="flex flex-col bg-black/30 px-2.5 py-2 rounded-lg border border-slate-800">
+              <div className="flex justify-between items-center">
+                <span className="text-slate-300 font-medium">
+                  {info.icon} {info.label}
+                </span>
+                <span className="font-mono font-semibold">
+                  {pVal} ➔ <strong className="text-white">{cVal}</strong>
+                  <span className={`ml-2 ${diffColor} text-[10px]`}>({diffText})</span>
+                </span>
+              </div>
+              {/* 프로그레스 바 및 가이드라인 시각화 */}
+              <div className="w-full bg-slate-950 h-3 rounded-full relative overflow-hidden mt-1.5 border border-slate-800">
+                <div 
+                  className={`h-full rounded-full transition-all duration-1000 ease-out ${barColor}`} 
+                  style={{ width: `${cVal}%` }} 
+                />
+                {/* 이전 수치를 가리키는 노란색 가이드라인 */}
+                <div 
+                  className="absolute top-0 bottom-0 border-r-2 border-yellow-400 z-10" 
+                  style={{ left: `${pVal}%` }} 
+                  title={`이전 값: ${pVal}`}
+                />
+              </div>
             </div>
           );
         })}
@@ -173,7 +196,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
     completeTask,
     delegateTask,
     clearToast,
-    
+    endingId, // [NEW] 번아웃 100% 모달 조건에 쓰일 엔딩 여부 상태 추가
     currentLocation,
     moveToLocation,
     executeLocationAction,
@@ -217,14 +240,25 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
     return <Volume2 className="w-4 h-4 text-emerald-600 font-bold" />;
   };
 
-  // 모바일 화면용 탭 상태 ('center' = 교실/사건, 'left' = 학급현황, 'right' = 스마트폰/업무)
-  const [activeTab, setActiveTab] = useState<'center' | 'left' | 'right'>('center');
+  // 모바일 화면용 탭 상태 ('center' = 교실/사건, 'left' = 학급현황, 'right' = 스마트폰/업무, 'status' = 내 스탯) [MODIFY]
+  const [activeTab, setActiveTab] = useState<'center' | 'left' | 'right' | 'status'>('center');
   
   // 층간 상태 (1층 ⇄ 2층)
   const [currentFloor, setCurrentFloor] = useState<1 | 2>(1);
 
   // 스탯 전후 변화 추적용 로컬 상태
   const [prevStats, setPrevStats] = useState<any>(null);
+
+  // 모바일용 스탯 설명 팝업 타겟 상태 [NEW]
+  const [activeExplainStat, setActiveExplainStat] = useState<string | null>(null);
+
+  // 오늘 하루 번아웃 경고 팝업 가리기 상태 [NEW]
+  const [hideBurnoutWarningToday, setHideBurnoutWarningToday] = useState<boolean>(false);
+
+  // 날짜가 변경되면 번아웃 경고 팝업 가리기 설정을 리셋합니다. [NEW]
+  useEffect(() => {
+    setHideBurnoutWarningToday(false);
+  }, [day]);
 
   // 1. 일반 선택지 클릭 래퍼 핸들러
   const handleSelectChoice = (choice: any) => {
@@ -647,6 +681,23 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
               <span className="font-mono">{bgmVolume === 0 ? 'OFF' : `LV.${bgmVolume}`}</span>
             </button>
 
+            {/* 다음 일과 진행 버튼 고정 배치 [NEW] */}
+            {timeOfDay !== 'summary' && currentEvent === null && npcDialogueSession === null && activeMessengerEvent === null && activePhoneAndTextEvent === null && (
+              <button
+                onClick={handleProgressTime}
+                className={`px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-extrabold border-2 border-black rounded-lg active:translate-y-0.5 shadow-school-press text-xs transition-all flex items-center gap-1 cursor-pointer ${
+                  isTutorialActive ? 'opacity-30 pointer-events-none' : ''
+                }`}
+              >
+                <span>
+                  {timeOfDay === 'morning' ? '오후 일과 진행 ➔' :
+                   timeOfDay === 'afternoon' ? '방과 후 진행 ➔' :
+                   timeOfDay === 'evening' ? '하루 마무리(정산) ➔' : '다음 단계 ➔'}
+                </span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            )}
+
             {/* 타이틀 복귀 (1단계 가이드 중 비타겟이므로 흐리게 처리) */}
             <button
               onClick={onExitGame}
@@ -663,6 +714,13 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
 
       {/* 모바일 하단 탭 컨트롤 바 (Lg 미만에서만 노출) */}
       <div className="lg:hidden flex border-b-2 border-black bg-white sticky top-[64px] z-20">
+        <button
+          onClick={() => setActiveTab('status')}
+          className={`flex-1 py-2 text-xs font-bold border-r border-black flex items-center justify-center gap-1 ${activeTab === 'status' ? 'bg-indigo-100 text-indigo-900' : ''}`}
+        >
+          <Activity className="w-4 h-4 text-indigo-700" />
+          스테이터스
+        </button>
         <button
           onClick={() => setActiveTab('left')}
           className={`flex-1 py-2 text-xs font-bold border-r border-black flex items-center justify-center gap-1 ${activeTab === 'left' ? 'bg-amber-100' : ''}`}
@@ -689,14 +747,16 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
       {/* 2. 메인 3단 그리드 영역 */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6 relative">
         
-        {/* ================= 좌측 패널 (lg:col-span-3): 학급현황 ================= */}
-        <section className={`lg:col-span-3 space-y-4 ${activeTab === 'left' ? 'block' : 'hidden lg:block'} transition-all duration-300 ${
+        {/* ================= 좌측 패널 (lg:col-span-3): 학급현황 및 스테이터스 ================= */}
+        <section className={`lg:col-span-3 space-y-4 ${activeTab === 'left' || activeTab === 'status' ? 'block' : 'hidden lg:block'} transition-all duration-300 ${
           isTutorialActive && (tutorialStep === 2 || tutorialStep === 3) ? 'z-[1000] relative' : ''
         }`}>
           {/* 1. [상단 배치] 8대 핵심 교직 스탯 (생존 및 역량 스탯 통합) */}
           <div 
             id="tutorial-stats-panel"
             className={`paper-card bg-white p-4 space-y-3.5 transition-all duration-300 ${
+              activeTab === 'status' ? 'block' : 'hidden lg:block'
+            } ${
               isTutorialActive && tutorialStep === 2 
                 ? 'ring-4 ring-[#FF007F] ring-offset-2 border-[#FF007F] scale-[1.01]' 
                 : isTutorialActive && tutorialStep === 3
@@ -705,15 +765,21 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
             }`}
           >
             <h3 className="font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-2 flex items-center gap-1.5 text-base">
-              <span>📊 주인공 스테이터스</span>
+              <span>📊 스테이터스</span>
             </h3>
-            <p className="text-xs text-slate-400 font-medium">항목별 터치/마우스 오버 시 세부 정보와 생존 조건이 표시됩니다.</p>
+            <p className="text-xs text-slate-400 font-medium">항목 클릭 시 모바일용 상세 설명이 지원되며 마우스 오버 시에도 툴팁이 뜹니다.</p>
             
             <div className="space-y-3.5">
               {/* [생존 스탯 1] 건강 */}
-              <div className="relative group cursor-help">
+              <div 
+                onClick={() => setActiveExplainStat('hp')}
+                className="relative group cursor-pointer select-none bg-slate-50/50 hover:bg-slate-100/50 p-2 rounded-xl border border-slate-200 transition-colors"
+              >
                 <div className="flex justify-between text-sm font-bold mb-1">
-                  <span className="text-slate-700 flex items-center gap-1">🏥 건강 (물리 체력)</span>
+                  <span className="text-slate-700 flex items-center gap-1">
+                    🏥 건강 (물리 체력)
+                    <HelpCircle className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600" />
+                  </span>
                   <span className={`font-mono ${stats.hp < 30 ? 'text-red-600 font-extrabold animate-pulse' : 'text-rose-600'}`}>{stats.hp} / 100</span>
                 </div>
                 <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
@@ -727,9 +793,15 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
               </div>
 
               {/* [생존 스탯 2] 멘탈 */}
-              <div className="relative group cursor-help">
+              <div 
+                onClick={() => setActiveExplainStat('mental')}
+                className="relative group cursor-pointer select-none bg-slate-50/50 hover:bg-slate-100/50 p-2 rounded-xl border border-slate-200 transition-colors"
+              >
                 <div className="flex justify-between text-sm font-bold mb-1">
-                  <span className="text-slate-700 flex items-center gap-1">🧠 멘탈 (정신력)</span>
+                  <span className="text-slate-700 flex items-center gap-1">
+                    🧠 멘탈 (정신력)
+                    <HelpCircle className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600" />
+                  </span>
                   <span className={`font-mono ${stats.mental < 30 ? 'text-red-600 font-extrabold animate-pulse' : 'text-sky-650'}`}>{stats.mental} / 100</span>
                 </div>
                 <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
@@ -743,9 +815,15 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
               </div>
 
               {/* [생존 스탯 3] 번아웃 */}
-              <div className="relative group cursor-help">
+              <div 
+                onClick={() => setActiveExplainStat('burnout')}
+                className="relative group cursor-pointer select-none bg-slate-50/50 hover:bg-slate-100/50 p-2 rounded-xl border border-slate-200 transition-colors"
+              >
                 <div className="flex justify-between text-sm font-bold mb-1">
-                  <span className="text-slate-700 flex items-center gap-1">🔥 번아웃 (피로도)</span>
+                  <span className="text-slate-700 flex items-center gap-1">
+                    🔥 번아웃 (피로도)
+                    <HelpCircle className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600" />
+                  </span>
                   <span className={`font-mono ${stats.burnout > 70 ? 'text-red-600 font-extrabold animate-pulse' : 'text-amber-600'}`}>{stats.burnout} %</span>
                 </div>
                 <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
@@ -761,9 +839,15 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
               <div className="border-t border-slate-200 my-2 pt-2" />
 
               {/* [역량 스탯 1] 업무능력 */}
-              <div className="relative group cursor-help">
+              <div 
+                onClick={() => setActiveExplainStat('workCapacity')}
+                className="relative group cursor-pointer select-none bg-slate-50/50 hover:bg-slate-100/50 p-2 rounded-xl border border-slate-200 transition-colors"
+              >
                 <div className="flex justify-between text-sm font-bold mb-1">
-                  <span className="text-slate-700">💼 업무능력</span>
+                  <span className="text-slate-700 flex items-center gap-1">
+                    💼 업무능력
+                    <HelpCircle className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600" />
+                  </span>
                   <span className="text-indigo-700 font-mono">{stats.workCapacity} / 100</span>
                 </div>
                 <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
@@ -778,9 +862,15 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
               </div>
 
               {/* [역량 스탯 2] 인간관계 */}
-              <div className="relative group cursor-help">
+              <div 
+                onClick={() => setActiveExplainStat('interpersonal')}
+                className="relative group cursor-pointer select-none bg-slate-50/50 hover:bg-slate-100/50 p-2 rounded-xl border border-slate-200 transition-colors"
+              >
                 <div className="flex justify-between text-sm font-bold mb-1">
-                  <span className="text-slate-700">🤝 인간관계</span>
+                  <span className="text-slate-700 flex items-center gap-1">
+                    🤝 인간관계
+                    <HelpCircle className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600" />
+                  </span>
                   <span className="text-emerald-700 font-mono">{stats.interpersonal} / 100</span>
                 </div>
                 <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
@@ -795,9 +885,15 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
               </div>
 
               {/* [역량 스탯 3] 가족관계 */}
-              <div className="relative group cursor-help">
+              <div 
+                onClick={() => setActiveExplainStat('familyRelation')}
+                className="relative group cursor-pointer select-none bg-slate-50/50 hover:bg-slate-100/50 p-2 rounded-xl border border-slate-200 transition-colors"
+              >
                 <div className="flex justify-between text-sm font-bold mb-1">
-                  <span className="text-slate-700">❤️ 가족관계</span>
+                  <span className="text-slate-700 flex items-center gap-1">
+                    ❤️ 가족관계
+                    <HelpCircle className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600" />
+                  </span>
                   <span className="text-rose-700 font-mono">{stats.familyRelation} / 100</span>
                 </div>
                 <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
@@ -812,9 +908,15 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
               </div>
 
               {/* [역량 스탯 4] 학급운영 */}
-              <div className="relative group cursor-help">
+              <div 
+                onClick={() => setActiveExplainStat('classManagement')}
+                className="relative group cursor-pointer select-none bg-slate-50/50 hover:bg-slate-100/50 p-2 rounded-xl border border-slate-200 transition-colors"
+              >
                 <div className="flex justify-between text-sm font-bold mb-1">
-                  <span className="text-slate-700">🎒 학급운영</span>
+                  <span className="text-slate-700 flex items-center gap-1">
+                    🎒 학급운영
+                    <HelpCircle className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600" />
+                  </span>
                   <span className="text-amber-700 font-mono">{stats.classManagement} / 100</span>
                 </div>
                 <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
@@ -829,9 +931,15 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
               </div>
 
               {/* [역량 스탯 5] 수업연구능력 */}
-              <div className="relative group cursor-help">
+              <div 
+                onClick={() => setActiveExplainStat('teachingResearch')}
+                className="relative group cursor-pointer select-none bg-slate-50/50 hover:bg-slate-100/50 p-2 rounded-xl border border-slate-200 transition-colors"
+              >
                 <div className="flex justify-between text-sm font-bold mb-1">
-                  <span className="text-slate-700">💡 수업연구능력</span>
+                  <span className="text-slate-700 flex items-center gap-1">
+                    💡 수업연구능력
+                    <HelpCircle className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600" />
+                  </span>
                   <span className="text-sky-700 font-mono">{stats.teachingResearch} / 100</span>
                 </div>
                 <div className="w-full bg-slate-100 h-2.5 rounded-full border border-slate-300 overflow-hidden">
@@ -851,6 +959,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
           <div 
             id="tutorial-students-panel"
             className={`paper-card bg-white p-4 transition-all duration-300 ${
+              activeTab === 'left' ? 'block' : 'hidden lg:block'
+            } ${
               isTutorialActive && tutorialStep === 3 
                 ? 'ring-4 ring-[#FF007F] ring-offset-2 border-[#FF007F] scale-[1.01]' 
                 : isTutorialActive && tutorialStep === 2
@@ -889,6 +999,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
 
           {/* 3. 누적 교육 신뢰 지표 모음 카드 */}
           <div className={`paper-card bg-white p-4 transition-all duration-300 ${
+            activeTab === 'status' ? 'block' : 'hidden lg:block'
+          } ${
             isTutorialActive ? 'opacity-30 pointer-events-none' : ''
           }`}>
             <h3 className="font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-2 mb-3 text-base">
@@ -1167,13 +1279,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                           <h2 className="text-xl font-school font-bold text-slate-900 flex items-center gap-1.5">
                             🏫 학교 지도 (School Map)
                           </h2>
-                          <button
-                            onClick={handleProgressTime}
-                            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold border-2 border-black rounded-lg active:translate-y-0.5 shadow-school-press text-xs transition-colors flex items-center gap-1"
-                          >
-                            <span>{timeOfDay === 'morning' ? '오후 일과로 전진' : '퇴근/방과후로 전진'}</span>
-                            <ChevronRight className="w-3.5 h-3.5" />
-                          </button>
                         </div>
                         
                         <p className="text-xs text-slate-500 mb-4 font-medium leading-relaxed">
@@ -2190,6 +2295,120 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
           </div>
         );
       })()}
+
+      {/* 모바일 스탯 클릭 상세 설명 모달 [NEW] */}
+      {activeExplainStat && (() => {
+        let title = "";
+        let formula = "";
+        let desc = "";
+        let recover = "";
+
+        if (activeExplainStat === 'hp') {
+          title = "🏥 건강 (물리 체력)";
+          desc = "교사의 육체적 에너지입니다. 출퇴근 거리, 피로 축적, 일부 사건 해결 및 업무 과중에 따라 하락합니다. 보건실에서 요양하거나 정시 퇴근하면 충전됩니다.";
+          recover = "0이 되면 번아웃 병가로 실직(게임 오버)합니다.";
+        } else if (activeExplainStat === 'mental') {
+          title = "🧠 멘탈 (정신력)";
+          desc = "정신적 평정심과 정신력입니다. 학부모 민원 폭탄, 교실 난동 사건, 동료와의 불화 시 크게 깎입니다. 상담, 휴식, 긍정적인 메시지 확인 등으로 복구할 수 있습니다.";
+          recover = "0이 되면 번아웃 휴직(게임 오버)합니다.";
+        } else if (activeExplainStat === 'burnout') {
+          title = "🔥 번아웃 지표 (피로도)";
+          desc = "일과 후 누적되는 극심한 피로도 비율입니다. 미결 업무 방치, 밤샘 야근, 주말 당직 시 상승합니다. 칼퇴근 및 적당한 위임으로 누적을 늦출 수 있습니다.";
+          recover = "100%에 도달한 채 3일 연속 지속되면 탈진 퇴직(게임 오버)합니다.";
+        } else if (activeExplainStat === 'workCapacity') {
+          title = "💼 업무능력 (Work Capacity)";
+          formula = "공식: 전문성 40% + 행정실무 40% + 관리자신뢰 20%";
+          desc = "공문 기안 완수, 행정 예산 협조, 미결 업무의 당일 결재 완료 시 상승합니다. 미결 업무나 메신저를 방치하고 날을 넘길 시 급격히 하락합니다.";
+        } else if (activeExplainStat === 'interpersonal') {
+          title = "🤝 인간관계 (Interpersonal)";
+          formula = "공식: 동료관계 30% + 학생신뢰 30% + 학부모신뢰 30% + 동료연대감 10%";
+          desc = "동료들과의 사교, 학생/학부모 개별 상담, 스마트폰 감사 연락 답장 시 상승합니다. 전화/문자 민원이나 연락을 방치할 시 급격히 하락합니다.";
+        } else if (activeExplainStat === 'familyRelation') {
+          title = "❤️ 가족관계 (Family Relation)";
+          formula = "공식: 가정만족도와 1:1 비례";
+          desc = "가족 및 사생활과의 끈끈한 유대 지표입니다. 칼퇴근 고수, 주말 사적인 동원 거절, 스마트폰 격려 연락 답장 시 상승합니다. 야근 수행, 주말 친목 모임 강제 참석 시 하락합니다.";
+        } else if (activeExplainStat === 'classManagement') {
+          title = "🎒 학급운영 (Class Management)";
+          formula = "공식: 학생신뢰 50% + 학부모신뢰 30% + 교육소신 20%";
+          desc = "학급 통제력 및 조화도입니다. 아침 교실 조회, 급식 지도, 교문 등교 안전 지도, 책임 훈육 실천 시 상승합니다. 학부모 민원을 방임하거나 학생 갈등을 무시하고 날을 넘길 시 하락합니다.";
+        } else if (activeExplainStat === 'teachingResearch') {
+          title = "💡 수업연구능력 (Teaching Research)";
+          formula = "공식: 수업전문성 70% + 교육적보람 30%";
+          desc = "수업 기획 및 학력 증진 관리 역량입니다. 타 교실 수업 참관, 도서실 교안 정리, 과학실 안전 점검 시 상승합니다. 업무 미결 방치 및 수업 준비 미흡 시 하락합니다.";
+        }
+
+        return (
+          <div className="fixed inset-0 z-[1150] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+            <div className="bg-white border-4 border-slate-900 rounded-2xl p-6 max-w-sm w-full shadow-school-deep relative text-slate-800">
+              <button
+                onClick={() => setActiveExplainStat(null)}
+                className="absolute top-3 right-3 border-2 border-black rounded-lg w-8 h-8 flex items-center justify-center font-bold text-slate-705 bg-slate-100 hover:bg-slate-200 active:translate-y-0.5 shadow-school-press"
+              >
+                X
+              </button>
+              <div className="border-b-2 border-slate-900 pb-2 mb-3">
+                <h4 className="font-extrabold text-base flex items-center gap-1">
+                  {title}
+                </h4>
+                {formula && <p className="text-[10px] text-indigo-650 font-mono mt-1 font-bold">{formula}</p>}
+              </div>
+              <div className="text-xs text-slate-600 space-y-2 leading-relaxed font-semibold break-keep text-left">
+                <p>{desc}</p>
+                {recover && <p className="text-rose-600 font-bold border-t border-slate-100 pt-2">{recover}</p>}
+              </div>
+              <button
+                onClick={() => setActiveExplainStat(null)}
+                className="w-full mt-5 bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 rounded-xl border-2 border-black text-xs shadow-school-press"
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* 번아웃 임계 도달 연속 경고 팝업 [NEW] */}
+      {stats.burnout >= 100 && (useGameStore.getState().burnout100Days ?? 0) > 0 && !endingId && !hideBurnoutWarningToday && (
+        <div className="fixed inset-0 z-[1140] bg-red-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white border-4 border-red-650 rounded-2xl p-6 max-w-md w-full shadow-school-deep text-slate-850 relative">
+            <div className="border-b-2 border-red-600 pb-3 mb-4 text-center">
+              <AlertTriangle className="w-12 h-12 text-red-600 mx-auto animate-bounce mb-2" />
+              <h3 className="text-xl font-school font-extrabold text-red-750">
+                🚨 번아웃 임계치 도달 경고 🚨
+              </h3>
+            </div>
+            
+            <div className="text-xs leading-relaxed text-slate-650 space-y-3 font-semibold break-keep text-left">
+              <p className="bg-red-50 text-red-900 p-3 rounded-lg border border-red-200">
+                현재 번아웃 수치가 <strong className="text-red-650 text-sm font-extrabold">100%</strong>에 도달했습니다!
+              </p>
+              <p>
+                체력 충전이나 업무 결재 처리에 집중하지 않아 번아웃이 임계치인 100%에 머무는 기간이 길어지고 있습니다.
+              </p>
+              <p className="bg-amber-50 text-amber-900 p-2 rounded border border-amber-200 font-bold">
+                • 현재 100% 지속 일수: <span className="text-red-600 font-extrabold">{(useGameStore.getState().burnout100Days ?? 0)}일차</span>
+                <br />
+                • 남은 유예 기간: <span className="text-red-650 font-extrabold">{Math.max(0, 3 - (useGameStore.getState().burnout100Days ?? 0))}일</span>
+              </p>
+              <p className="text-red-600 font-extrabold">
+                ※ 번아웃 100% 상태가 연속 3일째 밤 정산에서 해소되지 않으면, 탈진 퇴직(게임 오버) 처리가 됩니다!
+              </p>
+              <p className="text-slate-500 font-medium">
+                오늘 저녁 가족과의 시간을 보내거나, 보건실에서 휴식을 취하거나, 동료에게 업무를 적절히 분배하여 번아웃 수치를 100% 미만으로 낮추어 주십시오.
+              </p>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-2">
+              <button
+                onClick={() => setHideBurnoutWarningToday(true)}
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-2.5 rounded-xl border-2 border-black text-xs active:translate-y-0.5 shadow-school-press cursor-pointer"
+              >
+                경고 확인 (오늘 하루 이 팝업 닫기)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* iorad 스타일 첫날 튜토리얼 오버레이 */}
       {isTutorialActive && (

@@ -156,6 +156,7 @@ interface GameState {
   overtimeWork: () => void; // 야근 선택: 업무능력 +10 대신 건강/멘탈/번아웃 패널티
   bgmVolume: number; // 배경음 볼륨 단계 (0: off, 1~5) [NEW]
   setBgmVolume: (volume: number) => void; // 배경음 볼륨 단계 변경 [NEW]
+  burnout100Days: number; // [NEW] 번아웃 100% 상태 연속 지속 일수
 }
 
 // 0 ~ 100 범위 강제 헬퍼
@@ -477,6 +478,7 @@ export const useGameStore = create<GameState>()(
       recentLogs: [],
       toastMessage: null,
       bgmVolume: 3, // 기본 배경음 볼륨 단계 3 [NEW]
+      burnout100Days: 0, // 기본 번아웃 지속 일수 0 [NEW]
 
       // 알림 표출
       showToast: (msg: string) => set({ toastMessage: msg }),
@@ -770,6 +772,14 @@ export const useGameStore = create<GameState>()(
             // 5대 핵심 스탯 동기화 및 즉시 게임오버 검사
             const syncedStats = syncNewStats(penaltyStats);
 
+            // 번아웃 100% 임계 연속 일수 정산 [NEW]
+            let nextBurnout100Days = get().burnout100Days;
+            if (syncedStats.burnout >= 100) {
+              nextBurnout100Days += 1;
+            } else {
+              nextBurnout100Days = 0;
+            }
+
             // 업무 기한 리셋/업데이트 (일정 날짜에 새 업무 할당)
             let updatedTasks = [...tasks];
             if (nextDay === 10) {
@@ -810,6 +820,7 @@ export const useGameStore = create<GameState>()(
               timeOfDay: 'morning',
               stats: syncedStats,
               actionPoints: dailyTP,
+              burnout100Days: nextBurnout100Days,
               currentLocation: null,
               currentNpcDialogue: null,
               currentEvent: null, // 지도를 보고 아침 활동 시작
@@ -825,6 +836,7 @@ export const useGameStore = create<GameState>()(
             get().shuffleNpcPlacements();
             get().generateMessengerNotifications();
             get().generatePhoneAndTextNotifications();
+            get().checkFailureConditions(); // 다음 날 아침 실패 조건 전수 검사 [NEW]
           }
         }
       },
@@ -1055,7 +1067,7 @@ export const useGameStore = create<GameState>()(
         // 이미 엔딩이나 실패 상태가 설정되어 있다면 추가 갱신 없이 즉시 잠급니다. [NEW]
         if (get().endingId) return true;
 
-        const { stats } = get();
+        const { stats, burnout100Days } = get();
         if (stats.hp <= 0) {
           set({ endingId: 'ending_gameover_hp' });
           return true;
@@ -1064,7 +1076,7 @@ export const useGameStore = create<GameState>()(
           set({ endingId: 'ending_gameover_mental' });
           return true;
         }
-        if (stats.burnout >= 100) {
+        if (burnout100Days >= 3) {
           set({ endingId: 'ending_gameover_burnout' });
           return true;
         }
