@@ -138,6 +138,7 @@ interface GameState {
     studentId: string, 
     actionType: 'empathy' | 'rational' | 'strict' | 'strength' | 'mentoring'
   ) => { feedbackText: string; effectsText: string } | null;
+  overtimeWork: () => void; // 야근 선택: 업무능력 +10 대신 건강/멘탈/번아웃 패널티
 }
 
 // 0 ~ 100 범위 강제 헬퍼
@@ -455,10 +456,12 @@ export const useGameStore = create<GameState>()(
       startGame: (info: PlayerInfo) => {
         const initialStats = getInitialStats(info.difficulty, info.traits);
         
-        // 난이도 및 교직 경력에 따른 교사력(TP) 한도 조절
-        let maxTP = 7;
-        if (info.traits.includes('교사력왕')) maxTP = 8;
-        if (info.difficulty === 'hard') maxTP = 6;
+        // 난이도에 따른 교사력(TP) 한도 조절
+        // warm(쉬움)=15, realistic(중간)=9, hard(어려움)=7
+        let maxTP = 9; // 기본값 = 중간 난이도
+        if (info.difficulty === 'warm') maxTP = 15;
+        if (info.difficulty === 'hard') maxTP = 7;
+        if (info.traits.includes('교사력왕')) maxTP += 2; // 특성 보너스: +2
 
         // Fisher-Yates 셔플 알고리즘으로 학생 풀 40명 셔플링
         const shuffledStudents = [...initialStudents];
@@ -3293,6 +3296,169 @@ export const useGameStore = create<GameState>()(
       // [NEW] 스마트폰 팝업 닫기
       closePhoneAndTextEvent: () => {
         set({ activePhoneAndTextEvent: null });
+      },
+
+      // [NEW] 퇴근 대신 야근하기 선택 시 처리
+      overtimeWork: () => {
+        const { 
+          day, 
+          timeOfDay, 
+          maxActionPoints,
+          tasks,
+          stats
+        } = get();
+
+        // 정산 시간대(summary)가 아니면 무시
+        if (timeOfDay !== 'summary') return;
+
+        // 1) 야근에 따른 직접적인 스탯 변동
+        // 행정 실무 능력 +15, 전문성 +10, 관리자 신뢰도 +5 상승
+        // 번아웃 +15, 건강 -15, 멘탈 -10, 가정만족도 -15 차감
+        const overtimeStats = { ...stats };
+        overtimeStats.burnout = clamp(overtimeStats.burnout + 15);
+        overtimeStats.hp = clamp(overtimeStats.hp - 15);
+        overtimeStats.mental = clamp(overtimeStats.mental - 10);
+        overtimeStats.familySatisfaction = clamp(overtimeStats.familySatisfaction - 15);
+        overtimeStats.adminPower = clamp(overtimeStats.adminPower + 15);
+        overtimeStats.expert = clamp(overtimeStats.expert + 10);
+        overtimeStats.adminTrust = clamp(overtimeStats.adminTrust + 5);
+
+        const nextDay = day + 1;
+
+        if (nextDay > 30) {
+          // 30일 도달로 게임 종료 시, 야근 스탯 업데이트 및 엔딩 조건 판정
+          set({ stats: syncNewStats(overtimeStats) });
+          get().checkEndingConditions();
+        } else {
+          // 미해결 업무 지연 패널티 정산
+          const { messengerNotifications, phoneAndTextNotifications } = get();
+          const overdueTasks = tasks.filter(t => !t.isCompleted && t.deadlineDay < nextDay);
+          const penaltyMessages: string[] = [];
+
+          // 2) 미결 업무 방치 패널티 정산
+          overdueTasks.forEach(t => {
+            overtimeStats.adminPower = clamp(overtimeStats.adminPower - 20);
+            overtimeStats.expert = clamp(overtimeStats.expert - 15);
+            overtimeStats.adminTrust = clamp(overtimeStats.adminTrust - 10);
+            overtimeStats.reputation = clamp(overtimeStats.reputation - 8);
+            overtimeStats.burnout = clamp(overtimeStats.burnout + 10);
+
+            penaltyMessages.push(
+              `[업무 미결 패널티] "${t.title}" 업무 마감 기한 초과 방치로 인해 행정역량 -20, 전문성 -15, 관리자신뢰 -10 하락 (사유: 주요 공무 연체에 따른 실무 태만)`
+            );
+          });
+
+          // 3) 미확인 학교 메신저 방치 패널티 정산
+          const unreadMessengers = messengerNotifications.filter(m => !m.isRead);
+          unreadMessengers.forEach(m => {
+            overtimeStats.colleagueRelation = clamp(overtimeStats.colleagueRelation - 10);
+            overtimeStats.adminPower = clamp(overtimeStats.adminPower - 10);
+            overtimeStats.reputation = clamp(overtimeStats.reputation - 5);
+
+            penaltyMessages.push(
+              `[메신저 방치 패널티] "${m.sender}"의 메신저 요청 무시로 인해 동료관계 -10, 행정역량 -10, 평판 -5 하락 (사유: 교내 공적 소통 방치 및 협조 거부)`
+            );
+          });
+
+          // 4) 미확인 스마트폰 연락 방치 패널티 정산
+          const unreadPhones = phoneAndTextNotifications.filter(p => !p.isRead);
+          unreadPhones.forEach(p => {
+            if (p.id.startsWith('phone_positive_')) {
+              overtimeStats.colleagueRelation = clamp(overtimeStats.colleagueRelation - 5);
+              overtimeStats.familySatisfaction = clamp(overtimeStats.familySatisfaction - 5);
+              overtimeStats.studentTrust = clamp(overtimeStats.studentTrust - 5);
+
+              penaltyMessages.push(
+                `[감사 무응답 패널티] 제자/학부모의 격려 연락 무응답으로 동료관계 -5, 가정만족 -5, 학생신뢰 -5 하락 (사유: 긍정 힐링 소통 기회 방치)`
+              );
+            } else if (p.id.startsWith('phone_parent_')) {
+              overtimeStats.parentTrust = clamp(overtimeStats.parentTrust - 10);
+              overtimeStats.studentTrust = clamp(overtimeStats.studentTrust - 5);
+              overtimeStats.parentComplaint = clamp(overtimeStats.parentComplaint + 12);
+
+              penaltyMessages.push(
+                `[민원 방치 패널티] 학부모 전화 민원 무시로 학부모 민원 수치 +12, 학부모신뢰 -10, 학생신뢰 -5 하락 (사유: 학부모와의 소통 거부로 인한 불만 가중)`
+              );
+            } else if (p.id.startsWith('phone_colleague_')) {
+              overtimeStats.colleagueRelation = clamp(overtimeStats.colleagueRelation - 10);
+              overtimeStats.reputation = clamp(overtimeStats.reputation - 5);
+
+              penaltyMessages.push(
+                `[교직원 요청 방치 패널티] 동료 교직원의 사적인 요청 연락 무시로 인해 동료관계 -10, 평판 -5 하락 (사유: 교직원 친목 및 협조 거부)`
+              );
+            }
+          });
+
+          // 5) 매일 아침 교사력(TP) 갱신 (야근 시 기본 TP에 +1 추가 보너스)
+          let dailyTP = maxActionPoints + 1;
+          if (overtimeStats.hp < 30) dailyTP -= 1;
+          if (overtimeStats.burnout > 80) dailyTP -= 1;
+          dailyTP = Math.max(1, dailyTP);
+
+          // 6) 5대 핵심 스탯 동기화
+          const syncedStats = syncNewStats(overtimeStats);
+
+          // 7) 신규 업무 업데이트
+          let updatedTasks = [...tasks];
+          if (nextDay === 10) {
+            updatedTasks.push({
+              id: 'task_04',
+              title: '학급 교육공개수업 세부 지도안 설계',
+              category: 'teaching',
+              urgency: 4,
+              importance: 5,
+              estimatedTime: 2,
+              stressCost: 20,
+              reputationReward: 15,
+              deadlineDay: 16,
+              canDelegate: false,
+              canNegotiate: true,
+              isCompleted: false
+            });
+          }
+          if (nextDay === 20) {
+            updatedTasks.push({
+              id: 'task_05',
+              title: '전교 학교폭력 예방 교육 주간 행사 보고',
+              category: 'event',
+              urgency: 5,
+              importance: 3,
+              estimatedTime: 2,
+              stressCost: 15,
+              reputationReward: 12,
+              deadlineDay: 25,
+              canDelegate: true,
+              canNegotiate: false,
+              isCompleted: false
+            });
+          }
+
+          // 상태 커밋
+          set({
+            day: nextDay,
+            timeOfDay: 'morning',
+            stats: syncedStats,
+            actionPoints: dailyTP,
+            currentLocation: null,
+            currentNpcDialogue: null,
+            currentEvent: null, 
+            selectedChoice: null,
+            eventResultText: null,
+            dayEffectsTriggered: [
+              `[야근 실시] 어젯밤 늦게까지 교무실에 남아 행정 업무와 수업 준비에 매진했습니다. (행정실무 +15, 전문성 +10, 관리자신뢰 +5 / 건강 -15, 멘탈 -10, 가정만족도 -15, 번아웃 +15, 오늘 교사력 +1 보너스)`,
+              ...penaltyMessages
+            ],
+            completedNpcDialoguesToday: [],
+            tasks: updatedTasks,
+            activePhoneAndTextEvent: null
+          });
+
+          // 부가 동작 처리
+          get().shuffleNpcPlacements();
+          get().generateMessengerNotifications();
+          get().generatePhoneAndTextNotifications();
+          get().checkFailureConditions();
+        }
       }
     }),
     {
