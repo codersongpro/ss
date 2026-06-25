@@ -33,6 +33,8 @@ export const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onBackToTitl
       setDifficulty('realistic'); // 기혼 자녀없음: 보통
     } else if (val === 'parent') {
       setDifficulty('hard'); // 기혼 자녀있음: 어려움 (육아 병행)
+    } else if (val === 'independent_child') {
+      setDifficulty('realistic'); // 자녀 독립: 보통
     }
   };
 
@@ -212,6 +214,7 @@ export const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onBackToTitl
                   <option value="single">독신 (홀가분함 - 쉬움)</option>
                   <option value="married">기혼 자녀없음 (안정적 - 보통)</option>
                   <option value="parent">기혼 자녀있음 (육아 병행 - 어려움)</option>
+                  <option value="independent_child">자녀 독립 (홀가분함 - 보통)</option>
                 </select>
               </div>
 

@@ -31,7 +31,7 @@ export interface PlayerInfo {
   experience: 'newbie' | 'junior' | 'senior'; // 교직 경력 (신규, 3-5년차, 10년차 이상 등)
   grade: number;              // 담당 학년
   isClassTeacher: boolean;    // 담임 여부
-  familyState: 'single' | 'married' | 'parent'; // 가족 상태 (독신, 기혼, 자녀 있음)
+  familyState: 'single' | 'married' | 'parent' | 'independent_child'; // 가족 상태 (독신, 기혼, 자녀 있음, 자녀 독립)
   commuteDistance: 'short' | 'medium' | 'long'; // 출퇴근 거리
   traits: string[];           // 초기 특성 2개 (예: '수업 장인', '칼퇴 수호자' 등)
   schoolType: string;         // 학교 유형 ('도심 대규모', '신도시', '농산촌' 등)
