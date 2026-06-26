@@ -62,13 +62,22 @@ export interface GameChoice {
   hiddenFlags?: string[];     // 누적될 숨겨진 성향 플래그 (예: 'student_center', 'work_avoid' 등)
   resultText?: string;         // 선택 후 보여질 피드백 텍스트
   riskText?: string;          // 선택 시 동반되는 부작용에 대한 경고 메시지
-  
+
   // [NEW] 주사위 판정용 추가 필드
   successRate?: number;       // 성공 확률 (0 ~ 100)
   successResultText?: string; // 성공 시 피드백 텍스트
   failResultText?: string;    // 실패 시 피드백 텍스트
   failEffects?: StatEffect[]; // 실패 시 스탯 변화
   failDelayedEffects?: DelayedEffect[]; // 실패 시 지연 효과
+
+  // [NEW] 특정 학생의 수치를 직접 변동시키는 데이터 주도 효과 (관계·서사 기억용)
+  studentEffects?: StudentEffect[];
+}
+
+// 특정 학생의 상세 수치를 변동시키는 효과 (selectChoice에서 일괄 적용)
+export interface StudentEffect {
+  studentId: string;                 // 대상 학생 ID
+  changes: Partial<Omit<Student, 'id' | 'name' | 'hiddenNeed' | 'traits' | 'currentIssues'>>; // 변동할 수치(절대값이 아닌 증감치)
 }
 
 // 학교 내부의 공간 정의
@@ -108,7 +117,11 @@ export interface GameEvent {
   cooldown?: number;          // 재등장 방지 쿨다운 일수
   followUpEvents?: string[];  // 후속으로 예약할 이벤트 ID 목록
   tags: string[];             // 이벤트 필터용 태그
+  valence?: EventValence;     // [NEW] 정서 태그 (긍정/부정/중립). 누락 시 효과 순합으로 추론
 }
+
+// 이벤트·대화의 정서 분류 (적응형 밸런싱용)
+export type EventValence = 'positive' | 'negative' | 'neutral';
 
 // 학생 상세 정보
 export interface Student {

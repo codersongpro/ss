@@ -14,7 +14,8 @@ import type {
   DialogueChoice,
   DialogueStep,
   DialogueSession,
-  MessengerNotification
+  MessengerNotification,
+  EventValence
 } from '@/game/types';
 import { initialStudents, initialParents } from '@/data/students';
 import { gameEvents } from '@/data/events';
@@ -101,6 +102,7 @@ interface GameState {
   
   // 이력 및 UI 토스트
   recentLogs: string[];
+  recentValenceLog: EventValence[]; // [NEW] 최근 이벤트/대화 정서 원장 (적응형 밸런싱용, 최근 12건)
   toastMessage: string | null;
   
   // 액션 (조작 메서드)
@@ -186,6 +188,107 @@ const syncNewStats = (s: Stats): Stats => {
     classManagement: clamp(Math.round(s.studentTrust * 0.5 + s.parentTrust * 0.3 + s.educationSoshin * 0.2)),
     teachingResearch: clamp(Math.round(s.expert * 0.7 + s.teachingSatisfaction * 0.3))
   };
+};
+
+// ==========================================
+// [NEW] 긍정/부정 적응형 밸런싱 유틸리티
+// ==========================================
+
+// 위험(높을수록 나쁨) 스탯: 효과 부호를 뒤집어 정서를 계산한다.
+const RISK_STATS: (keyof Stats)[] = ['burnout', 'parentComplaint'];
+
+// 스탯 효과 배열의 순합으로 정서(긍정/부정/중립)를 추론한다.
+const inferValence = (effects: StatEffect[] | undefined): EventValence => {
+  if (!effects || effects.length === 0) return 'neutral';
+  const net = effects.reduce((sum, eff) => {
+    const sign = RISK_STATS.includes(eff.stat) ? -1 : 1;
+    return sum + sign * eff.value;
+  }, 0);
+  if (net >= 6) return 'positive';
+  if (net <= -6) return 'negative';
+  return 'neutral';
+};
+
+// 이벤트의 정서를 결정한다(명시 valence 우선, 없으면 대표 선택지 효과로 추론).
+const getEventValence = (evt: GameEvent): EventValence => {
+  if (evt.valence) return evt.valence;
+  // 선택지 즉시 효과들을 모두 합쳐 전반적 색채를 추정
+  const allEffects = evt.choices.flatMap(c => c.immediateEffects || []);
+  return inferValence(allEffects);
+};
+
+// 최근 정서 원장과 현재 스탯 위험도를 반영해 후보별 가중치를 보정한다.
+// - 최근이 과긍정이면 부정 후보를 키우고, 과부정이면 긍정 후보를 키운다.
+// - 멘탈/번아웃 위험 시에는 긍정 후보를 추가로 부스트(데스 스파이럴 완화).
+const balancedWeight = (
+  baseWeight: number,
+  valence: EventValence,
+  recent: EventValence[],
+  stats: Stats
+): number => {
+  let w = baseWeight;
+  const window = recent.slice(0, 8);
+  const pos = window.filter(v => v === 'positive').length;
+  const neg = window.filter(v => v === 'negative').length;
+
+  // 최근 정서 쏠림 보정
+  if (pos - neg >= 3) {
+    if (valence === 'negative') w *= 1.6;
+    if (valence === 'positive') w *= 0.6;
+  } else if (neg - pos >= 3) {
+    if (valence === 'positive') w *= 1.6;
+    if (valence === 'negative') w *= 0.6;
+  }
+
+  // 위기 상태 동정 보정
+  const inCrisis = stats.mental < 30 || stats.burnout > 80;
+  if (inCrisis) {
+    if (valence === 'positive') w *= 1.8;
+    if (valence === 'negative') w *= 0.5;
+  }
+
+  return Math.max(w, 1);
+};
+
+// 정서 밸런싱을 적용한 가중 랜덤 선택. recent/stats가 없으면 순수 가중 랜덤으로 동작.
+const pickBalancedEvent = (
+  candidates: GameEvent[],
+  recent: EventValence[],
+  stats: Stats
+): GameEvent | null => {
+  if (candidates.length === 0) return null;
+  const weighted = candidates.map(evt => ({
+    evt,
+    w: balancedWeight(evt.weight, getEventValence(evt), recent, stats)
+  }));
+  const total = weighted.reduce((sum, x) => sum + x.w, 0);
+  let r = Math.random() * total;
+  for (const x of weighted) {
+    r -= x.w;
+    if (r <= 0) return x.evt;
+  }
+  return weighted[weighted.length - 1].evt;
+};
+
+// 정서 원장에 결과를 기록(최근 12건 유지)하는 순수 헬퍼.
+const pushValence = (log: EventValence[], v: EventValence): EventValence[] =>
+  [v, ...log].slice(0, 12);
+
+// 선택지의 데이터 주도 학생 효과(studentEffects)를 일괄 적용한다(증감치 + clamp).
+const applyStudentEffects = (students: Student[], choice: GameChoice): Student[] => {
+  if (!choice.studentEffects || choice.studentEffects.length === 0) return students;
+  return students.map(stud => {
+    const eff = choice.studentEffects!.find(e => e.studentId === stud.id);
+    if (!eff) return stud;
+    const updated: Student = { ...stud };
+    (Object.entries(eff.changes) as [keyof Student, number][]).forEach(([key, delta]) => {
+      const cur = updated[key];
+      if (typeof cur === 'number' && typeof delta === 'number') {
+        (updated[key] as number) = clamp(cur + delta);
+      }
+    });
+    return updated;
+  });
 };
 
 // 초기 스탯 프리셋 생성 헬퍼
@@ -590,11 +693,13 @@ const getWeekendHealingEvent = (day: number, familyState?: string): GameEvent =>
 
 // 특정 날짜 범위 및 조건에 맞는 이벤트 추첨 헬퍼
 const getEventForTime = (
-  day: number, 
-  time: TimeOfDay, 
+  day: number,
+  time: TimeOfDay,
   hiddenFlags: string[],
   history: string[],
-  familyState?: string
+  familyState?: string,
+  recent: EventValence[] = [],
+  stats?: Stats
 ): GameEvent | null => {
   let category: GameEvent['category'][] = [];
   
@@ -619,41 +724,41 @@ const getEventForTime = (
     }
   }
 
-  const candidates = gameEvents.filter(evt => {
+  const matchesBase = (evt: GameEvent, applyHistory: boolean): boolean => {
     // 1. 카테고리 매칭
     if (!category.includes(evt.category)) return false;
-    
     // 2. 날짜 범위 확인
     const [start, end] = evt.dayRange;
     if (day < start || day > end) return false;
-    
     // 3. 중복 방지 (이미 실행된 이벤트 제외)
-    if (history.includes(evt.id)) return false;
-    
+    if (applyHistory && history.includes(evt.id)) return false;
     // 4. 선결 요건 검사
     if (evt.prerequisites && evt.prerequisites.length > 0) {
       const hasAll = evt.prerequisites.every(flag => hiddenFlags.includes(flag));
       if (!hasAll) return false;
     }
-    
     return true;
-  });
+  };
 
+  // 후보 산출. 중복 제거로 후보가 고갈되면(후반부 카테고리 소진) 히스토리 무시 폴백.
+  let candidates = gameEvents.filter(evt => matchesBase(evt, true));
+  if (candidates.length === 0) {
+    candidates = gameEvents.filter(evt => matchesBase(evt, false));
+  }
   if (candidates.length === 0) return null;
 
-  // 가중치 비례 랜덤 추출
-  const totalWeight = candidates.reduce((sum, e) => sum + e.weight, 0);
-  let randomVal = Math.random() * totalWeight;
-  
-  for (const evt of candidates) {
-    randomVal -= evt.weight;
-    if (randomVal <= 0) {
-      return evt;
-    }
-  }
-
-  return candidates[0];
+  // 정서 밸런싱을 적용한 가중 랜덤 추출 (stats가 없으면 순수 가중 랜덤에 근접)
+  return pickBalancedEvent(candidates, recent, stats ?? get0Stats(candidates));
 };
+
+// stats 미전달 시 밸런서가 위기 보정 없이 동작하도록 안전한 더미 스탯 제공
+const get0Stats = (_c: GameEvent[]): Stats => ({
+  hp: 50, mental: 50, burnout: 0, expert: 50, studentTrust: 50, parentTrust: 50,
+  colleagueRelation: 50, adminTrust: 50, adminPower: 50, familySatisfaction: 50,
+  educationSoshin: 50, reputation: 50, careerPoint: 0, teachingSatisfaction: 50,
+  colleagueSolidarity: 50, parentComplaint: 0, workCapacity: 50, interpersonal: 50,
+  familyRelation: 50, classManagement: 50, teachingResearch: 50
+});
 
 // 초기화용 디폴트 업무 리스트 생성 헬퍼
 const getInitialTasks = (): Task[] => [
@@ -802,6 +907,7 @@ export const useGameStore = create<GameState>()(
       maxActionPoints: 5,
       
       recentLogs: [],
+      recentValenceLog: [],
       toastMessage: null,
       bgmVolume: 3, // 기본 배경음 볼륨 단계 3 [NEW]
       burnout100Days: 0, // 기본 번아웃 지속 일수 0 [NEW]
@@ -869,7 +975,8 @@ export const useGameStore = create<GameState>()(
           dayEffectsTriggered: [],
           actionPoints: maxTP,
           maxActionPoints: maxTP,
-          recentLogs: ['새 학기 첫 출근을 시작했습니다. 30일 교사 서사가 막을 올립니다.']
+          recentLogs: ['새 학기 첫 출근을 시작했습니다. 30일 교사 서사가 막을 올립니다.'],
+          recentValenceLog: []
         });
 
         // [NEW] 캐릭터 배치 셔플 및 메신저 생성
@@ -901,13 +1008,14 @@ export const useGameStore = create<GameState>()(
           completedPositiveEvents: [],
           phoneAndTextNotifications: [],
           activePhoneAndTextEvent: null,
-          recentLogs: []
+          recentLogs: [],
+          recentValenceLog: []
         });
       },
 
       // 3. 선택지 선택
       selectChoice: (choice: GameChoice) => {
-        const { stats, hiddenFlags, delayedEffects, day, recentLogs, students } = get();
+        const { stats, hiddenFlags, delayedEffects, day, recentLogs, students, recentValenceLog } = get();
         
         // 주사위 판정(성공률)이 있는 선택지인 경우
         if (choice.successRate !== undefined) {
@@ -971,23 +1079,8 @@ export const useGameStore = create<GameState>()(
               ...get().recentLogs.slice(0, 19)
             ];
 
-            // 학생 수치 보정
-            const currentStudents = get().students;
-            const updatedStudents = currentStudents.map(stud => {
-              if (choice.id.includes('s05_2') && stud.id === 'student_jihun') {
-                return { ...stud, behavior: clamp(stud.behavior + 15), teacherTrust: clamp(stud.teacherTrust + 20) };
-              }
-              if (choice.id.includes('s05_3') && stud.id === 'student_jihun') {
-                return { ...stud, behavior: clamp(stud.behavior - 10), peerRelation: clamp(stud.peerRelation - 15) };
-              }
-              if (choice.id.includes('s07_1') && stud.id === 'student_minjun') {
-                return { ...stud, selfEsteem: clamp(stud.selfEsteem + 15), teacherTrust: clamp(stud.teacherTrust + 15) };
-              }
-              if (choice.id.includes('s07_2') && stud.id === 'student_minjun') {
-                return { ...stud, selfEsteem: clamp(stud.selfEsteem - 15), motivation: clamp(stud.motivation + 5) };
-              }
-              return stud;
-            });
+            // 학생 수치 보정 (데이터 주도 studentEffects 일괄 적용)
+            const updatedStudents = applyStudentEffects(get().students, choice);
 
             set({
               stats: syncNewStats(newStats),
@@ -996,6 +1089,7 @@ export const useGameStore = create<GameState>()(
               eventResultText: resultText,
               recentLogs: updatedLogs,
               students: updatedStudents,
+              recentValenceLog: pushValence(get().recentValenceLog, inferValence(appliedEffects)),
               diceRollState: {
                 rolling: false,
                 value: rollValue,
@@ -1042,21 +1136,8 @@ export const useGameStore = create<GameState>()(
             ...recentLogs.slice(0, 19)
           ];
 
-          const updatedStudents = students.map(stud => {
-            if (choice.id.includes('s05_2') && stud.id === 'student_jihun') {
-              return { ...stud, behavior: clamp(stud.behavior + 15), teacherTrust: clamp(stud.teacherTrust + 20) };
-            }
-            if (choice.id.includes('s05_3') && stud.id === 'student_jihun') {
-              return { ...stud, behavior: clamp(stud.behavior - 10), peerRelation: clamp(stud.peerRelation - 15) };
-            }
-            if (choice.id.includes('s07_1') && stud.id === 'student_minjun') {
-              return { ...stud, selfEsteem: clamp(stud.selfEsteem + 15), teacherTrust: clamp(stud.teacherTrust + 15) };
-            }
-            if (choice.id.includes('s07_2') && stud.id === 'student_minjun') {
-              return { ...stud, selfEsteem: clamp(stud.selfEsteem - 15), motivation: clamp(stud.motivation + 5) };
-            }
-            return stud;
-          });
+          // 데이터 주도 studentEffects 일괄 적용
+          const updatedStudents = applyStudentEffects(students, choice);
 
           set({
             stats: syncNewStats(newStats),
@@ -1066,6 +1147,7 @@ export const useGameStore = create<GameState>()(
             eventResultText: choice.resultText,
             recentLogs: updatedLogs,
             students: updatedStudents,
+            recentValenceLog: pushValence(recentValenceLog, inferValence(choice.immediateEffects)),
             diceRollState: null // 일반 선택지는 주사위 상태 무시
           });
         }
@@ -1073,13 +1155,15 @@ export const useGameStore = create<GameState>()(
 
       // 4. 시간 흐름 전진
       progressTime: () => {
-        const { 
-          day, 
-          timeOfDay, 
-          recentLogs, 
-          hiddenFlags, 
+        const {
+          day,
+          timeOfDay,
+          recentLogs,
+          hiddenFlags,
           maxActionPoints,
-          playerInfo
+          playerInfo,
+          recentValenceLog,
+          stats
         } = get();
 
         if (timeOfDay === 'morning') {
@@ -1108,7 +1192,7 @@ export const useGameStore = create<GameState>()(
           }
         } else if (timeOfDay === 'afternoon') {
           // 오후 -> 저녁 (저녁은 집/개인 활동이므로 기존 방식대로 저녁 이벤트를 자동 추점)
-          const nextEvent = getEventForTime(day, 'evening', hiddenFlags, recentLogs, playerInfo?.familyState);
+          const nextEvent = getEventForTime(day, 'evening', hiddenFlags, recentLogs, playerInfo?.familyState, recentValenceLog, stats);
           set({
             timeOfDay: 'evening',
             currentLocation: null,
@@ -1334,15 +1418,30 @@ export const useGameStore = create<GameState>()(
         newStats.adminPower = clamp(newStats.adminPower + 5);
         newStats.adminTrust = clamp(newStats.adminTrust + target.reputationReward);
         newStats.burnout = clamp(newStats.burnout + target.stressCost);
-        newStats.hp = clamp(newStats.hp - 10);
+
+        // [NEW] 모든 업무가 똑같이 소모적이지 않도록 분기:
+        // - 부담이 낮은 업무(stressCost<=6)는 체력 소모를 완화한다.
+        // - 수업/교육(teaching) 업무는 교육적 보람과 멘탈 회복을 제공한다.
+        const isLight = target.stressCost <= 6;
+        newStats.hp = clamp(newStats.hp - (isLight ? 4 : 10));
+        const isRewarding = target.category === 'teaching';
+        if (isRewarding) {
+          newStats.teachingSatisfaction = clamp(newStats.teachingSatisfaction + 8);
+          newStats.mental = clamp(newStats.mental + 5);
+        }
 
         set({
           tasks: tasks.map(t => t.id === taskId ? { ...t, isCompleted: true } : t),
           actionPoints: actionPoints - target.estimatedTime,
-          stats: newStats
+          stats: syncNewStats(newStats),
+          recentValenceLog: pushValence(get().recentValenceLog, isRewarding || isLight ? 'positive' : 'negative')
         });
-        
-        get().showToast(`[업무완료] "${target.title}"을 완수하여 평판이 올랐습니다!`);
+
+        get().showToast(
+          isRewarding
+            ? `[업무완료] "${target.title}"을 마치며 가르치는 보람을 느꼈습니다!`
+            : `[업무완료] "${target.title}"을 완수하여 평판이 올랐습니다!`
+        );
         get().checkFailureConditions();
       },
 
@@ -1615,7 +1714,7 @@ export const useGameStore = create<GameState>()(
 
       // 11. RPG 장소 탐색 (사건 트리거, TP 1 소모)
       exploreLocation: () => {
-        const { currentLocation, day, hiddenFlags, recentLogs, actionPoints } = get();
+        const { currentLocation, day, hiddenFlags, recentLogs, actionPoints, recentValenceLog, stats } = get();
         if (!currentLocation) return;
         if (actionPoints < 1) {
           get().showToast('교사력(TP)이 부족하여 탐색할 수 없습니다.');
@@ -1680,18 +1779,8 @@ export const useGameStore = create<GameState>()(
           return;
         }
 
-        // 랜덤 가중치로 선택
-        const totalWeight = candidates.reduce((sum, e) => sum + e.weight, 0);
-        let randomVal = Math.random() * totalWeight;
-        let selectedEvt = candidates[0];
-
-        for (const evt of candidates) {
-          randomVal -= evt.weight;
-          if (randomVal <= 0) {
-            selectedEvt = evt;
-            break;
-          }
-        }
+        // 정서 밸런싱을 적용한 가중치 랜덤 선택
+        const selectedEvt = pickBalancedEvent(candidates, recentValenceLog, stats) ?? candidates[0];
 
         set({
           actionPoints: actionPoints - 1,
@@ -3548,13 +3637,14 @@ export const useGameStore = create<GameState>()(
 
       // [NEW] 매일 아침 스마트폰 전화/문자 수신 (학부모 민원 50선 + 교직원 사적 20선 vs 긍정 힐링 150선)
       generatePhoneAndTextNotifications: () => {
-        const { day, completedParentEvents, completedColleaguePrivateEvents, completedPositiveEvents, phoneAndTextNotifications } = get();
+        const { day, completedParentEvents, completedColleaguePrivateEvents, completedPositiveEvents, phoneAndTextNotifications, stats } = get();
         const newNotifs: MessengerNotification[] = [];
 
         // 매일 아침 75% 확률로 스마트폰 피드 알림 생성
         if (Math.random() < 0.75) {
-          // 50% 확률로 긍정 힐링 vs 50% 확률로 부정 딜레마 결정
-          const isPositive = Math.random() < 0.5;
+          // 긍정 힐링 vs 부정 딜레마 결정. 멘탈/번아웃 위기 시 긍정 확률을 0.5→0.65로 상향(데스 스파이럴 완화)
+          const positiveChance = (stats.mental < 30 || stats.burnout > 80) ? 0.65 : 0.5;
+          const isPositive = Math.random() < positiveChance;
 
           if (isPositive) {
             // [긍정 힐링 150선 생성]

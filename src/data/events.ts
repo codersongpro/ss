@@ -405,6 +405,9 @@ export const gameEvents: GameEvent[] = [
           { stat: 'expert', value: 15 }
         ],
         hiddenFlags: ['student_center', 'collaboration'],
+        studentEffects: [
+          { studentId: 'student_jihun', changes: { behavior: 15, teacherTrust: 20 } }
+        ],
         resultText: '매우 힘들고 에너지가 크게 소모되는 화해 중재 과정이었습니다. 다행히 상대방 교사와 원만하게 소통되어 두 학생은 서로의 오해를 깨닫고 악수하며 마무리했습니다.'
       },
       {
@@ -426,6 +429,9 @@ export const gameEvents: GameEvent[] = [
           }
         ],
         hiddenFlags: ['conflict_avoidance'],
+        studentEffects: [
+          { studentId: 'student_jihun', changes: { behavior: -10, peerRelation: -15 } }
+        ],
         resultText: '일단 현장에서는 빠르게 끝을 보았습니다. 아이들은 억지로 화해한 척 악수를 나누었지만, 돌아서는 복도에서 험악한 욕설을 주고받습니다.'
       }
     ]
@@ -507,6 +513,9 @@ export const gameEvents: GameEvent[] = [
           }
         ],
         hiddenFlags: ['student_center'],
+        studentEffects: [
+          { studentId: 'student_minjun', changes: { selfEsteem: 15, teacherTrust: 15 } }
+        ],
         resultText: '보건실 침대에서 안정을 찾은 민준이는 자신을 무작정 다그치지 않은 담임 선생님께 깊은 감사와 안도감을 표했습니다.'
       },
       {
@@ -519,6 +528,9 @@ export const gameEvents: GameEvent[] = [
           { stat: 'studentTrust', value: -10 }
         ],
         hiddenFlags: ['performance_center', 'fairness'],
+        studentEffects: [
+          { studentId: 'student_minjun', changes: { selfEsteem: -15, motivation: 5 } }
+        ],
         resultText: '아이는 간신히 시험을 끝까지 마쳤습니다. 그러나 교사를 대하는 태도에 약간의 차가운 벽이 생겼으며, 시험 내내 두려움에 떨었습니다.'
       },
       {

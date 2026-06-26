@@ -2235,6 +2235,165 @@ export const taskTemplates: TaskTemplate[] = [
     reputationReward: 6,
     deadlineLimit: 4,
     canDelegate: true
+  },
+
+  // ==========================================
+  // [NEW] 보람 있는 교육 업무 (낮은 부담 + 교육적 보람). 업무가 100% 스트레스로만
+  // 느껴지지 않도록 가르치는 즐거움을 주는 teaching 카테고리 위주로 구성한다.
+  // ==========================================
+  {
+    title: "아이들이 쓴 손편지 모아 학급 추억 앨범 꾸미기",
+    category: "teaching",
+    urgency: 1,
+    importance: 2,
+    estimatedTime: 1,
+    stressCost: 3,
+    reputationReward: 5,
+    deadlineLimit: 6,
+    canDelegate: false
+  },
+  {
+    title: "이달의 칭찬 릴레이 학급 게시판 새 단장",
+    category: "teaching",
+    urgency: 1,
+    importance: 2,
+    estimatedTime: 1,
+    stressCost: 3,
+    reputationReward: 4,
+    deadlineLimit: 7,
+    canDelegate: false
+  },
+  {
+    title: "다음 주 과학 실험 수업용 교구 직접 준비",
+    category: "teaching",
+    urgency: 2,
+    importance: 3,
+    estimatedTime: 1,
+    stressCost: 5,
+    reputationReward: 7,
+    deadlineLimit: 5,
+    canDelegate: false
+  },
+  {
+    title: "학급 문집 '우리들의 1년' 초안 편집",
+    category: "teaching",
+    urgency: 2,
+    importance: 3,
+    estimatedTime: 2,
+    stressCost: 6,
+    reputationReward: 9,
+    deadlineLimit: 6,
+    canDelegate: false
+  },
+  {
+    title: "느린 학습자 맞춤 학습지 손수 제작",
+    category: "teaching",
+    urgency: 2,
+    importance: 4,
+    estimatedTime: 1,
+    stressCost: 5,
+    reputationReward: 8,
+    deadlineLimit: 5,
+    canDelegate: false
+  },
+  {
+    title: "교실 한쪽에 작은 식물 키우기 코너 만들기",
+    category: "teaching",
+    urgency: 1,
+    importance: 2,
+    estimatedTime: 1,
+    stressCost: 3,
+    reputationReward: 4,
+    deadlineLimit: 8,
+    canDelegate: false
+  },
+  {
+    title: "아침 독서 시간용 추천 그림책 큐레이션",
+    category: "teaching",
+    urgency: 1,
+    importance: 2,
+    estimatedTime: 1,
+    stressCost: 4,
+    reputationReward: 5,
+    deadlineLimit: 7,
+    canDelegate: false
+  },
+  {
+    title: "현장체험학습 추억 사진으로 학급 영상 만들기",
+    category: "teaching",
+    urgency: 2,
+    importance: 2,
+    estimatedTime: 1,
+    stressCost: 5,
+    reputationReward: 6,
+    deadlineLimit: 6,
+    canDelegate: false
+  },
+  {
+    title: "생일 맞은 아이들을 위한 깜짝 롤링페이퍼 준비",
+    category: "event",
+    urgency: 1,
+    importance: 2,
+    estimatedTime: 1,
+    stressCost: 3,
+    reputationReward: 4,
+    deadlineLimit: 5,
+    canDelegate: false
+  },
+  {
+    title: "학급 칭찬 스티커판 보상 이벤트 기획",
+    category: "teaching",
+    urgency: 1,
+    importance: 2,
+    estimatedTime: 1,
+    stressCost: 4,
+    reputationReward: 5,
+    deadlineLimit: 6,
+    canDelegate: false
+  },
+  {
+    title: "다음 단원 재미있는 모둠 활동 수업 설계",
+    category: "teaching",
+    urgency: 2,
+    importance: 3,
+    estimatedTime: 2,
+    stressCost: 6,
+    reputationReward: 8,
+    deadlineLimit: 5,
+    canDelegate: false
+  },
+  {
+    title: "학부모 공개수업용 따뜻한 교실 환경 정비",
+    category: "teaching",
+    urgency: 2,
+    importance: 3,
+    estimatedTime: 1,
+    stressCost: 6,
+    reputationReward: 7,
+    deadlineLimit: 4,
+    canDelegate: false
+  },
+  {
+    title: "체육대회 우리 반 응원 도구 함께 만들기",
+    category: "event",
+    urgency: 2,
+    importance: 2,
+    estimatedTime: 1,
+    stressCost: 5,
+    reputationReward: 6,
+    deadlineLimit: 5,
+    canDelegate: false
+  },
+  {
+    title: "졸업 앨범에 담을 우리 반 단체 사진 콘셉트 정하기",
+    category: "teaching",
+    urgency: 1,
+    importance: 2,
+    estimatedTime: 1,
+    stressCost: 4,
+    reputationReward: 5,
+    deadlineLimit: 7,
+    canDelegate: false
   }
 ];
 
