@@ -251,7 +251,7 @@ export const initialStudents: Student[] = [
     teacherTrust: 75,
     familySupport: 80,
     hiddenNeed: '자신의 멀티미디어 제작 관심과 역량을 인정받고 학습에 응용해보고 싶어 함.',
-    traits: ['유튜브중독', '크리에이터꿈나무', '수업외지식'],
+    traits: ['유튜브중독', '크리에이터지망', '수업외지식'],
     currentIssues: ['자극적인 콘텐츠 시청 노출']
   },
   {
