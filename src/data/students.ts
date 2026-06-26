@@ -901,7 +901,7 @@ export const initialParents: Parent[] = [
     studentId: 'student_31',
     studentName: '고다율',
     parentType: 'info',
-    visibleRequest: '다율이가 아이디어 구상만 하고 매번 실행을 끝까지 안 하는데, 학교 수행평가 제출물 채크를 빡빡하게 해주세요.',
+    visibleRequest: '다율이가 아이디어 구상만 하고 매번 실행을 끝까지 안 하는데, 학교 수행평가 제출물 체크를 빡빡하게 해주세요.',
     hiddenConcern: '아이의 끈기 없음이 성인이 되어 취업 준비 시 낙방의 원인이 될까 근심함.',
     emotionLevel: 60,
     evidenceLevel: 30,

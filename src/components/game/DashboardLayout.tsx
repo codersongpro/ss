@@ -1816,8 +1816,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
           >
             {combinedCards.length > 0 ? (
               (() => {
-                const card = combinedCards[currentCardIndex];
-                
+                const safeCardIndex = Math.min(currentCardIndex, combinedCards.length - 1);
+                const card = combinedCards[safeCardIndex];
+                if (!card) return null;
+
                 // 1. 미결 행정 업무 카드 UI
                 if (card.type === 'task') {
                   const task = card.data;
@@ -1833,34 +1835,34 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                     const titleLower = t.title.toLowerCase();
                     const cat = t.category;
 
-                    // ---- 1) 미마간마 그 업무에 맞는 특수 선택지 로직 (keyword-based) ----
+                    // ---- 1) 해당 업무에 맞는 특수 선택지 로직 (keyword-based) ----
                     if (titleLower.includes('생활기록부') || titleLower.includes('나이스') || titleLower.includes('neis')) {
                       return [
-                        { id: 'a', text: '퇈퇈히 수작업하여 마감 기한내 완백하게 제출', effects: [{ stat: 'adminPower', value: 8 }, { stat: 'expert', value: 5 }, { stat: 'burnout', value: 12 }, { stat: 'hp', value: -5 }], resultText: '의지적인 마감 전진으로 엄격한 기록부 시즈율을 다젖으나 다소 지쳨습니다.' },
-                        { id: 'b', text: '동학년 교사와 공동 스프레드시트를 활용해 취압한 족본 제출', effects: [{ stat: 'colleagueRelation', value: 6 }, { stat: 'adminPower', value: 5 }, { stat: 'burnout', value: 5 }], resultText: '동료와 형포를 나눅어 효율적으로 처리했습니다.' },
-                        { id: 'c', text: '교무부장에게 조력을 구해 렉리로 탙탙하게 마감 확인 후 하루 이내 제출', effects: [{ stat: 'adminPower', value: 4 }, { stat: 'colleagueRelation', value: 4 }, { stat: 'burnout', value: 3 }, { stat: 'mental', value: 2 }], resultText: '전문가의 도움으로 효율적으로 처리를 마쳨습니다.' },
-                        { id: 'd', text: '문서 마감 타임슬롯 연장을 요청하는 공문을 협의 후 기한 포기 조율', effects: [{ stat: 'adminTrust', value: -4 }, { stat: 'hp', value: 5 }, { stat: 'burnout', value: -3 }, { stat: 'mental', value: 3 }], resultText: '나를 위한 인정으로 하루 여유를 확보했으나 관리자 평판에 약간 영향을 주었습니다.' }
+                        { id: 'a', text: '꼼꼼히 수작업하여 마감 기한 내 완벽하게 제출', effects: [{ stat: 'adminPower', value: 8 }, { stat: 'expert', value: 5 }, { stat: 'burnout', value: 12 }, { stat: 'hp', value: -5 }], resultText: '의지적인 마감 추진으로 엄격한 기록부 작성률을 다잡았으나 다소 지쳤습니다.' },
+                        { id: 'b', text: '동학년 교사와 공동 스프레드시트를 활용해 취합한 초안 제출', effects: [{ stat: 'colleagueRelation', value: 6 }, { stat: 'adminPower', value: 5 }, { stat: 'burnout', value: 5 }], resultText: '동료와 협업을 나눠 효율적으로 처리했습니다.' },
+                        { id: 'c', text: '교무부장에게 조력을 구해 꼼꼼하게 마감 확인 후 하루 이내 제출', effects: [{ stat: 'adminPower', value: 4 }, { stat: 'colleagueRelation', value: 4 }, { stat: 'burnout', value: 3 }, { stat: 'mental', value: 2 }], resultText: '전문가의 도움으로 효율적으로 처리를 마쳤습니다.' },
+                        { id: 'd', text: '문서 마감 기한 연장을 요청하는 공문을 협의해 일정을 조율', effects: [{ stat: 'adminTrust', value: -4 }, { stat: 'hp', value: 5 }, { stat: 'burnout', value: -3 }, { stat: 'mental', value: 3 }], resultText: '동료의 양해를 구해 하루 여유를 확보했으나 관리자 평판에 약간 영향을 주었습니다.' }
                       ];
                     }
                     if (titleLower.includes('학부모') || titleLower.includes('상담') || titleLower.includes('면담')) {
                       return [
-                        { id: 'a', text: '먹쳤 상담 노트를 준비하여 서제 상담으로 체계적 대응', effects: [{ stat: 'parentTrust', value: 10 }, { stat: 'expert', value: 5 }, { stat: 'burnout', value: 8 }], resultText: '침스한 전문 대없으로 학부모를 안심시켰습니다.' },
-                        { id: 'b', text: '전화로 먼저 직접 또는 문자로 상황 안내 도드림', effects: [{ stat: 'parentTrust', value: 6 }, { stat: 'hp', value: -3 }, { stat: 'mental', value: -2 }], resultText: '빠른 대스로 블를 엄대했으나 에너지 소모가 있었습니다.' },
+                        { id: 'a', text: '꼼꼼한 상담 노트를 준비하여 대면 상담으로 체계적 대응', effects: [{ stat: 'parentTrust', value: 10 }, { stat: 'expert', value: 5 }, { stat: 'burnout', value: 8 }], resultText: '차분한 전문적 대응으로 학부모를 안심시켰습니다.' },
+                        { id: 'b', text: '전화나 문자로 먼저 직접 상황을 안내드림', effects: [{ stat: 'parentTrust', value: 6 }, { stat: 'hp', value: -3 }, { stat: 'mental', value: -2 }], resultText: '빠른 대응으로 불씨를 잡았으나 에너지 소모가 있었습니다.' },
                         { id: 'c', text: '상담 전 Wee클래스와 사전 협의하여 전문가 연계 상담 권유', effects: [{ stat: 'parentTrust', value: 5 }, { stat: 'expert', value: 6 }, { stat: 'mental', value: 2 }], resultText: '전문가 네트워크를 활용해 함께 해결책을 제시했습니다.' },
-                        { id: 'd', text: '학부모 요쫘은 수용하되 학교 규정 범위 내에서만 대응 가능함을 명확히 함', effects: [{ stat: 'educationSoshin', value: 8 }, { stat: 'parentTrust', value: -3 }, { stat: 'parentComplaint', value: 5 }], resultText: '원칙으로 대응하여 소신을 지켰으나 학부모의 불만이 높아졌습니다.' }
+                        { id: 'd', text: '학부모 요청은 수용하되 학교 규정 범위 내에서만 대응 가능함을 명확히 함', effects: [{ stat: 'educationSoshin', value: 8 }, { stat: 'parentTrust', value: -3 }, { stat: 'parentComplaint', value: 5 }], resultText: '원칙으로 대응하여 소신을 지켰으나 학부모의 불만이 높아졌습니다.' }
                       ];
                     }
                     if (titleLower.includes('안전') || titleLower.includes('소방') || titleLower.includes('훈련') || titleLower.includes('점검')) {
                       return [
-                        { id: 'a', text: '전체 학급을 맞춰 실제 단력 훈련을 직접 지휘 및 실습 진행', effects: [{ stat: 'expert', value: 6 }, { stat: 'studentTrust', value: 5 }, { stat: 'hp', value: -4 }, { stat: 'burnout', value: 6 }], resultText: '실전 훈련으로 안전 인식을 높였으나 체력 소모가 잘례지죠.' },
-                        { id: 'b', text: '당번 학급 담임에게 루틴으로 다음 달 당번으로 수배 제안', effects: [{ stat: 'colleagueRelation', value: 4 }, { stat: 'hp', value: 3 }, { stat: 'adminPower', value: 3 }], resultText: '공평한 분담 조율로 정리했습니다.' },
-                        { id: 'c', text: '안전교육 전요 교사에게 중심 진행을 이관 후 서면 보고만 제출', effects: [{ stat: 'adminPower', value: 5 }, { stat: 'expert', value: 3 }, { stat: 'hp', value: 4 }], resultText: '전문가 연계로 효율적으로 처리했습니다.' },
-                        { id: 'd', text: '주최부서에 소방서 연락을 요청하고 공식 프로그램으로 진행 유도', effects: [{ stat: 'adminTrust', value: 7 }, { stat: 'expert', value: 5 }, { stat: 'burnout', value: 3 }], resultText: '외부 전문 인력과의 협업으로 팀각 있는 안전교육을 완성했습니다.' }
+                        { id: 'a', text: '전체 학급을 모아 실제 대피 훈련을 직접 지휘하며 실습 진행', effects: [{ stat: 'expert', value: 6 }, { stat: 'studentTrust', value: 5 }, { stat: 'hp', value: -4 }, { stat: 'burnout', value: 6 }], resultText: '실전 훈련으로 안전 인식을 높였으나 체력 소모가 컸습니다.' },
+                        { id: 'b', text: '당번 학급 담임과 협의하여 다음 달 당번 순서를 조정 제안', effects: [{ stat: 'colleagueRelation', value: 4 }, { stat: 'hp', value: 3 }, { stat: 'adminPower', value: 3 }], resultText: '공평한 분담 조율로 정리했습니다.' },
+                        { id: 'c', text: '안전교육 전담 교사에게 진행을 이관 후 서면 보고만 제출', effects: [{ stat: 'adminPower', value: 5 }, { stat: 'expert', value: 3 }, { stat: 'hp', value: 4 }], resultText: '전문가 연계로 효율적으로 처리했습니다.' },
+                        { id: 'd', text: '주최부서에 소방서 연락을 요청하고 공식 프로그램으로 진행 유도', effects: [{ stat: 'adminTrust', value: 7 }, { stat: 'expert', value: 5 }, { stat: 'burnout', value: 3 }], resultText: '외부 전문 인력과의 협업으로 짜임새 있는 안전교육을 완성했습니다.' }
                       ];
                     }
                     if (titleLower.includes('공문') || titleLower.includes('보고서') || titleLower.includes('기안') || titleLower.includes('결재')) {
                       return [
-                        { id: 'a', text: '모든 영역을 스스로 안전하게 작성 후 교감 선생님께 도급 상신', effects: [{ stat: 'adminTrust', value: 8 }, { stat: 'adminPower', value: 6 }, { stat: 'burnout', value: 10 }, { stat: 'hp', value: -4 }], resultText: '체계적인 문서로 신뢰를 다졌으나 시간과 체력 소모가 컸니다.' },
+                        { id: 'a', text: '모든 항목을 스스로 꼼꼼히 작성한 후 교감 선생님께 직접 상신', effects: [{ stat: 'adminTrust', value: 8 }, { stat: 'adminPower', value: 6 }, { stat: 'burnout', value: 10 }, { stat: 'hp', value: -4 }], resultText: '체계적인 문서로 신뢰를 다졌으나 시간과 체력 소모가 컸습니다.' },
                         { id: 'b', text: '예년도 유사 양식을 예시로 참조하여 최대한 빠르게 작성', effects: [{ stat: 'adminPower', value: 5 }, { stat: 'expert', value: 3 }, { stat: 'burnout', value: 4 }], resultText: '레퍼런스를 중심으로 효율적으로 처리했습니다.' },
                         { id: 'c', text: '동료 교사님과 협업하여 미리 만들어둔 공용 마스터 양식을 사용', effects: [{ stat: 'colleagueRelation', value: 6 }, { stat: 'adminPower', value: 4 }, { stat: 'burnout', value: 2 }], resultText: '팀워크로 효율적으로 완성했습니다.' },
                         { id: 'd', text: '교육청 가이드라인을 먼저 확인한 후 정확한 규정에 따라 작성', effects: [{ stat: 'expert', value: 7 }, { stat: 'adminTrust', value: 5 }, { stat: 'burnout', value: 6 }], resultText: '공식 지침에 따라 완벽하게 대응했습니다.' }
@@ -1868,75 +1870,75 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                     }
                     if (titleLower.includes('수업') || titleLower.includes('교욕과정') || titleLower.includes('연구수업') || titleLower.includes('학습')) {
                       return [
-                        { id: 'a', text: '스스로 특새로운 교수법을 연구하여 개성있는 수업안 설계', effects: [{ stat: 'teachingResearch', value: 8 }, { stat: 'expert', value: 6 }, { stat: 'burnout', value: 8 }, { stat: 'educationSoshin', value: 5 }], resultText: '독창적인 수업 우수연구로 연수에만존하지 않는 수업력을 케웠습니다.' },
-                        { id: 'b', text: '학습 켥엠츠를 동학년과 공유하여 평준화된 형포를 만들어 진행', effects: [{ stat: 'colleagueSolidarity', value: 8 }, { stat: 'expert', value: 4 }, { stat: 'burnout', value: 3 }], resultText: '동학년 협력으로 더 탄탄한 수업을 완성했습니다.' },
-                        { id: 'c', text: '와성 또는 EBS 콘텐츠를 적극 활용하여 살집 수업 포인트 구성', effects: [{ stat: 'expert', value: 5 }, { stat: 'teachingResearch', value: 5 }, { stat: 'burnout', value: 2 }], resultText: '양질 콘텐츠 활용으로 효율적 수업 설계를 해냈습니다.' },
+                        { id: 'a', text: '스스로 새로운 교수법을 연구하여 개성 있는 수업안 설계', effects: [{ stat: 'teachingResearch', value: 8 }, { stat: 'expert', value: 6 }, { stat: 'burnout', value: 8 }, { stat: 'educationSoshin', value: 5 }], resultText: '독창적인 수업 연구로 연수에만 의존하지 않는 수업력을 키웠습니다.' },
+                        { id: 'b', text: '학습 콘텐츠를 동학년과 공유하여 평준화된 형태로 만들어 진행', effects: [{ stat: 'colleagueSolidarity', value: 8 }, { stat: 'expert', value: 4 }, { stat: 'burnout', value: 3 }], resultText: '동학년 협력으로 더 탄탄한 수업을 완성했습니다.' },
+                        { id: 'c', text: '기존 자료 또는 EBS 콘텐츠를 적극 활용하여 알찬 수업 포인트 구성', effects: [{ stat: 'expert', value: 5 }, { stat: 'teachingResearch', value: 5 }, { stat: 'burnout', value: 2 }], resultText: '양질 콘텐츠 활용으로 효율적 수업 설계를 해냈습니다.' },
                         { id: 'd', text: '학생들의 실제 궁금점을 수집하여 답하는 프로젝트 기반 수업으로 재편성', effects: [{ stat: 'studentTrust', value: 7 }, { stat: 'teachingResearch', value: 6 }, { stat: 'educationSoshin', value: 5 }], resultText: '학생과 함께 만들어가는 수업으로 큰 호응을 얻었습니다.' }
                       ];
                     }
                     if (titleLower.includes('예산') || titleLower.includes('정산') || titleLower.includes('영수증') || titleLower.includes('거래') || titleLower.includes('방순')) {
                       return [
-                        { id: 'a', text: '직접 영수증을 전부 확인하며 수기무작 정확하게 정리 제출', effects: [{ stat: 'adminPower', value: 8 }, { stat: 'adminTrust', value: 6 }, { stat: 'burnout', value: 10 }, { stat: 'hp', value: -6 }], resultText: '왕성한 수글능력으로 학교 업무 신뢰를 올렸습니다.' },
-                        { id: 'b', text: '연관 텐플릿을 사용해 구간별 자동 정렬 후 트리플 확인만 하여 제출', effects: [{ stat: 'adminPower', value: 5 }, { stat: 'expert', value: 4 }, { stat: 'burnout', value: 4 }], resultText: '효율적인 트리플 매칩으로 빠르게 마무리했습니다.' },
-                        { id: 'c', text: '행정실에 수납 요청하여 전시스템 연동로 자동 정산 마무리', effects: [{ stat: 'adminPower', value: 4 }, { stat: 'colleagueRelation', value: 4 }, { stat: 'burnout', value: 2 }], resultText: '시스템 연동으로 목표를 성취했습니다.' },
-                        { id: 'd', text: '설명 자료 만들어 모든 항목을 쳀쭙한 후 교감 선생님 청구', effects: [{ stat: 'adminTrust', value: 7 }, { stat: 'expert', value: 5 }, { stat: 'burnout', value: 8 }], resultText: '투명한 수치 보고로 신뢰를 다졌습니다.' }
+                        { id: 'a', text: '직접 영수증을 전부 확인하며 수기로 꼼꼼하게 정리 제출', effects: [{ stat: 'adminPower', value: 8 }, { stat: 'adminTrust', value: 6 }, { stat: 'burnout', value: 10 }, { stat: 'hp', value: -6 }], resultText: '꼼꼼한 정리 능력으로 학교 업무 신뢰를 높였습니다.' },
+                        { id: 'b', text: '관련 템플릿을 사용해 구간별 자동 정렬 후 한 번 더 확인하여 제출', effects: [{ stat: 'adminPower', value: 5 }, { stat: 'expert', value: 4 }, { stat: 'burnout', value: 4 }], resultText: '효율적인 템플릿 활용으로 빠르게 마무리했습니다.' },
+                        { id: 'c', text: '행정실에 정산을 요청하여 전산 시스템 연동으로 자동 정산 마무리', effects: [{ stat: 'adminPower', value: 4 }, { stat: 'colleagueRelation', value: 4 }, { stat: 'burnout', value: 2 }], resultText: '시스템 연동으로 목표를 성취했습니다.' },
+                        { id: 'd', text: '설명 자료를 만들어 모든 항목을 점검한 후 교감 선생님께 결재 요청', effects: [{ stat: 'adminTrust', value: 7 }, { stat: 'expert', value: 5 }, { stat: 'burnout', value: 8 }], resultText: '투명한 수치 보고로 신뢰를 다졌습니다.' }
                       ];
                     }
                     if (titleLower.includes('동아리') || titleLower.includes('동학년') || titleLower.includes('협의') || titleLower.includes('회의')) {
                       return [
-                        { id: 'a', text: '전체 회의를 주재하여 모두의 의견을 수렴하는 민주적 협의 진행', effects: [{ stat: 'colleagueSolidarity', value: 10 }, { stat: 'colleagueRelation', value: 6 }, { stat: 'burnout', value: 6 }], resultText: '조률자로서의 역할을 무난히 해냈습니다.' },
-                        { id: 'b', text: '슈아란 구성원만 모아 빠르게 함의를 도출', effects: [{ stat: 'adminPower', value: 5 }, { stat: 'hp', value: 3 }, { stat: 'colleagueSolidarity', value: 3 }], resultText: '효율적으로 팬을 매십니다.' },
-                        { id: 'c', text: '아지트 애플리케이션으로 시간 좌표를 구성하여 효율적 속기진 처리', effects: [{ stat: 'adminPower', value: 4 }, { stat: 'expert', value: 4 }, { stat: 'burnout', value: 2 }], resultText: '디지털 도구를 활용해 효율적으로 처리했습니다.' },
-                        { id: 'd', text: '협의 내용을 실시간 문서화하여 전체 교직원 참조 가능 화시', effects: [{ stat: 'colleagueRelation', value: 6 }, { stat: 'adminTrust', value: 5 }, { stat: 'burnout', value: 4 }], resultText: '투명한 협업 문서로 신뢰를 다졌습니다.' }
+                        { id: 'a', text: '전체 회의를 주재하여 모두의 의견을 수렴하는 민주적 협의 진행', effects: [{ stat: 'colleagueSolidarity', value: 10 }, { stat: 'colleagueRelation', value: 6 }, { stat: 'burnout', value: 6 }], resultText: '조율자로서의 역할을 무난히 해냈습니다.' },
+                        { id: 'b', text: '소수 구성원만 모아 빠르게 합의를 도출', effects: [{ stat: 'adminPower', value: 5 }, { stat: 'hp', value: 3 }, { stat: 'colleagueSolidarity', value: 3 }], resultText: '효율적으로 일을 마무리했습니다.' },
+                        { id: 'c', text: '협업 애플리케이션으로 일정을 조율하여 효율적이고 신속하게 처리', effects: [{ stat: 'adminPower', value: 4 }, { stat: 'expert', value: 4 }, { stat: 'burnout', value: 2 }], resultText: '디지털 도구를 활용해 효율적으로 처리했습니다.' },
+                        { id: 'd', text: '협의 내용을 실시간 문서화하여 전체 교직원이 참조 가능하게 공유', effects: [{ stat: 'colleagueRelation', value: 6 }, { stat: 'adminTrust', value: 5 }, { stat: 'burnout', value: 4 }], resultText: '투명한 협업 문서로 신뢰를 다졌습니다.' }
                       ];
                     }
 
-                    // ---- 2) 카테고리별 기본 선택지 풀 (5세트 실로대식 순환) ----
+                    // ---- 2) 카테고리별 기본 선택지 풀 (5세트 순환 방식) ----
                     const adminChoiceSets = [
                       [
-                        { id: 'a', text: '직접 처리: 용건을 스스로 빈칈히 작성하여 기한내 제출', effects: [{ stat: 'adminPower', value: 8 }, { stat: 'burnout', value: 10 }, { stat: 'hp', value: -4 }], resultText: '엄격한 자세로 처리하여 행정력을 인정받았다.' },
-                        { id: 'b', text: '협업 처리: 동료를 활용하여 공유 탕플릿으로 빠르게 업무 완료', effects: [{ stat: 'colleagueRelation', value: 6 }, { stat: 'adminPower', value: 4 }, { stat: 'burnout', value: 3 }], resultText: '팀워크로 효율적으로 마무리했다.' },
-                        { id: 'c', text: '위임 처리: 전합 업무 중 하나를 적임 있는 후임 동료에게 이덕', effects: [{ stat: 'colleagueRelation', value: -5 }, { stat: 'hp', value: 6 }, { stat: 'mental', value: 4 }], resultText: '정신적 에너지를 아끌었다.' },
-                        { id: 'd', text: '컨설팅 처리: 교육청 담당 장학사에게 고춳 부탁한 후 공식 가이드 수령', effects: [{ stat: 'expert', value: 7 }, { stat: 'adminTrust', value: 5 }, { stat: 'burnout', value: 4 }], resultText: '공식 컨설팅으로 주도해 완료했다.' }
+                        { id: 'a', text: '직접 처리: 용건을 스스로 꼼꼼히 작성하여 기한 내 제출', effects: [{ stat: 'adminPower', value: 8 }, { stat: 'burnout', value: 10 }, { stat: 'hp', value: -4 }], resultText: '엄격한 자세로 처리하여 행정력을 인정받았다.' },
+                        { id: 'b', text: '협업 처리: 동료와 함께 공유 템플릿으로 빠르게 업무 완료', effects: [{ stat: 'colleagueRelation', value: 6 }, { stat: 'adminPower', value: 4 }, { stat: 'burnout', value: 3 }], resultText: '팀워크로 효율적으로 마무리했다.' },
+                        { id: 'c', text: '위임 처리: 맡은 업무 중 하나를 적임자인 후임 동료에게 이관', effects: [{ stat: 'colleagueRelation', value: -5 }, { stat: 'hp', value: 6 }, { stat: 'mental', value: 4 }], resultText: '정신적 에너지를 아꼈다.' },
+                        { id: 'd', text: '컨설팅 처리: 교육청 담당 장학사에게 자문을 부탁한 후 공식 가이드 수령', effects: [{ stat: 'expert', value: 7 }, { stat: 'adminTrust', value: 5 }, { stat: 'burnout', value: 4 }], resultText: '공식 컨설팅으로 주도해 완료했다.' }
                       ],
                       [
-                        { id: 'a', text: '저녀까지 남아 남은 업무를 왕성히 처리 (TP 2 추가 소모)', effects: [{ stat: 'adminPower', value: 10 }, { stat: 'adminTrust', value: 6 }, { stat: 'hp', value: -6 }, { stat: 'burnout', value: 12 }], resultText: '임무를 완후한 느낌으로 빠르게 처리했다.' },
+                        { id: 'a', text: '저녁까지 남아 남은 업무를 집중적으로 처리 (TP 2 추가 소모)', effects: [{ stat: 'adminPower', value: 10 }, { stat: 'adminTrust', value: 6 }, { stat: 'hp', value: -6 }, { stat: 'burnout', value: 12 }], resultText: '임무를 완수한 느낌으로 빠르게 처리했다.' },
                         { id: 'b', text: '온라인 시스템을 활용해 한 번에 일괄 입력 후 승인 요청', effects: [{ stat: 'adminPower', value: 6 }, { stat: 'expert', value: 4 }, { stat: 'burnout', value: 5 }], resultText: '디지털 시스템으로 대폭 절감했다.' },
-                        { id: 'c', text: '쳤크리스트를 활용해 메니페스트 작성 후 한 음라도 먼저 실행', effects: [{ stat: 'adminPower', value: 5 }, { stat: 'mental', value: 3 }, { stat: 'burnout', value: 6 }], resultText: '체계적 업무 관리로 빠르게 했다.' },
-                        { id: 'd', text: '직듀 상스에게 이 업무는 내 업무 범위가 아님을 단호히 설명하고 이의 신청', effects: [{ stat: 'educationSoshin', value: 7 }, { stat: 'adminTrust', value: -4 }, { stat: 'hp', value: 4 }], resultText: '소신으로 대해 원칙적으로 대응했다.' }
+                        { id: 'c', text: '체크리스트를 활용해 작업 목록 작성 후 하나라도 먼저 실행', effects: [{ stat: 'adminPower', value: 5 }, { stat: 'mental', value: 3 }, { stat: 'burnout', value: 6 }], resultText: '체계적 업무 관리로 빠르게 했다.' },
+                        { id: 'd', text: '직속 상사에게 이 업무는 내 업무 범위가 아님을 단호히 설명하고 이의 신청', effects: [{ stat: 'educationSoshin', value: 7 }, { stat: 'adminTrust', value: -4 }, { stat: 'hp', value: 4 }], resultText: '소신으로 대해 원칙적으로 대응했다.' }
                       ],
                       [
                         { id: 'a', text: '업무 대상을 분석하여 우선순위를 정하고 중요도가 높은 것부터 처리', effects: [{ stat: 'adminPower', value: 7 }, { stat: 'expert', value: 5 }, { stat: 'burnout', value: 7 }], resultText: '전략적으로 업무를 수행했다.' },
-                        { id: 'b', text: '업무 준비 중 한 가지가 먹혘음을 발견하고 교감에게 기한 연장 요청', effects: [{ stat: 'adminTrust', value: -3 }, { stat: 'hp', value: 5 }, { stat: 'burnout', value: -4 }], resultText: '여유를 확보했으나 평판에 약간 영향이 생산다.' },
-                        { id: 'c', text: '교무실 업무 부장교사에게 아이디어를 얻어 보다 효과적으로 진행', effects: [{ stat: 'colleagueRelation', value: 6 }, { stat: 'adminPower', value: 5 }, { stat: 'burnout', value: 3 }], resultText: '선배의 정험을 활용해 극복했다.' },
-                        { id: 'd', text: '조용히 스늤로 방식으로 에러를 수정하고 굤이 보고하지 않는 실용적 선택', effects: [{ stat: 'adminPower', value: 4 }, { stat: 'mental', value: 3 }, { stat: 'burnout', value: 2 }], resultText: '실용적 선택으로 비교적 슬기롭게 마무리했다.' }
+                        { id: 'b', text: '업무 준비 중 한 가지가 빠졌음을 발견하고 교감에게 기한 연장 요청', effects: [{ stat: 'adminTrust', value: -3 }, { stat: 'hp', value: 5 }, { stat: 'burnout', value: -4 }], resultText: '여유를 확보했으나 평판에 약간 영향이 생겼다.' },
+                        { id: 'c', text: '교무실 업무 부장교사에게 아이디어를 얻어 보다 효과적으로 진행', effects: [{ stat: 'colleagueRelation', value: 6 }, { stat: 'adminPower', value: 5 }, { stat: 'burnout', value: 3 }], resultText: '선배의 경험을 활용해 극복했다.' },
+                        { id: 'd', text: '조용히 스스로 방식으로 오류를 수정하고 굳이 보고하지 않는 실용적 선택', effects: [{ stat: 'adminPower', value: 4 }, { stat: 'mental', value: 3 }, { stat: 'burnout', value: 2 }], resultText: '실용적 선택으로 비교적 슬기롭게 마무리했다.' }
                       ],
                       [
-                        { id: 'a', text: '업무 주청 일지를 작성하고 활동 충돌 가능성을 사전 점검한 후 진행', effects: [{ stat: 'adminPower', value: 7 }, { stat: 'expert', value: 5 }, { stat: 'burnout', value: 6 }], resultText: '첢저한 사전 준비로 멋지게 쮘리했다.' },
-                        { id: 'b', text: '교유청에 표준 양식이 있는지 똑다보고 신마렇으로 따라서 작성', effects: [{ stat: 'expert', value: 6 }, { stat: 'adminTrust', value: 5 }, { stat: 'burnout', value: 7 }], resultText: '규정에 충실함으로써 신뢰를 다졌다.' },
-                        { id: 'c', text: '동학년 담임들과 퓸 뭐들고 의견을 나눈 후 합의된 방식으로 진행', effects: [{ stat: 'colleagueSolidarity', value: 8 }, { stat: 'adminPower', value: 4 }, { stat: 'burnout', value: 3 }], resultText: '히맙를 합쳐 이레 효율적으로 마무리했다.' },
-                        { id: 'd', text: '객관적인 예시를 도물로 해 스스로 서승하여 완분한 제출물 완성', effects: [{ stat: 'adminPower', value: 6 }, { stat: 'expert', value: 4 }, { stat: 'hp', value: -3 }], resultText: '종수 원칙에 따라 완백한 제출물을 완성했다.' }
+                        { id: 'a', text: '업무 추진 일지를 작성하고 일정 충돌 가능성을 사전 점검한 후 진행', effects: [{ stat: 'adminPower', value: 7 }, { stat: 'expert', value: 5 }, { stat: 'burnout', value: 6 }], resultText: '철저한 사전 준비로 멋지게 처리했다.' },
+                        { id: 'b', text: '교육청에 표준 양식이 있는지 확인하고 신중하게 따라서 작성', effects: [{ stat: 'expert', value: 6 }, { stat: 'adminTrust', value: 5 }, { stat: 'burnout', value: 7 }], resultText: '규정에 충실함으로써 신뢰를 다졌다.' },
+                        { id: 'c', text: '동학년 담임들과 자리를 만들고 의견을 나눈 후 합의된 방식으로 진행', effects: [{ stat: 'colleagueSolidarity', value: 8 }, { stat: 'adminPower', value: 4 }, { stat: 'burnout', value: 3 }], resultText: '힘을 합쳐 이를 효율적으로 마무리했다.' },
+                        { id: 'd', text: '객관적인 예시를 참고해 스스로 검증하여 완전한 제출물 완성', effects: [{ stat: 'adminPower', value: 6 }, { stat: 'expert', value: 4 }, { stat: 'hp', value: -3 }], resultText: '준수 원칙에 따라 완벽한 제출물을 완성했다.' }
                       ],
                       [
-                        { id: 'a', text: '이른 아침 출근하여 혼자 조용히 통지하지 않고 증적없이 업무 처리', effects: [{ stat: 'adminPower', value: 5 }, { stat: 'hp', value: -3 }, { stat: 'burnout', value: 5 }], resultText: '조용한 액션으로 불필요한 노쳙에 희말리지 않았다.' },
-                        { id: 'b', text: '모든 교직원에게 결과를 사전에 알리고 지지와 협조를 구하여 진행', effects: [{ stat: 'colleagueRelation', value: 7 }, { stat: 'adminPower', value: 5 }, { stat: 'burnout', value: 5 }], resultText: '모두가 동의하는 방향으로 진행하여 께끈하게 처리했다.' },
-                        { id: 'c', text: '수령한 업무를 일수서해 난뒤 뉴스레터로 학교 전체에 결과 발송', effects: [{ stat: 'adminPower', value: 6 }, { stat: 'adminTrust', value: 5 }, { stat: 'burnout', value: 6 }], resultText: '업무 완료 후 모두에게 알림으로 븶리 전파했다.' },
-                        { id: 'd', text: '문제가 될 쓰 있는 부분만 선별하여 최소한으로 별도 보고 없이 정리', effects: [{ stat: 'adminPower', value: 3 }, { stat: 'mental', value: 4 }, { stat: 'hp', value: 3 }], resultText: '효율적인 필터링으로 불필요한 에너지를 아꼴다.' }
+                        { id: 'a', text: '이른 아침 출근하여 혼자 조용히 알리지 않고 흔적 없이 업무 처리', effects: [{ stat: 'adminPower', value: 5 }, { stat: 'hp', value: -3 }, { stat: 'burnout', value: 5 }], resultText: '조용한 행동으로 불필요한 노출에 휘말리지 않았다.' },
+                        { id: 'b', text: '모든 교직원에게 결과를 사전에 알리고 지지와 협조를 구하여 진행', effects: [{ stat: 'colleagueRelation', value: 7 }, { stat: 'adminPower', value: 5 }, { stat: 'burnout', value: 5 }], resultText: '모두가 동의하는 방향으로 진행하여 깨끗하게 처리했다.' },
+                        { id: 'c', text: '수행한 업무를 일목요연하게 정리한 뒤 뉴스레터로 학교 전체에 결과 발송', effects: [{ stat: 'adminPower', value: 6 }, { stat: 'adminTrust', value: 5 }, { stat: 'burnout', value: 6 }], resultText: '업무 완료 후 모두에게 알림으로 빠르게 전파했다.' },
+                        { id: 'd', text: '문제가 될 수 있는 부분만 선별하여 최소한으로 별도 보고 없이 정리', effects: [{ stat: 'adminPower', value: 3 }, { stat: 'mental', value: 4 }, { stat: 'hp', value: 3 }], resultText: '효율적인 필터링으로 불필요한 에너지를 아꼈다.' }
                       ]
                     ];
 
                     const teachingChoiceSets = [
                       [
                         { id: 'a', text: '학생들을 직접 참여시켜 수업 개선 방안을 함께 설계', effects: [{ stat: 'studentTrust', value: 8 }, { stat: 'teachingResearch', value: 6 }, { stat: 'educationSoshin', value: 5 }], resultText: '학생이 중심이 된 수업으로 큰 보람이 있었다.' },
-                        { id: 'b', text: '연구학교 동료와 수업 ꪰ시를 교환하여 새 아이디어 변용', effects: [{ stat: 'teachingResearch', value: 7 }, { stat: 'colleagueSolidarity', value: 5 }, { stat: 'burnout', value: 3 }], resultText: '외부 인사이트를 활용한 풍성한 수업라인을 완성했다.' },
-                        { id: 'c', text: '실질적인 학습 목표 설정 후 학생별 맞춤형 개별화 지도 설계', effects: [{ stat: 'expert', value: 7 }, { stat: 'studentTrust', value: 6 }, { stat: 'burnout', value: 8 }], resultText: '개인별 최적화 수업으로 문터를 돌렸다.' },
-                        { id: 'd', text: '수업에 게임화 요소를 담아 모둥활동도 지싄으로 진행', effects: [{ stat: 'studentTrust', value: 7 }, { stat: 'teachingResearch', value: 5 }, { stat: 'classManagement', value: 4 }], resultText: '에너지 넘치는 수업 분위기로 학생참여를 유도했다.' }
+                        { id: 'b', text: '연구학교 동료와 수업 노하우를 교환하여 새 아이디어 적용', effects: [{ stat: 'teachingResearch', value: 7 }, { stat: 'colleagueSolidarity', value: 5 }, { stat: 'burnout', value: 3 }], resultText: '외부 인사이트를 활용한 풍성한 수업라인을 완성했다.' },
+                        { id: 'c', text: '실질적인 학습 목표 설정 후 학생별 맞춤형 개별화 지도 설계', effects: [{ stat: 'expert', value: 7 }, { stat: 'studentTrust', value: 6 }, { stat: 'burnout', value: 8 }], resultText: '개인별 최적화 수업으로 호응을 이끌었다.' },
+                        { id: 'd', text: '수업에 게임화 요소를 담아 모둠활동도 적극적으로 진행', effects: [{ stat: 'studentTrust', value: 7 }, { stat: 'teachingResearch', value: 5 }, { stat: 'classManagement', value: 4 }], resultText: '에너지 넘치는 수업 분위기로 학생참여를 유도했다.' }
                       ],
                       [
-                        { id: 'a', text: '안전하고 쳤쾘인트를 제시하여 단돌 학교 수업 참여 가능 방법 선택', effects: [{ stat: 'studentTrust', value: 6 }, { stat: 'expert', value: 6 }, { stat: 'hp', value: -2 }], resultText: '안전한 학습어환경으로 수업 만족도를 높였다.' },
-                        { id: 'b', text: '근거 있는 학습 몛지 자료를 제작하여 수업 후 배노트 형태로 학생 바로 배포', effects: [{ stat: 'teachingResearch', value: 7 }, { stat: 'studentTrust', value: 5 }, { stat: 'burnout', value: 6 }], resultText: '질 높은 자료로 수업 재만도를 높였다.' },
+                        { id: 'a', text: '안전하고 명확한 포인트를 제시하여 모든 학생이 수업에 참여 가능한 방법 선택', effects: [{ stat: 'studentTrust', value: 6 }, { stat: 'expert', value: 6 }, { stat: 'hp', value: -2 }], resultText: '안전한 학습 환경으로 수업 만족도를 높였다.' },
+                        { id: 'b', text: '근거 있는 학습 정리 자료를 제작하여 수업 후 노트 형태로 학생에게 바로 배포', effects: [{ stat: 'teachingResearch', value: 7 }, { stat: 'studentTrust', value: 5 }, { stat: 'burnout', value: 6 }], resultText: '질 높은 자료로 수업 만족도를 높였다.' },
                         { id: 'c', text: '문제풀이 학습보다 체험 하이라이트 스프린트 수업으로 기획', effects: [{ stat: 'classManagement', value: 7 }, { stat: 'studentTrust', value: 6 }, { stat: 'educationSoshin', value: 5 }], resultText: '학생들에게 기억에 남는 특별한 수업이 되었다.' },
-                        { id: 'd', text: '예상 범위 외 상황이 발생하면 즉시 학교 수업설계 대안을 할설하기 위한 긍기 준비', effects: [{ stat: 'expert', value: 6 }, { stat: 'teachingResearch', value: 5 }, { stat: 'burnout', value: 5 }], resultText: '위기 대처 능력으로 수업 품질을 부드럽게 유지했다.' }
+                        { id: 'd', text: '예상 범위 밖 상황이 발생하면 즉시 적용할 수업설계 대안을 마련하는 위기 준비', effects: [{ stat: 'expert', value: 6 }, { stat: 'teachingResearch', value: 5 }, { stat: 'burnout', value: 5 }], resultText: '위기 대처 능력으로 수업 품질을 부드럽게 유지했다.' }
                       ]
                     ];
 

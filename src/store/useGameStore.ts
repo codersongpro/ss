@@ -217,82 +217,72 @@ const getEventValence = (evt: GameEvent): EventValence => {
   return inferValence(allEffects);
 };
 
-// 최근 정서 원장과 현재 스탯 위험도를 반영해 후보별 가중치를 보정한다.
-// - 최근이 과긍정이면 부정 후보를 키우고, 과부정이면 긍정 후보를 키운다.
-// - 멘탈/번아웃 위험 시에는 긍정 후보를 추가로 부스트(데스 스파이럴 완화).
-const balancedWeight = (
-  baseWeight: number,
-  valence: EventValence,
-  recent: EventValence[],
-  stats: Stats
-): number => {
-  let w = baseWeight;
-  const window = recent.slice(0, 8);
-  const pos = window.filter(v => v === 'positive').length;
-  const neg = window.filter(v => v === 'negative').length;
+// 긍정 후보 전체의 가중치 합이 정확히 ratio(기본 20%)가 되도록 그룹별로 재배분한다.
+// 그룹 내부 상대 가중치 비율은 그대로 보존된다. 한쪽 그룹이 비어 있으면 전체를 다른 쪽에 배정.
+const applyFixedPositiveRatio = <T,>(
+  weighted: { item: T; valence: EventValence; baseWeight: number }[],
+  ratio: number = 0.2
+): { item: T; w: number }[] => {
+  const total = weighted.reduce((sum, x) => sum + x.baseWeight, 0);
+  if (total <= 0) {
+    return weighted.map(x => ({ item: x.item, w: 1 }));
+  }
+  const posGroup = weighted.filter(x => x.valence === 'positive');
+  const otherGroup = weighted.filter(x => x.valence !== 'positive');
+  const wPos = posGroup.reduce((sum, x) => sum + x.baseWeight, 0);
+  const wOther = otherGroup.reduce((sum, x) => sum + x.baseWeight, 0);
 
-  // 최근 정서 쏠림 보정
-  if (pos - neg >= 3) {
-    if (valence === 'negative') w *= 1.6;
-    if (valence === 'positive') w *= 0.6;
-  } else if (neg - pos >= 3) {
-    if (valence === 'positive') w *= 1.6;
-    if (valence === 'negative') w *= 0.6;
+  if (wPos === 0 || wOther === 0) {
+    // 한쪽 그룹이 없으면 비율 강제가 불가능하므로 기본 가중치를 그대로 사용.
+    return weighted.map(x => ({ item: x.item, w: Math.max(x.baseWeight, 1) }));
   }
 
-  // 위기 상태 동정 보정
-  const inCrisis = stats.mental < 30 || stats.burnout > 80;
-  if (inCrisis) {
-    if (valence === 'positive') w *= 1.8;
-    if (valence === 'negative') w *= 0.5;
-  }
-
-  return Math.max(w, 1);
+  return weighted.map(x => {
+    const w = x.valence === 'positive'
+      ? x.baseWeight * (ratio * total / wPos)
+      : x.baseWeight * ((1 - ratio) * total / wOther);
+    return { item: x.item, w: Math.max(w, 0.001) };
+  });
 };
 
-// 정서 밸런싱을 적용한 가중 랜덤 선택. recent/stats가 없으면 순수 가중 랜덤으로 동작.
-const pickBalancedEvent = (
-  candidates: GameEvent[],
-  recent: EventValence[],
-  stats: Stats
-): GameEvent | null => {
-  if (candidates.length === 0) return null;
-  const weighted = candidates.map(evt => ({
-    evt,
-    w: balancedWeight(evt.weight, getEventValence(evt), recent, stats)
-  }));
+// 가중 랜덤 선택(빈 배열이면 null).
+const pickWeighted = <T,>(weighted: { item: T; w: number }[]): T | null => {
+  if (weighted.length === 0) return null;
   const total = weighted.reduce((sum, x) => sum + x.w, 0);
   let r = Math.random() * total;
   for (const x of weighted) {
     r -= x.w;
-    if (r <= 0) return x.evt;
+    if (r <= 0) return x.item;
   }
-  return weighted[weighted.length - 1].evt;
+  return weighted[weighted.length - 1].item;
 };
 
-// 정서 원장에 결과를 기록(최근 12건 유지)하는 순수 헬퍼.
+// 긍정 요소 등장 확률을 정확히 20%로 고정해 후보를 고른다.
+const pickBalancedEvent = (
+  candidates: GameEvent[]
+): GameEvent | null => {
+  if (candidates.length === 0) return null;
+  const weighted = applyFixedPositiveRatio(
+    candidates.map(evt => ({ item: evt, valence: getEventValence(evt), baseWeight: evt.weight }))
+  );
+  return pickWeighted(weighted);
+};
+
+// 정서 원장에 결과를 기록(최근 12건 유지)하는 순수 헬퍼. 통계/디버깅용으로 유지.
 const pushValence = (log: EventValence[], v: EventValence): EventValence[] =>
   [v, ...log].slice(0, 12);
 
-// NPC 대화 후보 인덱스 중 정서 밸런싱을 적용해 하나를 고른다(연속 대화의 정서가 다양해지도록).
+// NPC 대화 후보 인덱스 중 긍정 요소 등장 확률을 20%로 고정해 하나를 고른다.
 const pickBalancedDialogueIndex = (
   candidateIdxs: number[],
-  events: { valence: EventValence }[],
-  recent: EventValence[],
-  stats: Stats
+  events: { valence: EventValence }[]
 ): number => {
   if (candidateIdxs.length === 0) return 0;
-  const weighted = candidateIdxs.map(i => ({
-    i,
-    w: balancedWeight(10, events[i]?.valence ?? 'neutral', recent, stats)
-  }));
-  const total = weighted.reduce((sum, x) => sum + x.w, 0);
-  let r = Math.random() * total;
-  for (const x of weighted) {
-    r -= x.w;
-    if (r <= 0) return x.i;
-  }
-  return weighted[weighted.length - 1].i;
+  const weighted = applyFixedPositiveRatio(
+    candidateIdxs.map(i => ({ item: i, valence: events[i]?.valence ?? 'neutral', baseWeight: 10 }))
+  );
+  const picked = pickWeighted(weighted);
+  return picked !== null ? picked : candidateIdxs[candidateIdxs.length - 1];
 };
 
 // 선택지의 데이터 주도 학생 효과(studentEffects)를 일괄 적용한다(증감치 + clamp).
@@ -718,9 +708,7 @@ const getEventForTime = (
   time: TimeOfDay,
   hiddenFlags: string[],
   history: string[],
-  familyState?: string,
-  recent: EventValence[] = [],
-  stats?: Stats
+  familyState?: string
 ): GameEvent | null => {
   let category: GameEvent['category'][] = [];
   
@@ -768,17 +756,8 @@ const getEventForTime = (
   }
   if (candidates.length === 0) return null;
 
-  // 정서 밸런싱을 적용한 가중 랜덤 추출 (stats가 없으면 위기 보정 없는 중립 스탯 사용)
-  return pickBalancedEvent(candidates, recent, stats ?? NEUTRAL_BALANCE_STATS);
-};
-
-// stats 미전달 시 밸런서가 위기 보정 없이 동작하도록 쓰는 중립 기준 스탯
-const NEUTRAL_BALANCE_STATS: Stats = {
-  hp: 50, mental: 50, burnout: 0, expert: 50, studentTrust: 50, parentTrust: 50,
-  colleagueRelation: 50, adminTrust: 50, adminPower: 50, familySatisfaction: 50,
-  educationSoshin: 50, reputation: 50, careerPoint: 0, teachingSatisfaction: 50,
-  colleagueSolidarity: 50, parentComplaint: 0, workCapacity: 50, interpersonal: 50,
-  familyRelation: 50, classManagement: 50, teachingResearch: 50
+  // 긍정 요소 등장 확률 20% 고정 가중 랜덤 추출
+  return pickBalancedEvent(candidates);
 };
 
 // 초기화용 디폴트 업무 리스트 생성 헬퍼
@@ -1182,9 +1161,7 @@ export const useGameStore = create<GameState>()(
           recentLogs,
           hiddenFlags,
           maxActionPoints,
-          playerInfo,
-          recentValenceLog,
-          stats
+          playerInfo
         } = get();
 
         if (timeOfDay === 'morning') {
@@ -1213,7 +1190,7 @@ export const useGameStore = create<GameState>()(
           }
         } else if (timeOfDay === 'afternoon') {
           // 오후 -> 저녁 (저녁은 집/개인 활동이므로 기존 방식대로 저녁 이벤트를 자동 추점)
-          const nextEvent = getEventForTime(day, 'evening', hiddenFlags, recentLogs, playerInfo?.familyState, recentValenceLog, stats);
+          const nextEvent = getEventForTime(day, 'evening', hiddenFlags, recentLogs, playerInfo?.familyState);
           set({
             timeOfDay: 'evening',
             currentLocation: null,
@@ -1735,7 +1712,7 @@ export const useGameStore = create<GameState>()(
 
       // 11. RPG 장소 탐색 (사건 트리거, TP 1 소모)
       exploreLocation: () => {
-        const { currentLocation, day, hiddenFlags, recentLogs, actionPoints, recentValenceLog, stats } = get();
+        const { currentLocation, day, hiddenFlags, recentLogs, actionPoints } = get();
         if (!currentLocation) return;
         if (actionPoints < 1) {
           get().showToast('교사력(TP)이 부족하여 탐색할 수 없습니다.');
@@ -1800,8 +1777,8 @@ export const useGameStore = create<GameState>()(
           return;
         }
 
-        // 정서 밸런싱을 적용한 가중치 랜덤 선택
-        const selectedEvt = pickBalancedEvent(candidates, recentValenceLog, stats) ?? candidates[0];
+        // 긍정 요소 등장 확률 20% 고정 가중 랜덤 선택
+        const selectedEvt = pickBalancedEvent(candidates) ?? candidates[0];
 
         set({
           actionPoints: actionPoints - 1,
@@ -1929,7 +1906,7 @@ export const useGameStore = create<GameState>()(
       // 13. RPG 캐릭터 대화 개시 (TP를 소모하지 않는 이벤트성 대화)
       // 13. RPG 캐릭터 대화 개시 (TP 1 소모 및 100선 랜덤 대화 연동)
       talkToNPC: (npcId: string, npcName: string) => {
-        const { day, recentLogs, completedNpcDialoguesToday, completedNpcEvents, actionPoints, recentValenceLog, stats } = get();
+        const { day, recentLogs, completedNpcDialoguesToday, completedNpcEvents, actionPoints } = get();
 
         // 오늘 이미 대화한 적 있는 NPC인지 확인 (당일 중복 차단)
         if (completedNpcDialoguesToday.includes(npcId)) {
@@ -1957,7 +1934,7 @@ export const useGameStore = create<GameState>()(
             completedNpcEvents[npcId] = [];
           }
 
-          eventIdx = pickBalancedDialogueIndex(candidates, studentDialogueEvents, recentValenceLog, stats);
+          eventIdx = pickBalancedDialogueIndex(candidates, studentDialogueEvents);
           const evt = studentDialogueEvents[eventIdx];
 
           const student = get().students.find(s => s.id === npcId);
@@ -1975,7 +1952,7 @@ export const useGameStore = create<GameState>()(
             completedNpcEvents[npcId] = [];
           }
 
-          eventIdx = pickBalancedDialogueIndex(candidates, colleagueDialogueEvents, recentValenceLog, stats);
+          eventIdx = pickBalancedDialogueIndex(candidates, colleagueDialogueEvents);
           const evt = colleagueDialogueEvents[eventIdx];
 
           // 역할 매핑
@@ -3662,14 +3639,13 @@ export const useGameStore = create<GameState>()(
 
       // [NEW] 매일 아침 스마트폰 전화/문자 수신 (학부모 민원 50선 + 교직원 사적 20선 vs 긍정 힐링 150선)
       generatePhoneAndTextNotifications: () => {
-        const { day, completedParentEvents, completedColleaguePrivateEvents, completedPositiveEvents, phoneAndTextNotifications, stats } = get();
+        const { day, completedParentEvents, completedColleaguePrivateEvents, completedPositiveEvents, phoneAndTextNotifications } = get();
         const newNotifs: MessengerNotification[] = [];
 
         // 매일 아침 75% 확률로 스마트폰 피드 알림 생성
         if (Math.random() < 0.75) {
-          // 긍정 힐링 vs 부정 딜레마 결정. 멘탈/번아웃 위기 시 긍정 확률을 0.5→0.65로 상향(데스 스파이럴 완화)
-          const positiveChance = (stats.mental < 30 || stats.burnout > 80) ? 0.65 : 0.5;
-          const isPositive = Math.random() < positiveChance;
+          // 긍정 힐링 vs 부정 딜레마 결정. 사용자 요청에 따라 긍정 등장 확률을 20%로 고정.
+          const isPositive = Math.random() < 0.2;
 
           if (isPositive) {
             // [긍정 힐링 150선 생성]
