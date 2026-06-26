@@ -32,7 +32,7 @@ export const parentMessengerEvents: ParentMessengerEvent[] = Array.from({ length
       previewText: "선생님, 서연이가 공부가 느려서 모둠 과제 때 팀원들에게 소외된다고 눈치를 봐요. 다음 달 모둠 편성을 할 때는 서연이를 전교 1등인 민준이와 은경이 조에 무조건 끼워 넣어 주시면 좋겠습니다. 우등생 옆에서 배워야 서연이도 크죠.",
       choice1: "학부모의 간곡한 정서적 부탁을 감안하고 모둠 평화를 위해, 우등생 아이들의 양해를 구해 서연이를 강제로 에이스 모둠에 매핑한다.",
       effects1: [{ stat: 'parentTrust', value: 8 }, { stat: 'studentTrust', value: -6 }, { stat: 'expert', value: -5 }],
-      result1: "서연이 부모의 만족และ 신뢰를 이끌어냈으나, 우등생 아동들은 무임승차 조원에 대한 불만을 품으며 교사의 공정성을 불신하게 됩니다.",
+      result1: "서연이 부모의 만족과 신뢰를 이끌어냈으나, 우등생 아동들은 무임승차 조원에 대한 불만을 품으며 교사의 공정성을 불신하게 됩니다.",
       choice2: "모둠 구성은 아동의 역량 분배와 교육적 효과를 고려한 교사의 고유 전권임을 정중히 설명하고, 자율 협동 모둠 배치 원칙을 고수한다.",
       effects2: [{ stat: 'educationSoshin', value: 10 }, { stat: 'parentTrust', value: -6 }, { stat: 'parentComplaint', value: 6 }],
       result2: "교육 공정성과 전문성을 철저히 지켰으나, 학부모는 '없는 집 아이라고 차별하냐'며 섭섭함을 토로하는 추가 문자를 보내옵니다."
