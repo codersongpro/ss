@@ -1,10 +1,80 @@
-import type { DialogueStep } from '@/game/types';
+import type { DialogueStep, EventValence } from '@/game/types';
 
 export interface DialogueEvent {
   id: string;
   title: string;
+  valence: EventValence; // [NEW] 대화의 정서(긍정/중립/갈등). 밸런싱 선택에 사용
   generateSteps: (npcName: string, role?: string) => DialogueStep[];
 }
+
+// [NEW] 대화 한 테마(상황+선택지 묶음)의 공통 형태
+interface DialogueTheme {
+  title: string;
+  situation: string;
+  choice1?: string; effects1?: { stat: string; value: number }[]; result1?: string;
+  choice2?: string; effects2?: { stat: string; value: number }[]; result2?: string;
+  choice3?: string; effects3?: { stat: string; value: number }[]; result3?: string;
+  choice4?: string; effects4?: { stat: string; value: number }[]; result4?: string;
+  choice5?: string; effects5?: { stat: string; value: number }[]; result5?: string;
+}
+
+// [NEW] 정서별 마무리 대사 풀 (선택 후 NPC의 닫는 반응). 매번 같은 신파 마무리 반복을 줄인다.
+const CLOSING_BY_VALENCE: Record<EventValence, string[]> = {
+  positive: [
+    '님은 당신의 따뜻한 호응에 환하게 웃으며 한결 가벼워진 표정으로 자리로 돌아갑니다.',
+    '님은 짧지만 다정한 교류에 고마워하며, 다음엔 자신이 차를 대접하겠다고 약속합니다.',
+    '님과 나눈 소소한 대화 덕분에 두 사람 모두 오후 일과를 버틸 기운을 얻었습니다.'
+  ],
+  neutral: [
+    '님은 고개를 끄덕이며 필요한 이야기를 마치고 자기 일로 돌아갑니다.',
+    '님과 담백하게 정보를 주고받고, 각자 할 일을 이어갑니다.',
+    '님은 "그럼 그렇게 알고 있을게요" 하며 가볍게 인사를 건넵니다.'
+  ],
+  negative: [
+    '님은 표정이 완전히 풀리진 않았지만, 일단 당신의 입장을 받아들이고 돌아섭니다.',
+    '님과의 사이에 미묘한 긴장이 남았지만, 대화 자체는 마무리되었습니다.',
+    '님은 "알겠습니다" 하고 짧게 답한 뒤, 생각에 잠긴 채 자리로 향합니다.'
+  ]
+};
+
+const pickClosing = (valence: EventValence, npcName: string): string => {
+  const pool = CLOSING_BY_VALENCE[valence];
+  return `"${npcName} 교사${pool[Math.floor(Math.random() * pool.length)]}"`;
+};
+
+// [NEW] 테마 + 정서로부터 깔끔한 2단계 대화(프롬프트 → 선택별 마무리)를 생성하는 공용 헬퍼.
+// 선택지가 3~5개로 가변이어도 동작하며, 마무리 스텝은 nextStepIndex:null로 명확히 종료된다.
+const buildStepsFromTheme = (
+  t: DialogueTheme,
+  valence: EventValence,
+  npcName: string,
+  opener: string
+): DialogueStep[] => {
+  const rec = t as unknown as Record<string, unknown>;
+  const defs = [1, 2, 3, 4, 5]
+    .map(n => ({
+      text: rec[`choice${n}`] as string | undefined,
+      effects: rec[`effects${n}`] as { stat: string; value: number }[] | undefined,
+      result: rec[`result${n}`] as string | undefined
+    }))
+    .filter(d => !!d.text);
+
+  const choices = defs.map((d, i) => ({
+    text: d.text as string,
+    nextStepIndex: i + 1,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    effects: (d.effects || []) as any,
+    resultText: d.result
+  }));
+
+  const closings: DialogueStep[] = defs.map(() => ({
+    speaker: npcName,
+    text: pickClosing(valence, npcName),
+    nextStepIndex: null
+  }));
+
+  return [{ speaker: npcName, text: opener, choices }, ...closings];
+};
 
 // ==========================================
 // [1] 교직원용 랜덤 대화 이벤트 150선
@@ -338,85 +408,104 @@ export const colleagueDialogueEvents: DialogueEvent[] = Array.from({ length: 150
     }
   ];
 
-  // 150개의 슬롯 전체에 10가지 긍정 테마가 번갈아가며 균일하게 매핑되도록 처리 [NEW]
-  const themeIndex = index % positiveThemes.length;
-  const t = positiveThemes[themeIndex];
+  // [NEW] 중립(잡담/정보 교환) 테마 — 소폭의 정보·관계 변화. 항상-긍정 일색을 깬다.
+  const neutralThemes: DialogueTheme[] = [
+    {
+      title: "다음 주 시간표 변경 공유",
+      situation: "다음 주 학년 행사 때문에 시간표가 조금 바뀐다며 변경안을 같이 들여다보자고 합니다.",
+      choice1: "“미리 알려주셔서 감사해요. 우리 반 진도도 같이 맞춰볼게요.”", effects1: [{ stat: 'colleagueRelation', value: 5 }, { stat: 'expert', value: 2 }], result1: "두 사람은 진도와 시간표를 깔끔히 정리해 서로의 부담을 덜었습니다.",
+      choice2: "“바뀌는 김에 우리 반 체육이랑 한 칸만 바꿔주실 수 있을까요?”", effects2: [{ stat: 'colleagueRelation', value: 3 }, { stat: 'mental', value: 3 }], result2: "사소한 조정이지만 서로 융통성 있게 맞춰주며 가벼운 호의를 주고받았습니다.",
+      choice3: "“복잡하네요. 일단 공유해주신 대로 따라갈게요.”", effects3: [{ stat: 'mental', value: -1 }], result3: "특별한 이견 없이 변경안을 받아들이고 각자 준비에 들어갔습니다."
+    },
+    {
+      title: "학년 공동 학습지 자료 교환",
+      situation: "이번 단원 학습지를 자기가 만든 게 있다며 파일을 공유해줄지 묻습니다.",
+      choice1: "“정말 감사해요! 저도 제가 만든 평가 자료 드릴게요.”", effects1: [{ stat: 'colleagueSolidarity', value: 8 }, { stat: 'expert', value: 4 }], result1: "서로의 자료를 주고받으며 수업 준비 부담을 크게 덜었습니다.",
+      choice2: "“좋아요. 대신 출처랑 난이도만 같이 확인해봐요.”", effects2: [{ stat: 'expert', value: 5 }, { stat: 'colleagueRelation', value: 3 }], result2: "자료의 완성도를 함께 점검하며 실속 있는 협업을 했습니다.",
+      choice3: "“마음은 감사한데, 저는 제 스타일대로 만들어 볼게요.”", effects3: [{ stat: 'educationSoshin', value: 4 }, { stat: 'colleagueRelation', value: -2 }], result3: "정중히 사양했지만, 상대도 각자의 방식을 존중해주었습니다."
+    },
+    {
+      title: "점심 메뉴와 주말 잡담",
+      situation: "급식 메뉴 이야기로 시작해 주말에 뭐 했는지 가볍게 수다를 겁니다.",
+      choice1: "“주말에 푹 쉬었어요. 선생님은요?” 자연스럽게 안부를 주고받는다.", effects1: [{ stat: 'mental', value: 6 }, { stat: 'colleagueRelation', value: 4 }], result1: "별것 아닌 잡담이지만 잠시 긴장을 풀고 웃을 수 있었습니다.",
+      choice2: "“사실 주말에도 일 생각만 했네요.” 솔직하게 털어놓는다.", effects2: [{ stat: 'mental', value: 3 }, { stat: 'colleagueSolidarity', value: 5 }], result2: "비슷한 고충에 공감하며 서로를 다독였습니다.",
+      choice3: "“얘기 좋은데 제가 곧 수업이라, 다음에 마저 해요.” 가볍게 마무리한다.", effects3: [{ stat: 'mental', value: 1 }], result3: "짧게 인사를 나누고 각자 일과로 돌아갔습니다."
+    },
+    {
+      title: "신규 업무 시스템 사용법 문의",
+      situation: "새로 바뀐 행정 시스템 입력 방식을 잘 모르겠다며 혹시 아느냐고 물어봅니다.",
+      choice1: "“제가 아는 만큼 같이 해봐요.” 옆에서 차근차근 알려준다.", effects1: [{ stat: 'colleagueSolidarity', value: 7 }, { stat: 'hp', value: -2 }], result1: "함께 머리를 맞대 입력을 끝냈고, 상대는 진심으로 고마워했습니다.",
+      choice2: "“저도 헷갈려서요. 행정실에 같이 물어보러 갈까요?”", effects2: [{ stat: 'colleagueRelation', value: 4 }, { stat: 'adminPower', value: 2 }], result2: "둘이 함께 확인하러 가 정확한 방법을 익혔습니다.",
+      choice3: "“제가 정리해둔 매뉴얼 메모가 있어요. 보내드릴게요.”", effects3: [{ stat: 'expert', value: 4 }, { stat: 'reputation', value: 3 }], result3: "깔끔한 메모 공유에 ‘일 잘하는 선생님’이라는 인상을 남겼습니다."
+    }
+  ];
+
+  // [NEW] 갈등/고민 테마 — 선택에 따라 관계·소신·멘탈이 오르내린다. 부정적 결과도 가능.
+  const conflictThemes: DialogueTheme[] = [
+    {
+      title: "은근한 업무 떠넘기기",
+      situation: "“선생님이 컴퓨터를 잘하시니까…” 하며 학년 공통 업무를 슬쩍 떠넘기려 합니다.",
+      choice1: "“이번엔 도와드릴게요. 대신 다음 공통 업무는 같이 나눠요.” 조건을 걸고 수락한다.", effects1: [{ stat: 'colleagueRelation', value: 5 }, { stat: 'burnout', value: 8 }, { stat: 'hp', value: -5 }], result1: "당장은 부담이 늘었지만, 형평성을 짚어 둔 덕에 다음을 기약할 수 있었습니다.",
+      choice2: "“죄송하지만 저도 지금 일이 많아서요. 이건 같이 분담했으면 해요.” 정중히 선을 긋는다.", effects2: [{ stat: 'educationSoshin', value: 8 }, { stat: 'colleagueRelation', value: -8 }, { stat: 'mental', value: -4 }], result2: "관계엔 약간 금이 갔지만, 부당한 떠넘기기에 휘둘리지 않는 원칙을 지켰습니다.",
+      choice3: "“부장님께 업무 분장을 다시 정리해달라고 함께 건의해봐요.” 공식 절차로 돌린다.", effects3: [{ stat: 'adminPower', value: 5 }, { stat: 'colleagueSolidarity', value: 3 }, { stat: 'colleagueRelation', value: -3 }], result3: "감정 다툼 대신 공식 분장 조정으로 끌고 가 깔끔하게 정리했습니다."
+    },
+    {
+      title: "학생 지도 방식 의견 충돌",
+      situation: "같은 학년 교사가 “그 반은 너무 풀어준다”며 당신의 생활지도 방식을 에둘러 지적합니다.",
+      choice1: "“의견 감사해요. 다만 우리 반 상황은 제가 더 잘 아니, 방향은 제가 정할게요.” 부드럽지만 단호히 답한다.", effects1: [{ stat: 'educationSoshin', value: 8 }, { stat: 'mental', value: -3 }, { stat: 'colleagueRelation', value: -5 }], result1: "교육 소신을 지켰지만, 동료와는 미묘한 거리감이 남았습니다.",
+      choice2: "“그렇게 보이셨군요. 어떤 점이 걱정되셨는지 더 듣고 싶어요.” 일단 경청한다.", effects2: [{ stat: 'colleagueRelation', value: 6 }, { stat: 'mental', value: -2 }], result2: "방어 대신 경청을 택하자 상대도 누그러져 진짜 우려를 나눌 수 있었습니다.",
+      choice3: "“우리 지도 기준을 학년 차원에서 한번 맞춰볼까요?” 공동 기준 마련을 제안한다.", effects3: [{ stat: 'colleagueSolidarity', value: 8 }, { stat: 'expert', value: 3 }, { stat: 'burnout', value: 4 }], result3: "갈등을 학년 공동 규칙 정비의 계기로 바꿔, 오히려 협력 분위기를 만들었습니다."
+    },
+    {
+      title: "회식 불참을 둘러싼 서운함",
+      situation: "학년 회식에 또 빠진다는 말에 “요즘 통 안 어울린다”며 서운함을 내비칩니다.",
+      choice1: "“가족이랑 한 약속이라서요. 다음 점심은 제가 살게요.” 솔직히 말하고 대안을 낸다.", effects1: [{ stat: 'familySatisfaction', value: 5 }, { stat: 'colleagueRelation', value: 2 }, { stat: 'mental', value: 2 }], result1: "사정을 솔직히 전하고 대안을 제시하자 상대도 이해하며 풀어졌습니다.",
+      choice2: "“마음 불편하게 해드렸네요. 이번엔 잠깐이라도 들를게요.” 무리해서 맞춘다.", effects2: [{ stat: 'colleagueRelation', value: 7 }, { stat: 'hp', value: -6 }, { stat: 'familySatisfaction', value: -5 }], result2: "관계는 좋아졌지만, 개인 시간과 체력을 적잖이 내주어야 했습니다.",
+      choice3: "“회식 문화 자체를 좀 가볍게 바꿔보면 어떨까요?” 분위기 자체에 의견을 낸다.", effects3: [{ stat: 'educationSoshin', value: 5 }, { stat: 'colleagueRelation', value: -4 }, { stat: 'reputation', value: 3 }], result3: "민감한 주제를 건드렸지만, 비슷한 생각을 하던 동료들의 은근한 지지를 받았습니다."
+    },
+    {
+      title: "공개수업 참관 부담 토로",
+      situation: "다가오는 공개수업 참관단에 서로 들어가야 하는데, 자기 대신 들어가 줄 수 있냐고 부탁 같은 압박을 합니다.",
+      choice1: "“이번엔 제가 들어갈게요. 대신 다음 차례는 부탁드려요.” 흔쾌히 맡되 차후를 정한다.", effects1: [{ stat: 'colleagueSolidarity', value: 6 }, { stat: 'burnout', value: 5 }], result1: "부담을 나눠 지는 대신 다음 순번을 분명히 해 서로 공평함을 지켰습니다.",
+      choice2: "“저도 그날 우리 반 수업 준비가 빠듯해서요. 원래대로 가는 게 좋겠어요.” 정중히 거절한다.", effects2: [{ stat: 'educationSoshin', value: 6 }, { stat: 'colleagueRelation', value: -6 }], result2: "부탁을 거절해 잠시 어색해졌지만, 자기 수업을 지키는 선택을 했습니다.",
+      choice3: "“공정하게 제비뽑기로 정하는 게 어때요?” 객관적 방법을 제안한다.", effects3: [{ stat: 'reputation', value: 4 }, { stat: 'colleagueRelation', value: -2 }, { stat: 'mental', value: 2 }], result3: "감정 소모 없이 공정한 방식으로 정하자고 제안해 깔끔하게 매듭지었습니다."
+    }
+  ];
+
+  // [NEW] 150개 슬롯을 긍정(50%)·중립(30%)·갈등(20%)으로 분배해 항상-긍정 반복을 깬다.
+  const slot = index % 10;
+  let valence: EventValence;
+  let t: DialogueTheme;
+  if (slot < 5) {
+    valence = 'positive';
+    t = positiveThemes[index % positiveThemes.length] as DialogueTheme;
+  } else if (slot < 8) {
+    valence = 'neutral';
+    t = neutralThemes[index % neutralThemes.length];
+  } else {
+    valence = 'negative';
+    t = conflictThemes[index % conflictThemes.length];
+  }
 
   return {
     id: eventId,
     title: t.title,
+    valence,
     generateSteps: (npcName: string, role?: string) => {
-      // 81만가지 이상의 조합 다변화 적용
-      const pIdx = Math.floor(Math.random() * PREFIX_TEMPLATES.length);
-      const mIdx = Math.floor(Math.random() * MIDDLE_TEMPLATES.length);
-      const hIdx = Math.floor(Math.random() * HARMONY_TEMPLATES.length);
-      const aIdx = Math.floor(Math.random() * ACTION_TEMPLATES.length);
-
-      const prefix = PREFIX_TEMPLATES[pIdx];
-      const middle = MIDDLE_TEMPLATES[mIdx];
-      const harmony = HARMONY_TEMPLATES[hIdx];
-      const action = ACTION_TEMPLATES[aIdx];
-
-      const text = `"${role || '동료 교사'}로서 드리는 말씀인데... ${prefix} ${middle} ${harmony}" ${npcName} 교사가 ${action}`;
-
-      return [
-        {
-          speaker: npcName,
-          text: text,
-          choices: [
-            {
-              text: t.choice1,
-              nextStepIndex: 1,
-              effects: t.choice1 ? t.effects1 as any : [],
-              resultText: t.result1
-            },
-            {
-              text: t.choice2,
-              nextStepIndex: 2,
-              effects: t.choice2 ? t.effects2 as any : [],
-              resultText: t.result2
-            },
-            {
-              text: t.choice3,
-              nextStepIndex: 3,
-              effects: t.choice3 ? t.effects3 as any : [],
-              resultText: t.result3
-            },
-            {
-              text: t.choice4,
-              nextStepIndex: 4,
-              effects: t.choice4 ? t.effects4 as any : [],
-              resultText: t.result4
-            },
-            {
-              text: t.choice5,
-              nextStepIndex: 5,
-              effects: t.choice5 ? t.effects5 as any : [],
-              resultText: t.result5
-            }
-          ]
-        },
-        {
-          speaker: npcName,
-          text: `"${npcName} 교사는 당신의 따뜻하고 쾌활한 호응에 크게 기뻐하며, 교무실 가득 화사한 힐링 기류를 뿜어냅니다."`
-        },
-        {
-          speaker: npcName,
-          text: `"${npcName} 교사는 당신과 소중한 교감을 나눈 것에 보람을 느끼며, 든든한 동료의 우정을 깊이 감사해합니다."`
-        },
-        {
-          speaker: npcName,
-          text: `"${npcName} 교사는 당신과 찻잔을 맞부딪치며 유쾌하게 웃었고, 덕분에 쌓였던 하루 번아웃이 싹 정화되었습니다."`
-        },
-        {
-          speaker: npcName,
-          text: `"${npcName} 교사는 당신이 건넨 따스한 선물과 배려에 감동하며, 내일은 자신이 직접 더 훌륭한 차를 대접하겠다고 미소 짓습니다."`
-        },
-        {
-          speaker: npcName,
-          text: `"${npcName} 교사는 당신이 피력한 다정한 인생관에 깊이 동조하며, 참스승이자 소중한 친구로서 오래 함께하고 싶다고 말합니다."`
-        }
-      ];
+      let opener: string;
+      if (valence === 'positive') {
+        // 긍정 테마는 기존 템플릿 조합으로 다양한 말문을 연다
+        const prefix = PREFIX_TEMPLATES[Math.floor(Math.random() * PREFIX_TEMPLATES.length)];
+        const middle = MIDDLE_TEMPLATES[Math.floor(Math.random() * MIDDLE_TEMPLATES.length)];
+        const harmony = HARMONY_TEMPLATES[Math.floor(Math.random() * HARMONY_TEMPLATES.length)];
+        const action = ACTION_TEMPLATES[Math.floor(Math.random() * ACTION_TEMPLATES.length)];
+        opener = `"${role || '동료 교사'}로서 드리는 말씀인데... ${prefix} ${middle} ${harmony}" ${npcName} 교사가 ${action}`;
+      } else if (valence === 'neutral') {
+        opener = `"${npcName} 교사(${role || '동료 교사'})가 가볍게 다가옵니다. ${t.situation}"`;
+      } else {
+        opener = `"${npcName} 교사(${role || '동료 교사'})의 표정이 평소와 조금 다릅니다. ${t.situation}"`;
+      }
+      return buildStepsFromTheme(t, valence, npcName, opener);
     }
   };
 });
@@ -555,6 +644,8 @@ export const studentDialogueEvents: DialogueEvent[] = Array.from({ length: 150 }
   return {
     id: eventId,
     title: t.title,
+    // 학생 상담은 정답이 갈리는 딜레마이므로 중립으로 분류해 밸런싱에 자연스럽게 섞이게 한다
+    valence: 'neutral',
     generateSteps: (npcName: string, _role?: string) => [
       {
         speaker: npcName,
@@ -614,23 +705,28 @@ export const studentDialogueEvents: DialogueEvent[] = Array.from({ length: 150 }
       },
       {
         speaker: npcName,
-        text: `"${npcName} 학생은 비로소 얼굴에 밝은 미소를 띠며 고마워합니다. 선생님의 따뜻한 품에서 자존감이 살아납니다."`
+        text: `"${npcName} 학생은 비로소 얼굴에 밝은 미소를 띠며 고마워합니다. 선생님의 따뜻한 품에서 자존감이 살아납니다."`,
+        nextStepIndex: null
       },
       {
         speaker: npcName,
-        text: `"${npcName} 학생은 고개를 숙인 채 조용히 교실로 돌아갑니다. 단호한 가이드를 통해 문제 해결 능력을 기르게 되었습니다."`
+        text: `"${npcName} 학생은 고개를 숙인 채 조용히 교실로 돌아갑니다. 단호한 가이드를 통해 문제 해결 능력을 기르게 되었습니다."`,
+        nextStepIndex: null
       },
       {
         speaker: npcName,
-        text: `"${npcName} 학생은 교사의 세련된 연계 지도 지침을 경청하며, 부모님과 함께 차근차근 문제를 개선해 나가기로 약속합니다."`
+        text: `"${npcName} 학생은 교사의 세련된 연계 지도 지침을 경청하며, 부모님과 함께 차근차근 문제를 개선해 나가기로 약속합니다."`,
+        nextStepIndex: null
       },
       {
         speaker: npcName,
-        text: `"${npcName} 학생은 반의 친구들과 함께 자치 회의 합의안에 따라 스스로 책임을 지며 서로 화해하기로 결정했습니다."`
+        text: `"${npcName} 학생은 반의 친구들과 함께 자치 회의 합의안에 따라 스스로 책임을 지며 서로 화해하기로 결정했습니다."`,
+        nextStepIndex: null
       },
       {
         speaker: npcName,
-        text: `"${npcName} 학생은 Wee클래스의 따뜻하고 안락한 분위기에서 전문적인 케어 서비스를 수령하며 마음의 평정을 찾아갑니다."`
+        text: `"${npcName} 학생은 Wee클래스의 따뜻하고 안락한 분위기에서 전문적인 케어 서비스를 수령하며 마음의 평정을 찾아갑니다."`,
+        nextStepIndex: null
       }
     ]
   };

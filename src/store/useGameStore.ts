@@ -274,6 +274,27 @@ const pickBalancedEvent = (
 const pushValence = (log: EventValence[], v: EventValence): EventValence[] =>
   [v, ...log].slice(0, 12);
 
+// NPC 대화 후보 인덱스 중 정서 밸런싱을 적용해 하나를 고른다(연속 대화의 정서가 다양해지도록).
+const pickBalancedDialogueIndex = (
+  candidateIdxs: number[],
+  events: { valence: EventValence }[],
+  recent: EventValence[],
+  stats: Stats
+): number => {
+  if (candidateIdxs.length === 0) return 0;
+  const weighted = candidateIdxs.map(i => ({
+    i,
+    w: balancedWeight(10, events[i]?.valence ?? 'neutral', recent, stats)
+  }));
+  const total = weighted.reduce((sum, x) => sum + x.w, 0);
+  let r = Math.random() * total;
+  for (const x of weighted) {
+    r -= x.w;
+    if (r <= 0) return x.i;
+  }
+  return weighted[weighted.length - 1].i;
+};
+
 // 선택지의 데이터 주도 학생 효과(studentEffects)를 일괄 적용한다(증감치 + clamp).
 const applyStudentEffects = (students: Student[], choice: GameChoice): Student[] => {
   if (!choice.studentEffects || choice.studentEffects.length === 0) return students;
@@ -747,18 +768,18 @@ const getEventForTime = (
   }
   if (candidates.length === 0) return null;
 
-  // 정서 밸런싱을 적용한 가중 랜덤 추출 (stats가 없으면 순수 가중 랜덤에 근접)
-  return pickBalancedEvent(candidates, recent, stats ?? get0Stats(candidates));
+  // 정서 밸런싱을 적용한 가중 랜덤 추출 (stats가 없으면 위기 보정 없는 중립 스탯 사용)
+  return pickBalancedEvent(candidates, recent, stats ?? NEUTRAL_BALANCE_STATS);
 };
 
-// stats 미전달 시 밸런서가 위기 보정 없이 동작하도록 안전한 더미 스탯 제공
-const get0Stats = (_c: GameEvent[]): Stats => ({
+// stats 미전달 시 밸런서가 위기 보정 없이 동작하도록 쓰는 중립 기준 스탯
+const NEUTRAL_BALANCE_STATS: Stats = {
   hp: 50, mental: 50, burnout: 0, expert: 50, studentTrust: 50, parentTrust: 50,
   colleagueRelation: 50, adminTrust: 50, adminPower: 50, familySatisfaction: 50,
   educationSoshin: 50, reputation: 50, careerPoint: 0, teachingSatisfaction: 50,
   colleagueSolidarity: 50, parentComplaint: 0, workCapacity: 50, interpersonal: 50,
   familyRelation: 50, classManagement: 50, teachingResearch: 50
-});
+};
 
 // 초기화용 디폴트 업무 리스트 생성 헬퍼
 const getInitialTasks = (): Task[] => [
@@ -1908,7 +1929,7 @@ export const useGameStore = create<GameState>()(
       // 13. RPG 캐릭터 대화 개시 (TP를 소모하지 않는 이벤트성 대화)
       // 13. RPG 캐릭터 대화 개시 (TP 1 소모 및 100선 랜덤 대화 연동)
       talkToNPC: (npcId: string, npcName: string) => {
-        const { day, recentLogs, completedNpcDialoguesToday, completedNpcEvents, actionPoints } = get();
+        const { day, recentLogs, completedNpcDialoguesToday, completedNpcEvents, actionPoints, recentValenceLog, stats } = get();
 
         // 오늘 이미 대화한 적 있는 NPC인지 확인 (당일 중복 차단)
         if (completedNpcDialoguesToday.includes(npcId)) {
@@ -1936,9 +1957,9 @@ export const useGameStore = create<GameState>()(
             completedNpcEvents[npcId] = [];
           }
 
-          eventIdx = candidates[Math.floor(Math.random() * candidates.length)];
+          eventIdx = pickBalancedDialogueIndex(candidates, studentDialogueEvents, recentValenceLog, stats);
           const evt = studentDialogueEvents[eventIdx];
-          
+
           const student = get().students.find(s => s.id === npcId);
           const role = student ? `${student.name} (우리 반 학생)` : '학생';
           steps = evt.generateSteps(npcName, role);
@@ -1954,7 +1975,7 @@ export const useGameStore = create<GameState>()(
             completedNpcEvents[npcId] = [];
           }
 
-          eventIdx = candidates[Math.floor(Math.random() * candidates.length)];
+          eventIdx = pickBalancedDialogueIndex(candidates, colleagueDialogueEvents, recentValenceLog, stats);
           const evt = colleagueDialogueEvents[eventIdx];
 
           // 역할 매핑
@@ -2835,10 +2856,14 @@ export const useGameStore = create<GameState>()(
           });
         }
 
+        // 대화 선택의 정서를 전역 원장에 반영해 이후 이벤트 밸런싱에 함께 작용하게 한다
+        const dialogueValence = inferValence(choice.effects as StatEffect[] | undefined);
+
         // 결과 리액션 피드백이 있는 경우
         if (choice.resultText) {
           set({
             stats: syncNewStats(newStats),
+            recentValenceLog: pushValence(get().recentValenceLog, dialogueValence),
             npcDialogueSession: {
               ...npcDialogueSession,
               activeFeedbackText: choice.resultText,
