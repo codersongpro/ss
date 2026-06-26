@@ -287,7 +287,7 @@ export const colleagueDialogueEvents: DialogueEvent[] = Array.from({ length: 150
       result3: "동물의 꼬리 흔드는 짤막한 움짤이 뇌세포의 지친 회로를 치유해주어 머리가 상쾌하게 정화되었습니다.",
       choice4: "“이 귀여운 사진, 단톡방에도 올려서 모두 힐링하게 해주세요!” 단톡방 공유를 청한다.",
       effects4: [{ stat: 'colleagueSolidarity', value: 15 }, { stat: 'reputation', value: 10 }],
-      result4: "학 년 단톡방이 하트 이모티콘과 웃음으로 도배되며 오늘 하루의 친목 기류가 훈훈하게 고조되었습니다.",
+      result4: "학년 단톡방이 하트 이모티콘과 웃음으로 도배되며 오늘 하루의 친목 기류가 훈훈하게 고조되었습니다.",
       choice5: "동물들의 간식 정보와 건강 관리 노하우를 즐겁게 수다 떨며 친목을 돈독히 한다.",
       effects5: [{ stat: 'colleagueRelation', value: 18 }, { stat: 'mental', value: 8 }],
       result5: "수제 간식 매장을 공유하고 반려동물 공동 집사 모임을 약속하며 다정한 친목 관계를 형성했습니다."
@@ -529,7 +529,7 @@ export const studentDialogueEvents: DialogueEvent[] = Array.from({ length: 150 }
       choice3: "오늘 방과 후에 학부모와 유선 상담하여 가정에서 AI 윤리에 대해 대화하고 스스로 고쳐 쓰도록 연계 지도를 약속받는다.",
       effects3: [{ stat: 'parentTrust', value: 8 }, { stat: 'studentTrust', value: 4 }, { stat: 'mental', value: -2 }],
       result3: "학부모에게 아이의 학업 지도를 협력 요청하여 신뢰 관계를 다지고 가정 연대 지도를 일구어 냈습니다.",
-      choice4: "학급 아이들 전체에게 익명 사례로 공표하여, '생성형 인공지능과 학문적 정직성'에 관한 학급 자치 자율 규칙을 토론해 제정한다.",
+      choice4: "학급 아이들 전체에게 익명 사례로 공표하여, ‘생성형 인공지능과 학문적 정직성’에 관한 학급 자치 자율 규칙을 토론해 제정한다.",
       effects4: [{ stat: 'classManagement', value: 10 }, { stat: 'studentTrust', value: 4 }, { stat: 'burnout', value: 2 }],
       result4: "학급 자치 회의를 기화로 학생들 스스로 평가 규범을 만들게 조율하여 학급 운영 능력을 돋보이게 다졌습니다.",
       choice5: "학교 정보 전문 부장님 및 교내 인공지능 선도 교사에게 의뢰하여, 표절 검증 솔루션을 통한 객관적 피드백 세션으로 이송 처리한다.",
@@ -538,7 +538,7 @@ export const studentDialogueEvents: DialogueEvent[] = Array.from({ length: 150 }
     },
     {
       title: "교실 은따 방치 위기 중재",
-      situation: "반 아이들 몇 명이 단체 카톡방에서 특정 한 명을 초대하고 조롱하거나 내쫓는 '카톡 감옥'을 주도한 정황을 포착했습니다.",
+      situation: "반 아이들 몇 명이 단체 카톡방에서 특정 한 명을 초대하고 조롱하거나 내쫓는 ‘카톡 감옥’을 주도한 정황을 포착했습니다.",
       choice1: "학교 폭력 예방 매뉴얼에 따라 가해 학생 전원의 스마트폰을 임시 수거하고 부모 소환 면담 조치로 단호히 처벌한다.",
       effects1: [{ stat: 'educationSoshin', value: 10 }, { stat: 'parentComplaint', value: 10 }, { stat: 'studentTrust', value: 4 }],
       result1: "강력한 생활 지도로 교내 학폭 범죄 기조에 엄격히 대처했으나, 가해측 학부모들의 단체 항의와 민원이 빗발칠 예정입니다.",
@@ -548,7 +548,7 @@ export const studentDialogueEvents: DialogueEvent[] = Array.from({ length: 150 }
       choice3: "가해 학생 부모들에게 즉시 상황의 심각성을 설명하는 전화를 걸어, 가가호호 스마트폰 사용 시간 제어 및 가정 연계 지도를 촉구한다.",
       effects3: [{ stat: 'parentTrust', value: 8 }, { stat: 'studentTrust', value: 2 }, { stat: 'mental', value: -3 }],
       result3: "부모들에게 사실을 명확히 전달하여 사건의 가해를 원천 차단하는 신속한 학부모 연대 대책을 취했습니다.",
-      choice4: "학급 회의 시간표를 활용해 '우리가 만드는 사이버 폭력 없는 단톡방 약속'을 자발적으로 제정하여 학급 자치 서약을 맺게 한다.",
+      choice4: "학급 회의 시간표를 활용해 ‘우리가 만드는 사이버 폭력 없는 단톡방 약속’을 자발적으로 제정하여 학급 자치 서약을 맺게 한다.",
       effects4: [{ stat: 'classManagement', value: 12 }, { stat: 'studentTrust', value: 6 }, { stat: 'adminPower', value: -2 }],
       result4: "학급 공동체의 자율적 정화 역량을 활용해 자치 기풍을 진작시켰으나, 일부 개별 행동 교정에는 다소 시간이 걸립니다.",
       choice5: "학교 전담 경찰관(SPO)에게 의뢰하여 다음 주 아침 조회 시간에 교실로 직접 방문해 사이버 학폭 특별 예방 훈련 특강을 진행하게 이송한다.",
@@ -567,10 +567,10 @@ export const studentDialogueEvents: DialogueEvent[] = Array.from({ length: 150 }
       choice3: "학부모에게 오늘 오후 수업 중 발생한 행동 반항 사건을 유선 전화로 설명하고, 가정에서 규칙 수용 교육을 부탁한다.",
       effects3: [{ stat: 'parentTrust', value: 8 }, { stat: 'studentTrust', value: 2 }, { stat: 'mental', value: -2 }],
       result3: "학부모와의 가정 연대 전화를 통해 부담을 덜고 깔끔하게 원칙 제어를 진행했습니다.",
-      choice4: "학급 전체 자치 토론 안건으로 '수업 시간 방해 행동 대처 벌칙 규칙'을 상정해 아이들 스스로 반항 행동의 제재안을 정하게 유도한다.",
+      choice4: "학급 전체 자치 토론 안건으로 ‘수업 시간 방해 행동 대처 벌칙 규칙’을 상정해 아이들 스스로 반항 행동의 제재안을 정하게 유도한다.",
       effects4: [{ stat: 'classManagement', value: 10 }, { stat: 'studentTrust', value: 4 }, { stat: 'adminPower', value: -2 }],
       result4: "학급 자치 규칙에 힘입어 교사 개인의 감정 소모 없이 학급 운영 가이드를 확립했습니다.",
-      choice5: "학교 상담 전문 Wee클래스에 학생을 '분노 조절 장애 및 규칙 거부'로 일차 상담 인계 이송하여 위탁 치료를 개시한다.",
+      choice5: "학교 상담 전문 Wee클래스에 학생을 ‘분노 조절 장애 및 규칙 거부’로 일차 상담 인계 이송하여 위탁 치료를 개시한다.",
       effects5: [{ stat: 'expert', value: 8 }, { stat: 'adminTrust', value: 6 }, { stat: 'mental', value: 4 }],
       result5: "교내 전문 상담 센터에 사건 지도를 이송해 교사의 멘탈 방어와 객관적인 솔루션 배정을 완료했습니다."
     }
@@ -579,7 +579,7 @@ export const studentDialogueEvents: DialogueEvent[] = Array.from({ length: 150 }
   const defaultTheme = {
     title: `학급 아동 개별 지도 (${index + 1})`,
     situation: `학급 내 [번호: ${index + 1}] 아동이 교탁 앞으로 다가와 최근 학업 고민이나 친구 관계, 학교 규칙 위반에 대해 털어놓기 시작합니다.`,
-    choice1: "학교의 합리적 규칙 and 훈육 가이드에 근거해 단호하고 객관적인 원칙주의 지도를 부과한다.",
+    choice1: "학교의 합리적 규칙 및 훈육 가이드에 근거해 단호하고 객관적인 원칙주의 지도를 부과한다.",
     effects1: [{ stat: 'expert', value: 6 }, { stat: 'educationSoshin', value: 6 }, { stat: 'mental', value: -2 }],
     result1: "전문적인 학업 및 행동 원칙을 지도해 교사 소신과 전문 역량을 다잡았습니다.",
     choice2: "아이의 눈을 맞추며 정서적 감정에 공감하고, 규칙 적용 대신 정서적 지지와 격려를 최우선으로 돌려준다.",

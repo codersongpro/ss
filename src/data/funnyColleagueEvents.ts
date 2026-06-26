@@ -76,7 +76,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     title: '연수 시간 침 흘림 수호자',
     category: 'colleague',
     situation: '시청각실',
-    narratorText: '지루하기 짝이 없는 안전 보건 의무 교육 연수 시간, 시청각실 맨 뒷자리에서 옆자리의 동행인 4년 차 영어 선생님이 고개를 뒤로 꺾고 입을 벌린 채 단잠에 빠져들었습니다. 턱밑으로 침이 한 방울 떨어지기 직전, 저 멀리 복도에서 교감 선생님이 시찰을 위해 눈을 부릅뜨고 시청각실 문으로 다가오고 계십니다! 어떻게 구출하시겠습니까?',
+    narratorText: '지루하기 짝이 없는 안전 보건 의무 교육 연수 시간, 시청각실 맨 뒷자리에서 옆자리의 4년 차 영어 선생님이 고개를 뒤로 꺾고 입을 벌린 채 단잠에 빠져들었습니다. 턱밑으로 침이 한 방울 떨어지기 직전, 저 멀리 복도에서 교감 선생님이 시찰을 위해 눈을 부릅뜨고 시청각실 문으로 다가오고 계십니다! 어떻게 구출하시겠습니까?',
     weight: 100,
     tags: ['의무연수', '취침수호', '교감시찰'],
     choices: [
@@ -123,7 +123,7 @@ export const funnyColleagueEvents: GameEvent[] = [
           { stat: 'hp', value: 10 },
           { stat: 'colleagueRelation', value: -5 }
         ],
-        resultText: '체육 부장님은 "에고 관절이 벌써 상했군!"이라며 짠해하셨고, 주말의 소중한 독신 자유 시간을 완벽하게 지켜냈습니다.'
+        resultText: '체육 부장님은 "에고 관절이 벌써 상했군!"이라며 짠해하셨고, 주말의 소중한 혼자만의 자유 시간을 완벽하게 지켜냈습니다.'
       },
       {
         id: 'choice_funny_colleague_04_2',
@@ -244,7 +244,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     title: '아리송한 청첩장의 3만원 vs 5만원 배틀',
     category: 'colleague',
     situation: '교무실 내 책상',
-    narratorText: '교무실 우편함에 다른 학년 조과 선생님의 청첩장이 꽂혀 있었습니다. 한 학기 동안 오가며 가벼운 목인사만 나누었던 서먹한 관계입니다. 축의금 봉투를 준비해야 하는데, 3만 원을 넣자니 다소 성의 없어 보이고 5만 원을 넣자니 다음 달 지갑 사정이 얇아져 깊은 고뇌에 빠졌습니다. 어떻게 하시겠습니까?',
+    narratorText: '교무실 우편함에 다른 학년 교과 선생님의 청첩장이 꽂혀 있었습니다. 한 학기 동안 오가며 가벼운 목인사만 나누었던 서먹한 관계입니다. 축의금 봉투를 준비해야 하는데, 3만 원을 넣자니 다소 성의 없어 보이고 5만 원을 넣자니 다음 달 지갑 사정이 얇아져 깊은 고뇌에 빠졌습니다. 어떻게 하시겠습니까?',
     weight: 100,
     tags: ['경조사비', '축의금고민', '스마트생활'],
     choices: [
@@ -688,7 +688,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_21_1',
-        text: '내 주머니에 들어있던 최애 힐링 에너지바 2개와 매실 캔디 3개를 물물교환 카드로 내밀며 동행 간식 동맹을 제안한다. (colleagueRelation +15, hp +5, 멘탈 +10)',
+        text: '내 주머니에 들어있던 최애 힐링 에너지바 2개와 매실 캔디 3개를 물물교환 카드로 내밀며 공동 간식 동맹을 제안한다. (colleagueRelation +15, hp +5, 멘탈 +10)',
         intent: '포켓 간식 물물교환',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },

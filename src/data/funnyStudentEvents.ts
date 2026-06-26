@@ -644,7 +644,7 @@ export const funnyStudentEvents: GameEvent[] = [
     title: '급식 우유 팩 밟기 분수 쇼',
     category: 'student',
     situation: '교실',
-    narratorText: '급식 우유 급식 시간, 윤수가 다 마신 흰 우유 팩의 주둥이를 접어 바닥에 두고 발바닥으로 세차게 밟았습니다. 그 순간 우유 팩 입구에서 미처 마시지 못한 잔여 우유가 강력한 압력 분수가 되어 수직으로 발사되어 교실 천장 텍스를 하얗게 적셨습니다. 어떻게 훈육하시겠습니까?',
+    narratorText: '급식 우유 시간, 윤수가 다 마신 흰 우유 팩의 주둥이를 접어 바닥에 두고 발바닥으로 세차게 밟았습니다. 그 순간 우유 팩 입구에서 미처 마시지 못한 잔여 우유가 강력한 압력 분수가 되어 수직으로 발사되어 교실 천장 텍스를 하얗게 적셨습니다. 어떻게 훈육하시겠습니까?',
     weight: 100,
     tags: ['급식우유', '우유분수', '청소위기'],
     choices: [
@@ -762,7 +762,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_23_2',
-        text: '하늘이에게 직접 도라이버와 테이프를 쥐여주어 담임 교사 협조 아래 사물함을 스스로 수리 복구하게 유도한다. (학생신뢰 +15, 멘탈 +10, expert +5)',
+        text: '하늘이에게 직접 드라이버와 테이프를 쥐여주어 담임 교사 협조 아래 사물함을 스스로 수리 복구하게 유도한다. (학생신뢰 +15, 멘탈 +10, expert +5)',
         intent: '자율적 결자해지 복구',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
