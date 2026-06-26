@@ -25,15 +25,25 @@ export const gameEvents: GameEvent[] = [
       {
         id: 'choice_complaint_01_1',
         text: '통신비밀보호법 위반으로 경찰에 신고하고 교권보호위원회 소집을 강력히 요구한다.',
-        intent: '법적 강경 대응',
+        intent: '법적 강경 대응 (성패가 갈리는 강수)',
+        successRate: 55,
         immediateEffects: [
-          { stat: 'parentComplaint', value: 25 },
+          { stat: 'parentComplaint', value: -10 },
           { stat: 'educationSoshin', value: 15 },
+          { stat: 'mental', value: -8 },
+          { stat: 'colleagueSolidarity', value: 8 },
+          { stat: 'adminTrust', value: 5 }
+        ],
+        hiddenFlags: ['rules_strict'],
+        successResultText: '단호한 법적 대응 앞에서 학부모는 위법성을 깨닫고 정식 사과한 뒤 녹음기를 회수했습니다. 교권을 지켜낸 사례로 동료들의 든든한 지지를 받았습니다.',
+        failEffects: [
+          { stat: 'parentComplaint', value: 25 },
+          { stat: 'educationSoshin', value: 10 },
           { stat: 'mental', value: -15 },
           { stat: 'colleagueSolidarity', value: 5 }
         ],
-        hiddenFlags: ['rules_strict'],
-        resultText: '학부모 측은 크게 당황하면서도 "오죽하면 녹음기를 넣었겠느냐, 아동학대로 맞고소하겠다"며 극단적인 민원 공세를 퍼붓기 시작합니다.'
+        failResultText: '학부모 측은 크게 당황하면서도 "오죽하면 녹음기를 넣었겠느냐, 아동학대로 맞고소하겠다"며 극단적인 민원 공세를 퍼붓기 시작합니다.',
+        resultText: '학부모 측은 크게 당황하면서도 "오죽하면 녹음기를 넣었겠느냐"며 격하게 반발합니다.'
       },
       {
         id: 'choice_complaint_01_2',
@@ -63,15 +73,24 @@ export const gameEvents: GameEvent[] = [
       {
         id: 'choice_complaint_02_1',
         text: '의도성이 없고 경미한 접촉이므로 전학 처리는 법적으로 불가능함을 정중하지만 단호하게 고지한다.',
-        intent: '법적 한계 고지 및 원칙 종결',
+        intent: '법적 한계 고지 및 원칙 종결 (설득의 성패 변수)',
+        successRate: 50,
         immediateEffects: [
+          { stat: 'parentComplaint', value: -10 },
+          { stat: 'educationSoshin', value: 12 },
+          { stat: 'parentTrust', value: 5 },
+          { stat: 'colleagueSolidarity', value: 5 }
+        ],
+        hiddenFlags: ['rules_strict'],
+        successResultText: '차분한 법적 근거 설명에 민준 부모님도 결국 무리한 요구였음을 인정하고, 치료비 정산 선에서 한발 물러섰습니다.',
+        failEffects: [
           { stat: 'parentComplaint', value: 30 },
           { stat: 'educationSoshin', value: 10 },
           { stat: 'parentTrust', value: -15 },
           { stat: 'colleagueSolidarity', value: 5 }
         ],
-        hiddenFlags: ['rules_strict'],
-        resultText: '민준 부모님은 "교사가 가해 학생을 비호하며 학폭을 은폐 축소하려 한다"고 교육청 국민신문고에 실명 민원을 제기했습니다.'
+        failResultText: '민준 부모님은 "교사가 가해 학생을 비호하며 학폭을 은폐 축소하려 한다"고 교육청 국민신문고에 실명 민원을 제기했습니다.',
+        resultText: '민준 부모님은 쉽게 물러서지 않고 거세게 항의합니다.'
       },
       {
         id: 'choice_complaint_02_2',
@@ -404,7 +423,7 @@ export const gameEvents: GameEvent[] = [
           { stat: 'studentTrust', value: 15 },
           { stat: 'expert', value: 15 }
         ],
-        hiddenFlags: ['student_center', 'collaboration'],
+        hiddenFlags: ['student_center', 'collaboration', 'arc_jihun_helped'],
         studentEffects: [
           { studentId: 'student_jihun', changes: { behavior: 15, teacherTrust: 20 } }
         ],
@@ -428,7 +447,7 @@ export const gameEvents: GameEvent[] = [
             message: '당시 가볍게 악수하고 끝낸 다툼이 앙금으로 남아 주말 학원가에서 다시 충돌하였고, 결국 상대방 학부모가 민원을 접수했습니다.'
           }
         ],
-        hiddenFlags: ['conflict_avoidance'],
+        hiddenFlags: ['conflict_avoidance', 'arc_jihun_neglected'],
         studentEffects: [
           { studentId: 'student_jihun', changes: { behavior: -10, peerRelation: -15 } }
         ],
@@ -2586,6 +2605,105 @@ export const gameEvents: GameEvent[] = [
           { stat: 'expert', value: -10 }
         ],
         resultText: '육체적 번아웃 수치가 극적으로 하락했습니다! 어깨 뭉침과 목 디스크 통증이 완화되며 가장 원초적인 건강 게이지를 최대로 사수해 냈습니다.'
+      }
+    ]
+  },
+
+  // ==========================================
+  // [NEW] 서사 아크: 5일차 지훈이 다툼 중재 선택이 후반부에 되돌아오는 연속 이벤트.
+  // prerequisites(arc_jihun_helped / arc_jihun_neglected)로 초반 선택을 '기억'한다.
+  // ==========================================
+  {
+    id: 'evt_arc_jihun_growth',
+    dayRange: [22, 28],
+    title: '지훈이의 작은 보답',
+    category: 'student',
+    situation: '교실',
+    narratorText: '며칠 전 회복적 대화로 다툼을 풀어줬던 지훈이가 쭈뼛쭈뼛 다가옵니다. "선생님, 그때 제 얘기 끝까지 들어주셔서… 사실 친구랑도 다시 잘 지내요." 손에는 삐뚤빼뚤 접은 손편지가 들려 있습니다.',
+    prerequisites: ['arc_jihun_helped'],
+    weight: 200,
+    valence: 'positive',
+    tags: ['서사아크', '학생성장', '보람'],
+    choices: [
+      {
+        id: 'choice_arc_jihun_growth_1',
+        text: '편지를 소중히 받아 읽고, 지훈이의 성장을 진심으로 칭찬해준다.',
+        intent: '성장의 인정과 격려',
+        immediateEffects: [
+          { stat: 'teachingSatisfaction', value: 15 },
+          { stat: 'mental', value: 12 },
+          { stat: 'studentTrust', value: 10 },
+          { stat: 'burnout', value: -8 }
+        ],
+        studentEffects: [
+          { studentId: 'student_jihun', changes: { selfEsteem: 10, teacherTrust: 10, peerRelation: 8 } }
+        ],
+        hiddenFlags: ['student_center'],
+        resultText: '지훈이의 편지에는 "선생님 덕분에 학교가 다시 좋아졌어요"라고 적혀 있었습니다. 교사로서의 깊은 보람이 가슴을 채웁니다.'
+      },
+      {
+        id: 'choice_arc_jihun_growth_2',
+        text: '대수롭지 않게 받되, 앞으로도 친구들과 잘 지내라고 짧게 다독인다.',
+        intent: '담담한 격려',
+        immediateEffects: [
+          { stat: 'teachingSatisfaction', value: 6 },
+          { stat: 'studentTrust', value: 4 }
+        ],
+        resultText: '지훈이는 살짝 아쉬운 듯하면서도, 선생님의 한마디에 미소 지으며 자리로 돌아갔습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_arc_jihun_relapse',
+    dayRange: [22, 28],
+    title: '곪아버린 앙금',
+    category: 'student',
+    situation: '교실',
+    narratorText: '며칠 전 억지로 악수만 시키고 끝낸 다툼이 결국 곪았습니다. 지훈이가 상대 아이와 복도에서 거칠게 몸싸움을 벌였고, 주변 아이들이 휴대폰으로 촬영하며 소란이 커졌습니다.',
+    prerequisites: ['arc_jihun_neglected'],
+    weight: 200,
+    valence: 'negative',
+    tags: ['서사아크', '관계갈등', '위기지도'],
+    choices: [
+      {
+        id: 'choice_arc_jihun_relapse_1',
+        text: '이번엔 시간을 충분히 들여 두 아이의 속마음까지 끌어내는 깊은 회복적 상담을 진행한다.',
+        intent: '뒤늦은 정면 대응',
+        successRate: 60,
+        immediateEffects: [
+          { stat: 'studentTrust', value: 12 },
+          { stat: 'mental', value: -10 },
+          { stat: 'hp', value: -10 },
+          { stat: 'expert', value: 8 }
+        ],
+        studentEffects: [
+          { studentId: 'student_jihun', changes: { behavior: 12, peerRelation: 10, teacherTrust: 8 } }
+        ],
+        hiddenFlags: ['student_center'],
+        successResultText: '늦었지만 진심이 통했습니다. 두 아이는 비로소 서로의 응어리를 털어놓고 진짜 화해에 이르렀습니다.',
+        failEffects: [
+          { stat: 'studentTrust', value: -5 },
+          { stat: 'mental', value: -12 },
+          { stat: 'parentComplaint', value: 12 }
+        ],
+        failResultText: '깊어진 골은 한 번의 상담으로 메워지지 않았고, 결국 양측 학부모 민원으로 번졌습니다.',
+        resultText: '쉽지 않은 상담이 시작됩니다.'
+      },
+      {
+        id: 'choice_arc_jihun_relapse_2',
+        text: '촬영 영상부터 삭제시키고 둘을 떼어놓은 뒤, 또 한 번 반성문으로 빠르게 마무리한다.',
+        intent: '재차 봉합',
+        immediateEffects: [
+          { stat: 'mental', value: 3 },
+          { stat: 'studentTrust', value: -12 },
+          { stat: 'parentComplaint', value: 15 },
+          { stat: 'educationSoshin', value: -8 }
+        ],
+        studentEffects: [
+          { studentId: 'student_jihun', changes: { behavior: -8, teacherTrust: -10 } }
+        ],
+        hiddenFlags: ['conflict_avoidance'],
+        resultText: '또다시 덮어버린 갈등에 지훈이는 "선생님은 맨날 이래요"라며 마음의 문을 완전히 닫아버렸습니다.'
       }
     ]
   }

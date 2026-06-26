@@ -932,7 +932,7 @@ export const useGameStore = create<GameState>()(
       toastMessage: null,
       bgmVolume: 3, // 기본 배경음 볼륨 단계 3 [NEW]
       burnout100Days: 0, // 기본 번아웃 지속 일수 0 [NEW]
-      showStatHints: true, // 기본적으로 스탯 힌트 표시 활성화 [NEW]
+      showStatHints: false, // 기본은 스탯 힌트 숨김 — 수치 최적화가 아닌 역할 판단을 유도(토글로 켤 수 있음) [NEW]
       diceRollState: null, // 초기 주사위 판정 상태는 null [NEW]
 
       toggleStatHints: () => set({ showStatHints: !get().showStatHints }), // 스탯 힌트 토글 액션 [NEW]
