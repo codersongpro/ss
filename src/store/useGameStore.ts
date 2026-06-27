@@ -15,7 +15,8 @@ import type {
   DialogueStep,
   DialogueSession,
   MessengerNotification,
-  EventValence
+  EventValence,
+  DiscoveryLogEntry
 } from '@/game/types';
 import { initialStudents, initialParents } from '@/data/students';
 import { gameEvents } from '@/data/events';
@@ -89,7 +90,9 @@ interface GameState {
   completedParentEvents: number[]; // 완료된 학부모 민원 인덱스 목록
   completedColleaguePrivateEvents: number[]; // 완료된 교직원 사적 요청 인덱스 목록
   completedPositiveEvents: number[]; // 완료된 긍정 격려/감사 인덱스 목록
-  
+  inventory: string[]; // [NEW] 보유 아이템 id 목록 (어드벤처 요소)
+  discoveryLog: DiscoveryLogEntry[]; // [NEW] 단서/관계 일지에 쌓일 발견 기록
+
   // 현재 진행 중인 이벤트 연출 상태
   currentEvent: GameEvent | null;
   selectedChoice: GameChoice | null;
@@ -320,6 +323,11 @@ const getTrustDerivedFlags = (students: Student[]): string[] => {
   if (avgTrust <= 30) flags.push('class_trust_low');
   return flags;
 };
+
+// prerequisites 항목 하나를 검사한다. 'item:아이템id' 형태면 인벤토리 보유 여부를,
+// 그 외에는 (트러스트 파생 플래그를 합친) effectiveFlags 보유 여부를 검사한다.
+const hasPrerequisite = (flag: string, effectiveFlags: string[], inventory: string[]): boolean =>
+  flag.startsWith('item:') ? inventory.includes(flag.slice(5)) : effectiveFlags.includes(flag);
 
 // 선택지의 데이터 주도 학생 효과(studentEffects)를 일괄 적용한다(증감치 + clamp).
 const applyStudentEffects = (students: Student[], choice: GameChoice): Student[] => {
@@ -746,6 +754,7 @@ const getEventForTime = (
   history: string[],
   stats: Stats,
   students: Student[],
+  inventory: string[],
   familyState?: string
 ): GameEvent | null => {
   const effectiveFlags = [...hiddenFlags, ...getTrustDerivedFlags(students)];
@@ -782,7 +791,7 @@ const getEventForTime = (
     if (applyHistory && history.includes(evt.id)) return false;
     // 4. 선결 요건 검사
     if (evt.prerequisites && evt.prerequisites.length > 0) {
-      const hasAll = evt.prerequisites.every(flag => effectiveFlags.includes(flag));
+      const hasAll = evt.prerequisites.every(flag => hasPrerequisite(flag, effectiveFlags, inventory));
       if (!hasAll) return false;
     }
     return true;
@@ -936,7 +945,9 @@ export const useGameStore = create<GameState>()(
       completedParentEvents: [],
       completedColleaguePrivateEvents: [],
       completedPositiveEvents: [],
-      
+      inventory: [],
+      discoveryLog: [],
+
       currentEvent: null,
       selectedChoice: null,
       eventResultText: null,
@@ -1006,6 +1017,8 @@ export const useGameStore = create<GameState>()(
           completedParentEvents: [],
           completedColleaguePrivateEvents: [],
           completedPositiveEvents: [],
+          inventory: [],
+          discoveryLog: [],
           phoneAndTextNotifications: [],
           activePhoneAndTextEvent: null,
           currentEvent: null, // 시작 직후 아침에는 지도를 보고 탐색하도록 null 설정
@@ -1045,6 +1058,8 @@ export const useGameStore = create<GameState>()(
           completedParentEvents: [],
           completedColleaguePrivateEvents: [],
           completedPositiveEvents: [],
+          inventory: [],
+          discoveryLog: [],
           phoneAndTextNotifications: [],
           activePhoneAndTextEvent: null,
           recentLogs: [],
@@ -1121,6 +1136,12 @@ export const useGameStore = create<GameState>()(
             // 학생 수치 보정 (데이터 주도 studentEffects 일괄 적용)
             const updatedStudents = applyStudentEffects(get().students, choice);
 
+            // 아이템 획득 (성공 시에만 grantsItem 지급, 중복 보유 방지)
+            const currentInventory = get().inventory;
+            const newInventory = (isSuccess && choice.grantsItem && !currentInventory.includes(choice.grantsItem))
+              ? [...currentInventory, choice.grantsItem]
+              : currentInventory;
+
             set({
               stats: syncNewStats(newStats),
               delayedEffects: newDelayedEffects,
@@ -1128,6 +1149,7 @@ export const useGameStore = create<GameState>()(
               eventResultText: resultText,
               recentLogs: updatedLogs,
               students: updatedStudents,
+              inventory: newInventory,
               recentValenceLog: pushValence(get().recentValenceLog, inferValence(appliedEffects)),
               diceRollState: {
                 rolling: false,
@@ -1178,6 +1200,12 @@ export const useGameStore = create<GameState>()(
           // 데이터 주도 studentEffects 일괄 적용
           const updatedStudents = applyStudentEffects(students, choice);
 
+          // 아이템 획득 (grantsItem 지급, 중복 보유 방지)
+          const currentInventory = get().inventory;
+          const newInventory = (choice.grantsItem && !currentInventory.includes(choice.grantsItem))
+            ? [...currentInventory, choice.grantsItem]
+            : currentInventory;
+
           set({
             stats: syncNewStats(newStats),
             delayedEffects: newDelayedEffects,
@@ -1186,6 +1214,7 @@ export const useGameStore = create<GameState>()(
             eventResultText: choice.resultText,
             recentLogs: updatedLogs,
             students: updatedStudents,
+            inventory: newInventory,
             recentValenceLog: pushValence(recentValenceLog, inferValence(choice.immediateEffects)),
             diceRollState: null // 일반 선택지는 주사위 상태 무시
           });
@@ -1202,7 +1231,8 @@ export const useGameStore = create<GameState>()(
           maxActionPoints,
           playerInfo,
           stats,
-          students
+          students,
+          inventory
         } = get();
 
         if (timeOfDay === 'morning') {
@@ -1231,7 +1261,7 @@ export const useGameStore = create<GameState>()(
           }
         } else if (timeOfDay === 'afternoon') {
           // 오후 -> 저녁 (저녁은 집/개인 활동이므로 기존 방식대로 저녁 이벤트를 자동 추점)
-          const nextEvent = getEventForTime(day, 'evening', hiddenFlags, recentLogs, stats, students, playerInfo?.familyState);
+          const nextEvent = getEventForTime(day, 'evening', hiddenFlags, recentLogs, stats, students, inventory, playerInfo?.familyState);
           set({
             timeOfDay: 'evening',
             currentLocation: null,
@@ -1753,7 +1783,7 @@ export const useGameStore = create<GameState>()(
 
       // 11. RPG 장소 탐색 (사건 트리거, TP 1 소모)
       exploreLocation: () => {
-        const { currentLocation, day, hiddenFlags, recentLogs, actionPoints, stats, students } = get();
+        const { currentLocation, day, hiddenFlags, recentLogs, actionPoints, stats, students, inventory } = get();
         const effectiveFlags = [...hiddenFlags, ...getTrustDerivedFlags(students)];
         if (!currentLocation) return;
         if (actionPoints < 1) {
@@ -1808,7 +1838,7 @@ export const useGameStore = create<GameState>()(
           if (day < start || day > end) return false;
           if (recentLogs.some(log => log.includes(evt.title))) return false;
           if (evt.prerequisites && evt.prerequisites.length > 0) {
-            const hasAll = evt.prerequisites.every(flag => effectiveFlags.includes(flag));
+            const hasAll = evt.prerequisites.every(flag => hasPrerequisite(flag, effectiveFlags, inventory));
             if (!hasAll) return false;
           }
           return true;

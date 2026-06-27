@@ -72,6 +72,25 @@ export interface GameChoice {
 
   // [NEW] 특정 학생의 수치를 직접 변동시키는 데이터 주도 효과 (관계·서사 기억용)
   studentEffects?: StudentEffect[];
+
+  // [NEW] 선택 시 인벤토리에 추가될 아이템 id (어드벤처 요소)
+  grantsItem?: string;
+}
+
+// 소지품/아이템 (어드벤처 요소). 이벤트·선택지의 prerequisites에 'item:아이템id' 형태로
+// 적어 게이팅 조건으로도 쓸 수 있다.
+export interface InventoryItem {
+  id: string;
+  name: string;
+  description: string;
+  icon?: string;
+}
+
+// '단서/관계 일지' UI 탭에 쌓이는 발견 기록 한 건
+export interface DiscoveryLogEntry {
+  id: string;
+  label: string;
+  day: number;
 }
 
 // 특정 학생의 상세 수치를 변동시키는 효과 (selectChoice에서 일괄 적용)

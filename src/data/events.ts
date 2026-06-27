@@ -2639,6 +2639,7 @@ export const gameEvents: GameEvent[] = [
           { studentId: 'student_jihun', changes: { selfEsteem: 10, teacherTrust: 10, peerRelation: 8 } }
         ],
         hiddenFlags: ['student_center'],
+        grantsItem: 'jihun_letter',
         resultText: '지훈이의 편지에는 "선생님 덕분에 학교가 다시 좋아졌어요"라고 적혀 있었습니다. 교사로서의 깊은 보람이 가슴을 채웁니다.'
       },
       {
@@ -2736,6 +2737,7 @@ export const gameEvents: GameEvent[] = [
           { stat: 'hp', value: -8 }
         ],
         hiddenFlags: ['student_center'],
+        grantsItem: 'class_diary',
         resultText: '다이어리를 돌려받은 아이들은 선생님의 답장을 서로 보여주며 환하게 웃었습니다. 학급 전체의 마음이 한층 더 가까워졌습니다.'
       },
       {
@@ -2785,6 +2787,7 @@ export const gameEvents: GameEvent[] = [
           { stat: 'burnout', value: 5 }
         ],
         hiddenFlags: ['student_center', 'collaboration'],
+        grantsItem: 'class_council_charter',
         resultText: '아이들은 스스로 정한 규칙이라며 누구보다 성실히 지켰습니다. 학급 분위기가 한층 자율적이고 단단해졌습니다.'
       },
       {
@@ -2831,6 +2834,7 @@ export const gameEvents: GameEvent[] = [
           { stat: 'mental', value: 8 }
         ],
         hiddenFlags: ['student_center'],
+        grantsItem: 'student_sketchbook',
         resultText: '며칠 뒤, 학생은 조심스레 친구들 앞에서 그림을 보여주었고 뜻밖의 박수를 받으며 환하게 웃었습니다.'
       },
       {
@@ -2921,6 +2925,7 @@ export const gameEvents: GameEvent[] = [
           { stat: 'educationSoshin', value: 8 }
         ],
         hiddenFlags: ['student_center'],
+        grantsItem: 'mystery_note',
         resultText: '솔직한 사과에 몇몇 아이들의 표정이 조금씩 풀렸습니다. 누가 적었는지는 끝내 알 수 없었지만, 분위기는 나아졌습니다.'
       },
       {
@@ -2932,6 +2937,42 @@ export const gameEvents: GameEvent[] = [
           { stat: 'mental', value: 4 }
         ],
         resultText: '쪽지는 책상 구석에 그대로 놓여 있었고, 마음 한구석의 불편함도 함께 남았습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_item_diary_followup',
+    dayRange: [12, 30],
+    title: '다시 돌아온 다이어리',
+    category: 'student',
+    situation: '교실',
+    narratorText: '책상 위에 그 학급 다이어리가 다시 놓여 있습니다. 지난번 답장 옆에 새로운 글씨로 한 줄이 더 적혀 있습니다. "선생님 답장 보고 저희도 더 솔직해지기로 했어요."',
+    prerequisites: ['item:class_diary'],
+    weight: 100,
+    valence: 'positive',
+    tags: ['아이템연계', '신뢰', '학급분위기'],
+    choices: [
+      {
+        id: 'choice_item_diary_followup_1',
+        text: '이번에도 정성껏 읽고 답장을 적어 돌려준다.',
+        intent: '꾸준한 신뢰 쌓기',
+        immediateEffects: [
+          { stat: 'studentTrust', value: 10 },
+          { stat: 'teachingSatisfaction', value: 8 },
+          { stat: 'mental', value: 6 }
+        ],
+        hiddenFlags: ['student_center'],
+        resultText: '다이어리는 이제 학급의 작은 전통이 되었습니다. 아이들은 선생님의 답장을 기다리는 것을 즐거움으로 여깁니다.'
+      },
+      {
+        id: 'choice_item_diary_followup_2',
+        text: '바쁜 업무 때문에 다음으로 미뤄둔다.',
+        intent: '우선순위 조정',
+        immediateEffects: [
+          { stat: 'studentTrust', value: -4 },
+          { stat: 'hp', value: 5 }
+        ],
+        resultText: '다이어리는 며칠째 책상 한쪽에 놓여 있었습니다. 아이들도 더는 새 글을 적지 않았습니다.'
       }
     ]
   }
