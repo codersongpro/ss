@@ -2706,5 +2706,233 @@ export const gameEvents: GameEvent[] = [
         resultText: '또다시 덮어버린 갈등에 지훈이는 "선생님은 맨날 이래요"라며 마음의 문을 완전히 닫아버렸습니다.'
       }
     ]
+  },
+
+  // ==========================================
+  // [NEW] 학급 평균 신뢰도 기반 비밀 이벤트(어드벤처 요소). class_trust_high/class_trust_low는
+  // 학생들의 teacherTrust 평균이 임계치를 넘을 때마다 매 순간 계산되는 파생 플래그라
+  // 영구 고정이 아니라 "지금 신뢰가 충분히 쌓여 있는가"를 그대로 반영한다.
+  // ==========================================
+  {
+    id: 'evt_secret_trust_diary',
+    dayRange: [10, 30],
+    title: '몰래 돌려쓴 학급 다이어리',
+    category: 'student',
+    situation: '교실',
+    narratorText: '종례 후 한 학생이 다가와 머뭇거리며 공책 한 권을 내밉니다. "저희끼리 몰래 돌려 쓰던 학급 다이어리예요. 선생님은… 믿을 수 있을 것 같아서요." 페이지마다 아이들의 솔직한 고민과 서로에 대한 이야기가 빽빽이 적혀 있습니다.',
+    prerequisites: ['class_trust_high'],
+    weight: 150,
+    valence: 'positive',
+    tags: ['비밀이벤트', '신뢰', '학급분위기'],
+    choices: [
+      {
+        id: 'choice_secret_trust_diary_1',
+        text: '밤새 정성껏 읽고, 다음 날 다이어리에 짧은 답장을 한 줄씩 적어 돌려준다.',
+        intent: '신뢰에 대한 보답',
+        immediateEffects: [
+          { stat: 'studentTrust', value: 18 },
+          { stat: 'teachingSatisfaction', value: 15 },
+          { stat: 'mental', value: 10 },
+          { stat: 'hp', value: -8 }
+        ],
+        hiddenFlags: ['student_center'],
+        resultText: '다이어리를 돌려받은 아이들은 선생님의 답장을 서로 보여주며 환하게 웃었습니다. 학급 전체의 마음이 한층 더 가까워졌습니다.'
+      },
+      {
+        id: 'choice_secret_trust_diary_2',
+        text: '내용은 비밀로 지키되, 다이어리에서 드러난 고민들을 참고해 상담 계획을 조용히 세운다.',
+        intent: '조용한 활용',
+        immediateEffects: [
+          { stat: 'expert', value: 12 },
+          { stat: 'studentTrust', value: 8 },
+          { stat: 'mental', value: 5 }
+        ],
+        hiddenFlags: ['student_center'],
+        resultText: '아이들은 모르지만, 다이어리 덕분에 몇몇 학생의 숨겨진 어려움을 미리 알고 챙길 수 있게 되었습니다.'
+      },
+      {
+        id: 'choice_secret_trust_diary_3',
+        text: '"이런 건 보여주지 않아도 돼"라며 정중히 돌려보낸다.',
+        intent: '거리 유지',
+        immediateEffects: [
+          { stat: 'studentTrust', value: -6 },
+          { stat: 'mental', value: 3 }
+        ],
+        resultText: '학생은 살짝 풀이 죽은 채 다이어리를 도로 가져갔습니다. 마음을 열려던 시도가 조금은 머쭐해진 듯합니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_secret_class_council',
+    dayRange: [14, 30],
+    title: '학생 자치 제안',
+    category: 'student',
+    situation: '교실',
+    narratorText: '학급 회장이 친구들과 상의한 끝에 찾아왔습니다. "선생님이 늘 저희를 믿어주시니까, 저희도 학급 규칙 일부는 직접 정해보고 싶어요." 아이들이 직접 적어온 자치 규칙 초안을 조심스레 내밉니다.',
+    prerequisites: ['class_trust_high'],
+    weight: 140,
+    valence: 'positive',
+    tags: ['비밀이벤트', '신뢰', '학생자치'],
+    choices: [
+      {
+        id: 'choice_secret_class_council_1',
+        text: '초안을 함께 검토하고, 안전과 관련된 부분만 다듬어 학급 자치 규칙으로 정식 채택한다.',
+        intent: '자치권 위임',
+        immediateEffects: [
+          { stat: 'studentTrust', value: 15 },
+          { stat: 'educationSoshin', value: 12 },
+          { stat: 'reputation', value: 8 },
+          { stat: 'burnout', value: 5 }
+        ],
+        hiddenFlags: ['student_center', 'collaboration'],
+        resultText: '아이들은 스스로 정한 규칙이라며 누구보다 성실히 지켰습니다. 학급 분위기가 한층 자율적이고 단단해졌습니다.'
+      },
+      {
+        id: 'choice_secret_class_council_2',
+        text: '좋은 시도라고 칭찬하되, 최종 결정은 교사가 내리는 자문 기구 형태로 운영한다.',
+        intent: '단계적 자치',
+        immediateEffects: [
+          { stat: 'studentTrust', value: 8 },
+          { stat: 'adminPower', value: 5 }
+        ],
+        resultText: '아이들은 다소 아쉬워했지만, 의견이 반영된다는 사실에 만족하며 첫걸음을 떼었습니다.'
+      },
+      {
+        id: 'choice_secret_class_council_3',
+        text: '"규칙은 선생님이 책임지고 정하는 거야"라며 제안을 정리해 돌려보낸다.',
+        intent: '권한 보류',
+        immediateEffects: [
+          { stat: 'studentTrust', value: -8 },
+          { stat: 'adminPower', value: 4 }
+        ],
+        resultText: '회장은 고개를 끄덕였지만, 친구들에게는 "역시 어려울 것 같다"고 전했습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_secret_hidden_talent',
+    dayRange: [16, 30],
+    title: '비밀로 간직했던 재능',
+    category: 'student',
+    situation: '교실',
+    narratorText: '평소 말이 없던 학생이 쉬는 시간, 아무도 없을 때를 골라 다가옵니다. "사실… 저 그림 그리는 거 좋아해요. 친구들한테는 비밀인데, 선생님은 믿을 수 있을 것 같아서요." 스케치북 한 권을 살짝 보여줍니다.',
+    prerequisites: ['class_trust_high'],
+    weight: 130,
+    valence: 'positive',
+    tags: ['비밀이벤트', '신뢰', '학생재능'],
+    choices: [
+      {
+        id: 'choice_secret_hidden_talent_1',
+        text: '진심으로 감탄하며, 본인이 원할 때 친구들에게도 보여줄 수 있도록 살짝 자리를 마련해준다.',
+        intent: '재능의 무대 마련',
+        immediateEffects: [
+          { stat: 'studentTrust', value: 16 },
+          { stat: 'teachingSatisfaction', value: 12 },
+          { stat: 'mental', value: 8 }
+        ],
+        hiddenFlags: ['student_center'],
+        resultText: '며칠 뒤, 학생은 조심스레 친구들 앞에서 그림을 보여주었고 뜻밖의 박수를 받으며 환하게 웃었습니다.'
+      },
+      {
+        id: 'choice_secret_hidden_talent_2',
+        text: '비밀은 지켜주되, 따로 시간을 내어 그림에 대한 이야기를 더 나눈다.',
+        intent: '조용한 지지',
+        immediateEffects: [
+          { stat: 'studentTrust', value: 12 },
+          { stat: 'mental', value: 6 }
+        ],
+        resultText: '학생은 비밀을 지켜준 선생님께 고마워하며, 조금씩 더 마음을 열기 시작했습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_secret_class_trust_low_clique',
+    dayRange: [10, 30],
+    title: '싸늘해진 교실의 침묵',
+    category: 'student',
+    situation: '교실',
+    narratorText: '요즘 들어 학생들이 선생님과 눈을 잘 마주치지 않고, 묻는 말에도 단답으로만 답합니다. 무언가 학급 내에 선생님 모르게 도는 이야기가 있는 듯한데, 누구도 먼저 입을 열지 않습니다.',
+    prerequisites: ['class_trust_low'],
+    weight: 150,
+    valence: 'negative',
+    tags: ['비밀이벤트', '신뢰저하', '학급분위기'],
+    choices: [
+      {
+        id: 'choice_secret_trust_low_clique_1',
+        text: '익명 설문지를 돌려 솔직한 이야기를 들을 기회를 만든다.',
+        intent: '익명 채널로 신뢰 회복 시도',
+        immediateEffects: [
+          { stat: 'studentTrust', value: 10 },
+          { stat: 'mental', value: -5 },
+          { stat: 'hp', value: -4 }
+        ],
+        hiddenFlags: ['student_center'],
+        resultText: '설문지에는 평소 하지 못했던 솔직한 불만과 바람들이 적혀 있었습니다. 아프지만 꼭 필요했던 신호였습니다.'
+      },
+      {
+        id: 'choice_secret_trust_low_clique_2',
+        text: '"별일 아니겠지" 하고 평소와 다름없이 수업을 이어간다.',
+        intent: '현상 유지',
+        immediateEffects: [
+          { stat: 'studentTrust', value: -10 },
+          { stat: 'hp', value: 3 }
+        ],
+        delayedEffects: [
+          {
+            dayTrigger: 5,
+            effects: [{ stat: 'studentTrust', value: -8 }, { stat: 'parentComplaint', value: 8 }],
+            message: '무심코 넘겼던 학급의 냉랭함은 결국 몇몇 학부모의 항의 전화로 돌아왔습니다.'
+          }
+        ],
+        hiddenFlags: ['conflict_avoidance'],
+        resultText: '특별한 조치 없이 하루가 지나갔지만, 학생들의 표정은 여전히 풀리지 않았습니다.'
+      },
+      {
+        id: 'choice_secret_trust_low_clique_3',
+        text: '학급 회장과 따로 이야기해 분위기가 가라앉은 이유를 직접 물어본다.',
+        intent: '핵심 인물과 직접 소통',
+        immediateEffects: [
+          { stat: 'studentTrust', value: 6 },
+          { stat: 'expert', value: 5 }
+        ],
+        resultText: '회장은 머뭇거리다 작은 오해 하나를 털어놓았고, 실마리를 잡은 선생님은 한숨을 돌렸습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_secret_anonymous_note',
+    dayRange: [12, 30],
+    title: '책상 위의 익명 쪽지',
+    category: 'student',
+    situation: '교실',
+    narratorText: '아침에 출근해보니 책상 위에 접힌 쪽지 하나가 놓여 있습니다. "선생님은 저희를 별로 신경 안 쓰시는 것 같아요." 누가 적었는지 알 수 없는 짧은 한 줄이 마음에 콱 박힙니다.',
+    prerequisites: ['class_trust_low'],
+    weight: 130,
+    valence: 'negative',
+    tags: ['비밀이벤트', '신뢰저하', '학생관계'],
+    choices: [
+      {
+        id: 'choice_secret_anonymous_note_1',
+        text: '쪽지를 진지하게 받아들이고, 조회 시간에 솔직히 사과와 다짐을 전한다.',
+        intent: '정면 수용',
+        immediateEffects: [
+          { stat: 'studentTrust', value: 14 },
+          { stat: 'mental', value: -6 },
+          { stat: 'educationSoshin', value: 8 }
+        ],
+        hiddenFlags: ['student_center'],
+        resultText: '솔직한 사과에 몇몇 아이들의 표정이 조금씩 풀렸습니다. 누가 적었는지는 끝내 알 수 없었지만, 분위기는 나아졌습니다.'
+      },
+      {
+        id: 'choice_secret_anonymous_note_2',
+        text: '익명 쪽지는 무시하기로 하고, 평소와 똑같이 하루를 보낸다.',
+        intent: '무대응',
+        immediateEffects: [
+          { stat: 'studentTrust', value: -8 },
+          { stat: 'mental', value: 4 }
+        ],
+        resultText: '쪽지는 책상 구석에 그대로 놓여 있었고, 마음 한구석의 불편함도 함께 남았습니다.'
+      }
+    ]
   }
 ];

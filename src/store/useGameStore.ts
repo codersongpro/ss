@@ -310,6 +310,17 @@ const pickBalancedTaskTemplate = (
   return pickWeighted(weighted) ?? taskTemplates[0];
 };
 
+// 학급 평균 신뢰도가 임계치를 넘으면 비밀 이벤트의 prerequisites로 쓸 파생 플래그를 만든다.
+// 영구 저장되는 hiddenFlags와 달리 매번 현재 학생 상태로부터 계산되어, 신뢰가 다시 떨어지면 사라진다.
+const getTrustDerivedFlags = (students: Student[]): string[] => {
+  if (students.length === 0) return [];
+  const avgTrust = students.reduce((sum, s) => sum + s.teacherTrust, 0) / students.length;
+  const flags: string[] = [];
+  if (avgTrust >= 80) flags.push('class_trust_high');
+  if (avgTrust <= 30) flags.push('class_trust_low');
+  return flags;
+};
+
 // 선택지의 데이터 주도 학생 효과(studentEffects)를 일괄 적용한다(증감치 + clamp).
 const applyStudentEffects = (students: Student[], choice: GameChoice): Student[] => {
   if (!choice.studentEffects || choice.studentEffects.length === 0) return students;
@@ -734,8 +745,10 @@ const getEventForTime = (
   hiddenFlags: string[],
   history: string[],
   stats: Stats,
+  students: Student[],
   familyState?: string
 ): GameEvent | null => {
+  const effectiveFlags = [...hiddenFlags, ...getTrustDerivedFlags(students)];
   let category: GameEvent['category'][] = [];
   
   if (time === 'morning') {
@@ -769,7 +782,7 @@ const getEventForTime = (
     if (applyHistory && history.includes(evt.id)) return false;
     // 4. 선결 요건 검사
     if (evt.prerequisites && evt.prerequisites.length > 0) {
-      const hasAll = evt.prerequisites.every(flag => hiddenFlags.includes(flag));
+      const hasAll = evt.prerequisites.every(flag => effectiveFlags.includes(flag));
       if (!hasAll) return false;
     }
     return true;
@@ -1188,7 +1201,8 @@ export const useGameStore = create<GameState>()(
           hiddenFlags,
           maxActionPoints,
           playerInfo,
-          stats
+          stats,
+          students
         } = get();
 
         if (timeOfDay === 'morning') {
@@ -1217,7 +1231,7 @@ export const useGameStore = create<GameState>()(
           }
         } else if (timeOfDay === 'afternoon') {
           // 오후 -> 저녁 (저녁은 집/개인 활동이므로 기존 방식대로 저녁 이벤트를 자동 추점)
-          const nextEvent = getEventForTime(day, 'evening', hiddenFlags, recentLogs, stats, playerInfo?.familyState);
+          const nextEvent = getEventForTime(day, 'evening', hiddenFlags, recentLogs, stats, students, playerInfo?.familyState);
           set({
             timeOfDay: 'evening',
             currentLocation: null,
@@ -1739,7 +1753,8 @@ export const useGameStore = create<GameState>()(
 
       // 11. RPG 장소 탐색 (사건 트리거, TP 1 소모)
       exploreLocation: () => {
-        const { currentLocation, day, hiddenFlags, recentLogs, actionPoints, stats } = get();
+        const { currentLocation, day, hiddenFlags, recentLogs, actionPoints, stats, students } = get();
+        const effectiveFlags = [...hiddenFlags, ...getTrustDerivedFlags(students)];
         if (!currentLocation) return;
         if (actionPoints < 1) {
           get().showToast('교사력(TP)이 부족하여 탐색할 수 없습니다.');
@@ -1791,9 +1806,9 @@ export const useGameStore = create<GameState>()(
           if (!categories.includes(evt.category)) return false;
           const [start, end] = evt.dayRange;
           if (day < start || day > end) return false;
-          if (recentLogs.some(log => log.includes(evt.title))) return false; 
+          if (recentLogs.some(log => log.includes(evt.title))) return false;
           if (evt.prerequisites && evt.prerequisites.length > 0) {
-            const hasAll = evt.prerequisites.every(flag => hiddenFlags.includes(flag));
+            const hasAll = evt.prerequisites.every(flag => effectiveFlags.includes(flag));
             if (!hasAll) return false;
           }
           return true;
