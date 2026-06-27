@@ -4,7 +4,7 @@ export interface DialogueEvent {
   id: string;
   title: string;
   valence: EventValence; // [NEW] 대화의 정서(긍정/중립/갈등). 밸런싱 선택에 사용
-  generateSteps: (npcName: string, role?: string) => DialogueStep[];
+  generateSteps: (npcName: string, role?: string, npcId?: string) => DialogueStep[];
 }
 
 // [NEW] 대화 한 테마(상황+선택지 묶음)의 공통 형태
@@ -18,22 +18,42 @@ interface DialogueTheme {
   choice5?: string; effects5?: { stat: string; value: number }[]; result5?: string;
 }
 
-// [NEW] 정서별 마무리 대사 풀 (선택 후 NPC의 닫는 반응). 매번 같은 신파 마무리 반복을 줄인다.
+// [NEW] 정서별 마무리 대사 풀 (선택 후 NPC의 닫는 반응). 매번 같은 신파 마무리 반복을 줄이기 위해 풀을 넉넉히 확보한다.
 const CLOSING_BY_VALENCE: Record<EventValence, string[]> = {
   positive: [
     '님은 당신의 따뜻한 호응에 환하게 웃으며 한결 가벼워진 표정으로 자리로 돌아갑니다.',
     '님은 짧지만 다정한 교류에 고마워하며, 다음엔 자신이 차를 대접하겠다고 약속합니다.',
-    '님과 나눈 소소한 대화 덕분에 두 사람 모두 오후 일과를 버틸 기운을 얻었습니다.'
+    '님과 나눈 소소한 대화 덕분에 두 사람 모두 오후 일과를 버틸 기운을 얻었습니다.',
+    '님은 흡족한 표정으로 고개를 끄덕이며, 오늘 하루도 잘 풀릴 것 같다고 덧붙입니다.',
+    '님은 당신의 반응이 마음에 든 듯 가볍게 손을 흔들고 콧노래를 부르며 돌아갑니다.',
+    '님은 "역시 선생님이랑 얘기하면 마음이 편해진다"며 환하게 웃어 보입니다.',
+    '님은 자리로 돌아가는 길에도 연신 싱글거리며 옆자리 선생님에게도 좋은 기분을 전합니다.',
+    '님은 당신의 말을 곱씹으며 작게 웃더니, 오후 일과에 한층 가벼운 발걸음을 옮깁니다.',
+    '님은 고마운 마음을 감추지 못하고 책상 위에 작은 메모를 남긴 채 자리로 돌아갑니다.',
+    '님은 어깨를 활짝 펴며 "오늘은 일이 잘 풀릴 것 같다"고 혼잣말처럼 중얼거립니다.',
+    '님은 잠시 머뭇거리다가도 결국 미소를 참지 못하고 가벼운 발걸음으로 돌아섭니다.'
   ],
   neutral: [
     '님은 고개를 끄덕이며 필요한 이야기를 마치고 자기 일로 돌아갑니다.',
     '님과 담백하게 정보를 주고받고, 각자 할 일을 이어갑니다.',
-    '님은 "그럼 그렇게 알고 있을게요" 하며 가볍게 인사를 건넵니다.'
+    '님은 "그럼 그렇게 알고 있을게요" 하며 가볍게 인사를 건넵니다.',
+    '님은 별다른 동요 없이 메모를 남기고 다음 일정으로 넘어갑니다.',
+    '님은 잠깐의 대화를 마치고 무심한 듯 자리로 돌아가지만, 표정은 한결 풀려 있습니다.',
+    '님은 짧게 알겠다는 손짓을 보이고는 평소처럼 자기 업무로 돌아갑니다.',
+    '님은 시계를 한 번 보더니 "다음에 또 얘기하자"며 자리를 정리합니다.',
+    '님은 대화 내용을 수첩에 메모하며 무덤덤하게 다음 일을 챙깁니다.',
+    '님은 별 의미 없는 잡담처럼 흘려보내며 가볍게 손을 흔들고 멀어집니다.'
   ],
   negative: [
     '님은 표정이 완전히 풀리진 않았지만, 일단 당신의 입장을 받아들이고 돌아섭니다.',
     '님과의 사이에 미묘한 긴장이 남았지만, 대화 자체는 마무리되었습니다.',
-    '님은 "알겠습니다" 하고 짧게 답한 뒤, 생각에 잠긴 채 자리로 향합니다.'
+    '님은 "알겠습니다" 하고 짧게 답한 뒤, 생각에 잠긴 채 자리로 향합니다.',
+    '님은 한숨을 한 번 내쉬고는 더 말을 잇지 않은 채 자리로 돌아갑니다.',
+    '님은 굳은 표정을 풀지 못한 채 가볍게 목례만 하고 멀어집니다.',
+    '님은 못마땅한 기색을 숨기지 않으면서도 더 이상 따지지는 않습니다.',
+    '님은 잠시 당신을 바라보다가 결국 아무 말 없이 자리로 돌아갑니다.',
+    '님은 "나중에 다시 얘기하자"는 말만 남기고 무거운 발걸음으로 떠납니다.',
+    '님은 애써 표정을 가다듬으며 "알겠어요" 하고 짧게 마무리합니다.'
   ]
 };
 
@@ -42,8 +62,61 @@ const pickClosing = (valence: EventValence, npcName: string): string => {
   return `"${npcName} 교사${pool[Math.floor(Math.random() * pool.length)]}"`;
 };
 
+// 선택지 자체의 효과 부호로 NPC의 마무리 반응을 분기한다(스토어의 inferValence와 동일 로직).
+const RISK_STATS_LOCAL = ['burnout', 'parentComplaint'];
+const effectValence = (
+  effects: { stat: string; value: number }[] | undefined,
+  fallback: EventValence = 'neutral'
+): EventValence => {
+  if (!effects || effects.length === 0) return fallback;
+  const net = effects.reduce((sum, eff) => {
+    const sign = RISK_STATS_LOCAL.includes(eff.stat) ? -1 : 1;
+    return sum + sign * eff.value;
+  }, 0);
+  if (net >= 6) return 'positive';
+  if (net <= -6) return 'negative';
+  return 'neutral';
+};
+
+// NPC 성향 태그. 같은 NPC와 반복 대화해도 어휘 결이 일관되게 느껴지도록 풀 선택을 편향시킨다.
+type NpcPersonality = 'energetic' | 'cynical' | 'warm';
+const NPC_PERSONALITY: Record<string, NpcPersonality> = {
+  colleague_senior: 'warm',
+  colleague_mate: 'energetic',
+  colleague_vice_principal: 'cynical',
+  principal: 'cynical',
+  nurse: 'warm',
+  gym: 'energetic',
+  staff_admin_chief: 'cynical',
+  staff_admin_worker: 'cynical',
+  staff_cook: 'warm',
+  staff_librarian: 'warm',
+  staff_counselor: 'warm',
+  staff_science_assistant: 'energetic',
+  staff_guard: 'cynical'
+};
+const getPersonality = (npcId?: string): NpcPersonality => NPC_PERSONALITY[npcId ?? ''] ?? 'warm';
+
+// 성향에 따라 풀의 한 구간을 70% 확률로 선호하고, 나머지는 전체 풀에서 고른다.
+const pickFromPool = <T,>(pool: T[], personality: NpcPersonality): T => {
+  const third = Math.floor(pool.length / 3);
+  const ranges: Record<NpcPersonality, [number, number]> = {
+    energetic: [0, third],
+    warm: [third, third * 2],
+    cynical: [third * 2, pool.length]
+  };
+  if (Math.random() < 0.7) {
+    const [start, end] = ranges[personality];
+    const slice = pool.slice(start, end);
+    if (slice.length > 0) return slice[Math.floor(Math.random() * slice.length)];
+  }
+  return pool[Math.floor(Math.random() * pool.length)];
+};
+
 // [NEW] 테마 + 정서로부터 깔끔한 2단계 대화(프롬프트 → 선택별 마무리)를 생성하는 공용 헬퍼.
 // 선택지가 3~5개로 가변이어도 동작하며, 마무리 스텝은 nextStepIndex:null로 명확히 종료된다.
+// 마무리 반응은 테마 전체 정서가 아니라 "그 선택지의 실제 효과 부호"로 갈라져, 같은 테마라도
+// 어떤 선택을 했는지에 따라 NPC 반응이 달라진다.
 const buildStepsFromTheme = (
   t: DialogueTheme,
   valence: EventValence,
@@ -67,9 +140,9 @@ const buildStepsFromTheme = (
     resultText: d.result
   }));
 
-  const closings: DialogueStep[] = defs.map(() => ({
+  const closings: DialogueStep[] = defs.map(d => ({
     speaker: npcName,
-    text: pickClosing(valence, npcName),
+    text: pickClosing(effectValence(d.effects, valence), npcName),
     nextStepIndex: null
   }));
 
@@ -491,19 +564,39 @@ export const colleagueDialogueEvents: DialogueEvent[] = Array.from({ length: 150
     id: eventId,
     title: t.title,
     valence,
-    generateSteps: (npcName: string, role?: string) => {
+    generateSteps: (npcName: string, role?: string, npcId?: string) => {
+      const roleLabel = role || '동료 교사';
+      const personality = getPersonality(npcId);
       let opener: string;
       if (valence === 'positive') {
-        // 긍정 테마는 기존 템플릿 조합으로 다양한 말문을 연다
-        const prefix = PREFIX_TEMPLATES[Math.floor(Math.random() * PREFIX_TEMPLATES.length)];
-        const middle = MIDDLE_TEMPLATES[Math.floor(Math.random() * MIDDLE_TEMPLATES.length)];
-        const harmony = HARMONY_TEMPLATES[Math.floor(Math.random() * HARMONY_TEMPLATES.length)];
-        const action = ACTION_TEMPLATES[Math.floor(Math.random() * ACTION_TEMPLATES.length)];
-        opener = `"${role || '동료 교사'}로서 드리는 말씀인데... ${prefix} ${middle} ${harmony}" ${npcName} 교사가 ${action}`;
+        // 긍정 테마는 성향별로 편향된 템플릿 조합 + 여러 문장 뼈대 중 하나를 골라 말문을 연다
+        const prefix = pickFromPool(PREFIX_TEMPLATES, personality);
+        const middle = pickFromPool(MIDDLE_TEMPLATES, personality);
+        const harmony = pickFromPool(HARMONY_TEMPLATES, personality);
+        const action = pickFromPool(ACTION_TEMPLATES, personality);
+        const skeletons = [
+          `"${roleLabel}로서 드리는 말씀인데... ${prefix} ${middle} ${harmony}" ${npcName} 교사가 ${action}`,
+          `${npcName} 교사가 슬며시 다가와 운을 뗍니다. "${prefix} ${middle} ${harmony}" 그리고는 ${action}`,
+          `"${prefix}" ${npcName} 교사(${roleLabel})가 ${middle} ${harmony} 그러면서 ${action}`,
+          `복도에서 마주친 ${npcName} 교사가 말을 건넵니다. "${prefix}" ${middle} ${harmony} ${npcName} 교사가 ${action}`
+        ];
+        opener = skeletons[Math.floor(Math.random() * skeletons.length)];
       } else if (valence === 'neutral') {
-        opener = `"${npcName} 교사(${role || '동료 교사'})가 가볍게 다가옵니다. ${t.situation}"`;
+        const wrappers = [
+          `"${npcName} 교사(${roleLabel})가 가볍게 다가옵니다. ${t.situation}"`,
+          `"${npcName} 교사가 서류를 든 채 슬쩍 말을 건넵니다. ${t.situation}"`,
+          `"지나가던 ${npcName} 교사가 잠시 멈춰 섭니다. ${t.situation}"`,
+          `"${npcName} 교사(${roleLabel})와 복도에서 마주쳤습니다. ${t.situation}"`
+        ];
+        opener = wrappers[Math.floor(Math.random() * wrappers.length)];
       } else {
-        opener = `"${npcName} 교사(${role || '동료 교사'})의 표정이 평소와 조금 다릅니다. ${t.situation}"`;
+        const wrappers = [
+          `"${npcName} 교사(${roleLabel})의 표정이 평소와 조금 다릅니다. ${t.situation}"`,
+          `"${npcName} 교사가 다소 굳은 얼굴로 다가옵니다. ${t.situation}"`,
+          `"${npcName} 교사가 머뭇거리다 입을 엽니다. ${t.situation}"`,
+          `"평소와 다르게 ${npcName} 교사의 목소리에 날이 서 있습니다. ${t.situation}"`
+        ];
+        opener = wrappers[Math.floor(Math.random() * wrappers.length)];
       }
       return buildStepsFromTheme(t, valence, npcName, opener);
     }

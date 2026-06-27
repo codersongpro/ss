@@ -2000,7 +2000,7 @@ export const useGameStore = create<GameState>()(
             else if (npcId === 'staff_guard') role = '배움터 지킴이';
           }
 
-          steps = evt.generateSteps(npcName, role);
+          steps = evt.generateSteps(npcName, role, npcId);
         }
 
         const updatedLogs = [
