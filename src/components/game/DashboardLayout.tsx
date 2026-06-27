@@ -21,6 +21,7 @@ import {
   Activity
 } from 'lucide-react';
 import type { Student } from '@/game/types';
+import { getItemById } from '@/data/items';
 
 // 스탯명 한글화 및 이모지 매핑 테이블 [NEW]
 const STAT_LABELS: Record<string, { label: string; icon: string }> = {
@@ -258,7 +259,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
     showStatHints,
     toggleStatHints,
     diceRollState,
-    clearDiceRollState
+    clearDiceRollState,
+    inventory,
+    discoveryLog
   } = useGameStore();
 
   const toggleVolume = () => {
@@ -301,6 +304,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
   // 행정업무 선택지 정보 상태 (null = 선택중, string = 활성 선택지 id)
   const [activeTaskChoice, setActiveTaskChoice] = useState<string | null>(null);
   const [taskChoiceResult, setTaskChoiceResult] = useState<{ choiceText: string; resultText: string; effects: { stat: string; value: number }[] } | null>(null);
+
+  // 단서/관계 일지 모달 열림 상태 [NEW] (어드벤처 요소: 인벤토리·발견 기록·학생 신뢰 열람)
+  const [isDiscoveryLogOpen, setIsDiscoveryLogOpen] = useState<boolean>(false);
 
   // 통합 카드 목록 구성
   const getActiveEvents = () => {
@@ -823,6 +829,22 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
               title="선택지의 스탯 변동 힌트를 표시하거나 숨깁니다."
             >
               <span>{showStatHints ? '👁️ 힌트 켜짐' : '🙈 힌트 숨김'}</span>
+            </button>
+
+            {/* 단서/관계 일지 모달 열기 버튼 [NEW] (어드벤처 요소: 소지품·발견 기록·학생 신뢰 열람) */}
+            <button
+              onClick={() => setIsDiscoveryLogOpen(true)}
+              className={`p-1.5 bg-violet-100 hover:bg-violet-200 text-violet-800 rounded-lg border-2 border-black active:translate-y-0.5 shadow-school-press transition-all flex items-center gap-1 text-xs font-bold focus:outline-none cursor-pointer ${
+                isTutorialActive && tutorialStep === 1 ? 'opacity-30 pointer-events-none' : ''
+              }`}
+              title="지금까지 모은 소지품과 발견 기록, 학생들의 신뢰도를 확인합니다."
+            >
+              <span>📖 단서/관계 일지</span>
+              {(inventory.length > 0 || discoveryLog.length > 0) && (
+                <span className="ml-0.5 inline-flex items-center justify-center w-4 h-4 rounded-full bg-violet-600 text-white text-[10px] font-extrabold">
+                  {inventory.length + discoveryLog.length}
+                </span>
+              )}
             </button>
 
             {/* 다음 일과 진행 버튼 고정 배치 [NEW] */}
@@ -2944,6 +2966,80 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 단서/관계 일지 모달 [NEW] (어드벤처 요소: 소지품·발견 기록·학생 신뢰 타임라인) */}
+      {isDiscoveryLogOpen && (
+        <div className="fixed inset-0 z-[1900] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white border-4 border-black rounded-2xl p-6 max-w-lg w-full max-h-[85vh] overflow-y-auto space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between border-b-2 border-black pb-3">
+              <h3 className="text-lg font-black flex items-center gap-2">📖 단서/관계 일지</h3>
+              <button
+                onClick={() => setIsDiscoveryLogOpen(false)}
+                className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg border-2 border-black text-xs font-bold active:translate-y-0.5 shadow-school-press cursor-pointer"
+              >
+                닫기
+              </button>
+            </div>
+
+            {/* 소지품 */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-extrabold text-violet-800">🎒 소지품 ({inventory.length})</h4>
+              {inventory.length === 0 ? (
+                <p className="text-xs text-slate-500">아직 모은 소지품이 없습니다. 학생·동료와의 신뢰를 쌓아보세요.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {inventory.map(itemId => {
+                    const item = getItemById(itemId);
+                    if (!item) return null;
+                    return (
+                      <li key={item.id} className="bg-violet-50 border-2 border-violet-200 rounded-xl p-2.5">
+                        <p className="text-xs font-bold text-violet-900">{item.icon ? `${item.icon} ` : ''}{item.name}</p>
+                        <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">{item.description}</p>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+
+            {/* 발견 기록 */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-extrabold text-amber-800">🔍 발견 기록 ({discoveryLog.length})</h4>
+              {discoveryLog.length === 0 ? (
+                <p className="text-xs text-slate-500">아직 특별한 발견이 없습니다. 학교 곳곳을 탐색해보세요.</p>
+              ) : (
+                <ul className="space-y-1.5">
+                  {[...discoveryLog].reverse().map(entry => (
+                    <li key={entry.id} className="flex items-start gap-2 text-xs bg-amber-50 border border-amber-200 rounded-lg p-2">
+                      <span className="font-mono font-bold text-amber-700 whitespace-nowrap">{entry.day}일차</span>
+                      <span className="text-slate-700">{entry.label}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* 학생 신뢰도 타임라인 */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-extrabold text-emerald-800">👥 학생 신뢰도</h4>
+              <ul className="space-y-1.5">
+                {students.map((s: Student) => (
+                  <li key={s.id} className="flex items-center gap-2 text-xs">
+                    <span className="w-16 truncate font-bold text-slate-700">{s.name}</span>
+                    <div className="flex-1 h-2.5 bg-slate-200 rounded-full overflow-hidden border border-slate-300">
+                      <div
+                        className={`h-full ${s.teacherTrust >= 80 ? 'bg-emerald-500' : s.teacherTrust <= 30 ? 'bg-rose-500' : 'bg-sky-500'}`}
+                        style={{ width: `${s.teacherTrust}%` }}
+                      />
+                    </div>
+                    <span className="w-8 text-right font-mono text-slate-600">{s.teacherTrust}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>

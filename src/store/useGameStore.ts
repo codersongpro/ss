@@ -18,6 +18,7 @@ import type {
   EventValence,
   DiscoveryLogEntry
 } from '@/game/types';
+import { getItemById } from '@/data/items';
 import { initialStudents, initialParents } from '@/data/students';
 import { gameEvents } from '@/data/events';
 import { colleagueDialogueEvents, studentDialogueEvents } from '@/data/npcDialoguesData';
@@ -1144,9 +1145,12 @@ export const useGameStore = create<GameState>()(
 
             // 아이템 획득 (성공 시에만 grantsItem 지급, 중복 보유 방지)
             const currentInventory = get().inventory;
-            const newInventory = (isSuccess && choice.grantsItem && !currentInventory.includes(choice.grantsItem))
-              ? [...currentInventory, choice.grantsItem]
-              : currentInventory;
+            const grantedItem = isSuccess && choice.grantsItem && !currentInventory.includes(choice.grantsItem) ? choice.grantsItem : null;
+            const newInventory = grantedItem ? [...currentInventory, grantedItem] : currentInventory;
+            const itemInfo = grantedItem ? getItemById(grantedItem) : undefined;
+            const newDiscoveryLog = itemInfo
+              ? [...get().discoveryLog, { id: `disc_item_${grantedItem}`, label: `소지품 획득: ${itemInfo.name}`, day }]
+              : get().discoveryLog;
 
             set({
               stats: syncNewStats(newStats),
@@ -1156,6 +1160,7 @@ export const useGameStore = create<GameState>()(
               recentLogs: updatedLogs,
               students: updatedStudents,
               inventory: newInventory,
+              discoveryLog: newDiscoveryLog,
               recentValenceLog: pushValence(get().recentValenceLog, inferValence(appliedEffects)),
               diceRollState: {
                 rolling: false,
@@ -1208,9 +1213,12 @@ export const useGameStore = create<GameState>()(
 
           // 아이템 획득 (grantsItem 지급, 중복 보유 방지)
           const currentInventory = get().inventory;
-          const newInventory = (choice.grantsItem && !currentInventory.includes(choice.grantsItem))
-            ? [...currentInventory, choice.grantsItem]
-            : currentInventory;
+          const grantedItem = choice.grantsItem && !currentInventory.includes(choice.grantsItem) ? choice.grantsItem : null;
+          const newInventory = grantedItem ? [...currentInventory, grantedItem] : currentInventory;
+          const itemInfo = grantedItem ? getItemById(grantedItem) : undefined;
+          const newDiscoveryLog = itemInfo
+            ? [...get().discoveryLog, { id: `disc_item_${grantedItem}`, label: `소지품 획득: ${itemInfo.name}`, day }]
+            : get().discoveryLog;
 
           set({
             stats: syncNewStats(newStats),
@@ -1221,6 +1229,7 @@ export const useGameStore = create<GameState>()(
             recentLogs: updatedLogs,
             students: updatedStudents,
             inventory: newInventory,
+            discoveryLog: newDiscoveryLog,
             recentValenceLog: pushValence(recentValenceLog, inferValence(choice.immediateEffects)),
             diceRollState: null // 일반 선택지는 주사위 상태 무시
           });
@@ -1866,11 +1875,18 @@ export const useGameStore = create<GameState>()(
         // 채널 통일 목표 비율(위기 시 상향)로 가중 랜덤 선택
         const selectedEvt = pickBalancedEvent(candidates, stats) ?? candidates[0];
 
+        // 비밀/히든 탐험 이벤트와 마주친 경우 단서/관계 일지에 발견 기록을 남긴다.
+        const isDiscoveryWorthy = selectedEvt.tags.includes(HIDDEN_EXPLORATION_TAG) || selectedEvt.tags.includes('비밀이벤트');
+        const newDiscoveryLog = isDiscoveryWorthy
+          ? [...get().discoveryLog, { id: `disc_evt_${selectedEvt.id}`, label: `발견: ${selectedEvt.title}`, day }]
+          : get().discoveryLog;
+
         set({
           actionPoints: actionPoints - 1,
           currentEvent: selectedEvt,
           selectedChoice: null,
-          eventResultText: null
+          eventResultText: null,
+          discoveryLog: newDiscoveryLog
         });
 
         get().showToast(`[사건 발생] ${selectedEvt.title} 상황에 마주쳤습니다!`);
