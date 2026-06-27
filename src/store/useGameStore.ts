@@ -217,6 +217,12 @@ const getEventValence = (evt: GameEvent): EventValence => {
   return inferValence(allEffects);
 };
 
+// 채널 통일 목표 긍정 비율. 위기 상태(멘탈 급락/번아웃 급증)에는 완화를 위해 긍정 비중을 추가로 끌어올린다.
+const getTargetPositiveRatio = (stats: Stats): number => {
+  const inCrisis = stats.mental < 30 || stats.burnout > 80;
+  return inCrisis ? 0.55 : 0.35;
+};
+
 // 긍정 후보 전체의 가중치 합이 정확히 ratio(기본 20%)가 되도록 그룹별로 재배분한다.
 // 그룹 내부 상대 가중치 비율은 그대로 보존된다. 한쪽 그룹이 비어 있으면 전체를 다른 쪽에 배정.
 const applyFixedPositiveRatio = <T,>(
@@ -257,13 +263,15 @@ const pickWeighted = <T,>(weighted: { item: T; w: number }[]): T | null => {
   return weighted[weighted.length - 1].item;
 };
 
-// 긍정 요소 등장 확률을 정확히 20%로 고정해 후보를 고른다.
+// 긍정 요소 등장 확률을 채널 통일 목표 비율(위기 시 상향)로 고정해 후보를 고른다.
 const pickBalancedEvent = (
-  candidates: GameEvent[]
+  candidates: GameEvent[],
+  stats: Stats
 ): GameEvent | null => {
   if (candidates.length === 0) return null;
   const weighted = applyFixedPositiveRatio(
-    candidates.map(evt => ({ item: evt, valence: getEventValence(evt), baseWeight: evt.weight }))
+    candidates.map(evt => ({ item: evt, valence: getEventValence(evt), baseWeight: evt.weight })),
+    getTargetPositiveRatio(stats)
   );
   return pickWeighted(weighted);
 };
@@ -272,17 +280,34 @@ const pickBalancedEvent = (
 const pushValence = (log: EventValence[], v: EventValence): EventValence[] =>
   [v, ...log].slice(0, 12);
 
-// NPC 대화 후보 인덱스 중 긍정 요소 등장 확률을 20%로 고정해 하나를 고른다.
+// NPC 대화 후보 인덱스 중 긍정 요소 등장 확률을 채널 통일 목표 비율(위기 시 상향)로 고정해 하나를 고른다.
 const pickBalancedDialogueIndex = (
   candidateIdxs: number[],
-  events: { valence: EventValence }[]
+  events: { valence: EventValence }[],
+  stats: Stats
 ): number => {
   if (candidateIdxs.length === 0) return 0;
   const weighted = applyFixedPositiveRatio(
-    candidateIdxs.map(i => ({ item: i, valence: events[i]?.valence ?? 'neutral', baseWeight: 10 }))
+    candidateIdxs.map(i => ({ item: i, valence: events[i]?.valence ?? 'neutral', baseWeight: 10 })),
+    getTargetPositiveRatio(stats)
   );
   const picked = pickWeighted(weighted);
   return picked !== null ? picked : candidateIdxs[candidateIdxs.length - 1];
+};
+
+// 업무 풀 추첨에도 동일 목표 비율을 적용한다. stressCost<=6(보람/경부담 업무)을 긍정 신호로 재사용.
+const pickBalancedTaskTemplate = (
+  stats: Stats
+): typeof taskTemplates[number] => {
+  const weighted = applyFixedPositiveRatio(
+    taskTemplates.map(t => ({
+      item: t,
+      valence: (t.stressCost <= 6 ? 'positive' : 'negative') as EventValence,
+      baseWeight: 1
+    })),
+    getTargetPositiveRatio(stats)
+  );
+  return pickWeighted(weighted) ?? taskTemplates[0];
 };
 
 // 선택지의 데이터 주도 학생 효과(studentEffects)를 일괄 적용한다(증감치 + clamp).
@@ -708,6 +733,7 @@ const getEventForTime = (
   time: TimeOfDay,
   hiddenFlags: string[],
   history: string[],
+  stats: Stats,
   familyState?: string
 ): GameEvent | null => {
   let category: GameEvent['category'][] = [];
@@ -756,8 +782,8 @@ const getEventForTime = (
   }
   if (candidates.length === 0) return null;
 
-  // 긍정 요소 등장 확률 20% 고정 가중 랜덤 추출
-  return pickBalancedEvent(candidates);
+  // 채널 통일 목표 비율(위기 시 상향)로 가중 랜덤 추출
+  return pickBalancedEvent(candidates, stats);
 };
 
 // 초기화용 디폴트 업무 리스트 생성 헬퍼
@@ -1161,7 +1187,8 @@ export const useGameStore = create<GameState>()(
           recentLogs,
           hiddenFlags,
           maxActionPoints,
-          playerInfo
+          playerInfo,
+          stats
         } = get();
 
         if (timeOfDay === 'morning') {
@@ -1190,7 +1217,7 @@ export const useGameStore = create<GameState>()(
           }
         } else if (timeOfDay === 'afternoon') {
           // 오후 -> 저녁 (저녁은 집/개인 활동이므로 기존 방식대로 저녁 이벤트를 자동 추점)
-          const nextEvent = getEventForTime(day, 'evening', hiddenFlags, recentLogs, playerInfo?.familyState);
+          const nextEvent = getEventForTime(day, 'evening', hiddenFlags, recentLogs, stats, playerInfo?.familyState);
           set({
             timeOfDay: 'evening',
             currentLocation: null,
@@ -1316,7 +1343,7 @@ export const useGameStore = create<GameState>()(
             if (Math.random() < 0.45) {
               const taskCount = Math.floor(Math.random() * 2) + 1; // 1~2개
               for (let c = 0; c < taskCount; c++) {
-                const randomTemplate = taskTemplates[Math.floor(Math.random() * taskTemplates.length)];
+                const randomTemplate = pickBalancedTaskTemplate(syncedStats);
                 // 중복 가드
                 if (!updatedTasks.some(t => !t.isCompleted && t.title === randomTemplate.title)) {
                   updatedTasks.push({
@@ -1712,7 +1739,7 @@ export const useGameStore = create<GameState>()(
 
       // 11. RPG 장소 탐색 (사건 트리거, TP 1 소모)
       exploreLocation: () => {
-        const { currentLocation, day, hiddenFlags, recentLogs, actionPoints } = get();
+        const { currentLocation, day, hiddenFlags, recentLogs, actionPoints, stats } = get();
         if (!currentLocation) return;
         if (actionPoints < 1) {
           get().showToast('교사력(TP)이 부족하여 탐색할 수 없습니다.');
@@ -1777,8 +1804,8 @@ export const useGameStore = create<GameState>()(
           return;
         }
 
-        // 긍정 요소 등장 확률 20% 고정 가중 랜덤 선택
-        const selectedEvt = pickBalancedEvent(candidates) ?? candidates[0];
+        // 채널 통일 목표 비율(위기 시 상향)로 가중 랜덤 선택
+        const selectedEvt = pickBalancedEvent(candidates, stats) ?? candidates[0];
 
         set({
           actionPoints: actionPoints - 1,
@@ -1906,7 +1933,7 @@ export const useGameStore = create<GameState>()(
       // 13. RPG 캐릭터 대화 개시 (TP를 소모하지 않는 이벤트성 대화)
       // 13. RPG 캐릭터 대화 개시 (TP 1 소모 및 100선 랜덤 대화 연동)
       talkToNPC: (npcId: string, npcName: string) => {
-        const { day, recentLogs, completedNpcDialoguesToday, completedNpcEvents, actionPoints } = get();
+        const { day, recentLogs, completedNpcDialoguesToday, completedNpcEvents, actionPoints, stats } = get();
 
         // 오늘 이미 대화한 적 있는 NPC인지 확인 (당일 중복 차단)
         if (completedNpcDialoguesToday.includes(npcId)) {
@@ -1934,7 +1961,7 @@ export const useGameStore = create<GameState>()(
             completedNpcEvents[npcId] = [];
           }
 
-          eventIdx = pickBalancedDialogueIndex(candidates, studentDialogueEvents);
+          eventIdx = pickBalancedDialogueIndex(candidates, studentDialogueEvents, stats);
           const evt = studentDialogueEvents[eventIdx];
 
           const student = get().students.find(s => s.id === npcId);
@@ -1952,7 +1979,7 @@ export const useGameStore = create<GameState>()(
             completedNpcEvents[npcId] = [];
           }
 
-          eventIdx = pickBalancedDialogueIndex(candidates, colleagueDialogueEvents);
+          eventIdx = pickBalancedDialogueIndex(candidates, colleagueDialogueEvents, stats);
           const evt = colleagueDialogueEvents[eventIdx];
 
           // 역할 매핑
@@ -3639,13 +3666,13 @@ export const useGameStore = create<GameState>()(
 
       // [NEW] 매일 아침 스마트폰 전화/문자 수신 (학부모 민원 50선 + 교직원 사적 20선 vs 긍정 힐링 150선)
       generatePhoneAndTextNotifications: () => {
-        const { day, completedParentEvents, completedColleaguePrivateEvents, completedPositiveEvents, phoneAndTextNotifications } = get();
+        const { day, completedParentEvents, completedColleaguePrivateEvents, completedPositiveEvents, phoneAndTextNotifications, stats } = get();
         const newNotifs: MessengerNotification[] = [];
 
         // 매일 아침 75% 확률로 스마트폰 피드 알림 생성
         if (Math.random() < 0.75) {
-          // 긍정 힐링 vs 부정 딜레마 결정. 사용자 요청에 따라 긍정 등장 확률을 20%로 고정.
-          const isPositive = Math.random() < 0.2;
+          // 긍정 힐링 vs 부정 딜레마 결정. 채널 통일 목표 비율(위기 시 상향) 적용.
+          const isPositive = Math.random() < getTargetPositiveRatio(stats);
 
           if (isPositive) {
             // [긍정 힐링 150선 생성]
@@ -4018,7 +4045,7 @@ export const useGameStore = create<GameState>()(
           if (Math.random() < 0.45) {
             const taskCount = Math.floor(Math.random() * 2) + 1; // 1~2개
             for (let c = 0; c < taskCount; c++) {
-              const randomTemplate = taskTemplates[Math.floor(Math.random() * taskTemplates.length)];
+              const randomTemplate = pickBalancedTaskTemplate(syncedStats);
               // 중복 가드
               if (!updatedTasks.some(t => !t.isCompleted && t.title === randomTemplate.title)) {
                 updatedTasks.push({
