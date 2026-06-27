@@ -2975,5 +2975,209 @@ export const gameEvents: GameEvent[] = [
         resultText: '다이어리는 며칠째 책상 한쪽에 놓여 있었습니다. 아이들도 더는 새 글을 적지 않았습니다.'
       }
     ]
+  },
+  // ==================== [탐험 보상형 히든 이벤트 (낮은 확률로만 등장) [NEW]] ====================
+  {
+    id: 'evt_hidden_time_capsule',
+    dayRange: [3, 30],
+    title: '운동장 구석의 타임캡슐',
+    category: 'random',
+    situation: '운동장',
+    location: 'playground',
+    narratorText: '운동장 구석, 흙이 살짝 패인 자리에서 녹슨 작은 철제 상자가 발견됩니다. 안에는 몇 해 전 졸업생들이 묻어둔 듯한 편지 뭉치가 들어 있습니다.',
+    weight: 80,
+    valence: 'positive',
+    tags: ['히든탐험', '발견', '향수'],
+    choices: [
+      {
+        id: 'choice_hidden_time_capsule_1',
+        text: '편지를 조심스레 읽어보고, 종례 시간에 아이들에게도 들려준다.',
+        intent: '뜻밖의 발견 공유',
+        immediateEffects: [
+          { stat: 'teachingSatisfaction', value: 10 },
+          { stat: 'studentTrust', value: 6 },
+          { stat: 'mental', value: 8 }
+        ],
+        resultText: '아이들은 몇 해 전 선배들의 편지에 눈을 반짝이며 귀를 기울였습니다. 작은 발견이 교실에 잠시 특별한 분위기를 만들어주었습니다.'
+      },
+      {
+        id: 'choice_hidden_time_capsule_2',
+        text: '훼손되지 않도록 다시 묻어두고, 조용히 자리를 떠난다.',
+        intent: '발견의 보존',
+        immediateEffects: [
+          { stat: 'mental', value: 4 }
+        ],
+        resultText: '누군가의 추억을 함부로 들추지 않았다는 사실에 묘한 만족감이 듭니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_hidden_old_yearbook',
+    dayRange: [5, 30],
+    title: '서가 뒤편의 낡은 졸업앨범',
+    category: 'student',
+    situation: '도서실',
+    location: 'library',
+    narratorText: '서가 맨 뒤, 먼지 쌓인 칸에서 십수 년 전 졸업앨범 한 권이 나옵니다. 낯익은 풍경 속 앳된 얼굴들이 지금 동료 교사들과 묘하게 닮아 있습니다.',
+    weight: 70,
+    valence: 'positive',
+    tags: ['히든탐험', '발견', '향수'],
+    choices: [
+      {
+        id: 'choice_hidden_old_yearbook_1',
+        text: '동료 교사들에게 보여주며 잠시 옛이야기를 나눈다.',
+        intent: '소소한 유대',
+        immediateEffects: [
+          { stat: 'colleagueRelation', value: 10 },
+          { stat: 'mental', value: 6 }
+        ],
+        resultText: '앨범 속 옛 모습에 다들 한바탕 웃음이 터졌습니다. 교무실에 잠시 훈훈한 공기가 감돕니다.'
+      },
+      {
+        id: 'choice_hidden_old_yearbook_2',
+        text: '도서실 자료로 다시 분류해 서가에 정리해둔다.',
+        intent: '묵묵한 정리',
+        immediateEffects: [
+          { stat: 'workCapacity', value: 5 }
+        ],
+        resultText: '작은 발견이었지만, 도서실 한 켠이 조금 더 정돈되었습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_hidden_secret_garden',
+    dayRange: [8, 30],
+    title: '화단 뒤편의 작은 텃밭',
+    category: 'random',
+    situation: '화단',
+    location: 'playground',
+    narratorText: '화단 뒤편, 잘 보이지 않는 구석에 누군가 가꾸던 작은 텃밭이 있습니다. 팻말에는 삐뚤빼뚤한 글씨로 "비밀 텃밭, 아무도 모르게"라고 적혀 있습니다.',
+    weight: 70,
+    valence: 'positive',
+    tags: ['히든탐험', '발견'],
+    choices: [
+      {
+        id: 'choice_hidden_secret_garden_1',
+        text: '시들지 않게 물을 조금 주고, 누구의 것인지 모른 척 넘어간다.',
+        intent: '말없는 배려',
+        immediateEffects: [
+          { stat: 'mental', value: 8 },
+          { stat: 'burnout', value: -4 }
+        ],
+        resultText: '며칠 후 텃밭의 작은 새싹이 한층 자라 있었습니다. 누군가의 비밀을 조용히 지켜준 듯한 기분이 듭니다.'
+      },
+      {
+        id: 'choice_hidden_secret_garden_2',
+        text: '안전 문제가 있을지 점검 차원에서 행정실에 위치를 알린다.',
+        intent: '원칙적 보고',
+        immediateEffects: [
+          { stat: 'adminTrust', value: 6 },
+          { stat: 'studentTrust', value: -4 }
+        ],
+        resultText: '텃밭은 곧 정리되었습니다. 안전은 지켜졌지만, 누군가는 조금 서운했을지도 모릅니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_hidden_locker_note',
+    dayRange: [6, 30],
+    title: '사물함 뒤에 끼인 메모',
+    category: 'colleague',
+    situation: '교무실',
+    location: 'admin_office',
+    narratorText: '교무실 사물함을 옮기다가 뒤편에 오래 끼어 있던 메모지 한 장을 발견합니다. "오늘도 다들 고생 많으셨습니다" — 누가 적었는지 모를 짧은 응원의 글입니다.',
+    weight: 65,
+    valence: 'positive',
+    tags: ['히든탐험', '발견', '동료'],
+    choices: [
+      {
+        id: 'choice_hidden_locker_note_1',
+        text: '메모를 게시판에 다시 붙여 모두가 볼 수 있게 한다.',
+        intent: '작은 응원 나누기',
+        immediateEffects: [
+          { stat: 'colleagueRelation', value: 8 },
+          { stat: 'colleagueSolidarity', value: 8 },
+          { stat: 'mental', value: 5 }
+        ],
+        resultText: '며칠간 그 메모 앞을 지나는 동료들의 표정이 한결 부드러워졌습니다.'
+      },
+      {
+        id: 'choice_hidden_locker_note_2',
+        text: '혼자 간직하며 피곤한 하루의 작은 위안으로 삼는다.',
+        intent: '개인적 위안',
+        immediateEffects: [
+          { stat: 'mental', value: 8 },
+          { stat: 'hp', value: 4 }
+        ],
+        resultText: '별것 아닌 메모 한 장이 오늘 하루를 버틸 힘이 되어주었습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_hidden_science_lab_relic',
+    dayRange: [9, 30],
+    title: '과학실 캐비닛 속 낡은 상자',
+    category: 'colleague',
+    situation: '과학실',
+    location: 'science_lab',
+    narratorText: '과학실 구석 캐비닛 맨 아래, 먼지 쌓인 나무 상자가 보입니다. 안에는 손으로 직접 만든 옛 교구와 "역대 과학 동아리 활동 기록"이라 적힌 노트가 들어 있습니다.',
+    weight: 60,
+    valence: 'positive',
+    tags: ['히든탐험', '발견'],
+    choices: [
+      {
+        id: 'choice_hidden_science_lab_relic_1',
+        text: '기록을 참고해 올해 과학 동아리 활동에 일부를 되살려본다.',
+        intent: '전통의 계승',
+        immediateEffects: [
+          { stat: 'expert', value: 10 },
+          { stat: 'teachingSatisfaction', value: 8 }
+        ],
+        resultText: '오래된 교구를 다시 꺼내 쓰자 아이들도 신기해하며 활동에 더 집중했습니다.'
+      },
+      {
+        id: 'choice_hidden_science_lab_relic_2',
+        text: '낡아서 쓰기 어려운 상태라 사진만 찍어두고 정리해 치운다.',
+        intent: '현실적 정리',
+        immediateEffects: [
+          { stat: 'workCapacity', value: 5 }
+        ],
+        resultText: '추억은 사진으로 남기고, 과학실 캐비닛은 한결 깔끔해졌습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_hidden_principal_kindness',
+    dayRange: [10, 30],
+    title: '교장실 책장 뒤의 오래된 감사패',
+    category: 'admin',
+    situation: '교장실',
+    location: 'principal_room',
+    narratorText: '교장실에 서류를 가져다드리던 중, 책장 뒤편에 거의 가려진 낡은 감사패 하나가 눈에 들어옵니다. "평생을 학생들에게 헌신한 ○○ 선생님께" — 교장님의 젊은 시절 이야기인 듯합니다.',
+    prerequisites: ['class_trust_high'],
+    weight: 50,
+    valence: 'positive',
+    tags: ['히든탐험', '발견', '관리자'],
+    choices: [
+      {
+        id: 'choice_hidden_principal_kindness_1',
+        text: '슬쩍 감사를 표하며, 교장님께 그 시절 이야기를 여쭤본다.',
+        intent: '뜻밖의 공감대',
+        immediateEffects: [
+          { stat: 'adminTrust', value: 10 },
+          { stat: 'mental', value: 6 }
+        ],
+        resultText: '교장님은 잠시 옛 추억에 잠긴 듯 미소를 지으며, 평소보다 한층 편하게 대화를 이어가셨습니다.'
+      },
+      {
+        id: 'choice_hidden_principal_kindness_2',
+        text: '못 본 척 서류만 전달하고 조용히 나온다.',
+        intent: '거리 유지',
+        immediateEffects: [
+          { stat: 'adminTrust', value: 2 }
+        ],
+        resultText: '특별한 일은 없었지만, 교장실의 분위기가 어쩐지 조금 다르게 느껴졌습니다.'
+      }
+    ]
   }
 ];

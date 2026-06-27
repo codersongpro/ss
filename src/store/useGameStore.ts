@@ -329,6 +329,10 @@ const getTrustDerivedFlags = (students: Student[]): string[] => {
 const hasPrerequisite = (flag: string, effectiveFlags: string[], inventory: string[]): boolean =>
   flag.startsWith('item:') ? inventory.includes(flag.slice(5)) : effectiveFlags.includes(flag);
 
+// 탐험 시 낮은 확률로만 일반 후보군에 합류하는 '숨은 발견' 이벤트 태그 및 등장 확률
+const HIDDEN_EXPLORATION_TAG = '히든탐험';
+const HIDDEN_EXPLORATION_CHANCE = 0.12;
+
 // 선택지의 데이터 주도 학생 효과(studentEffects)를 일괄 적용한다(증감치 + clamp).
 const applyStudentEffects = (students: Student[], choice: GameChoice): Student[] => {
   if (!choice.studentEffects || choice.studentEffects.length === 0) return students;
@@ -782,6 +786,8 @@ const getEventForTime = (
   }
 
   const matchesBase = (evt: GameEvent, applyHistory: boolean): boolean => {
+    // 0. 히든 탐험 이벤트는 exploreLocation에서만 낮은 확률로 등장 (시간대 자동 추첨에서는 제외)
+    if (evt.tags.includes(HIDDEN_EXPLORATION_TAG)) return false;
     // 1. 카테고리 매칭
     if (!category.includes(evt.category)) return false;
     // 2. 날짜 범위 확인
@@ -1831,8 +1837,8 @@ export const useGameStore = create<GameState>()(
           return;
         }
 
-        // 해당 카테고리와 날짜에 맞는 후보군 필터링
-        const candidates = gameEvents.filter(evt => {
+        // 해당 카테고리와 날짜에 맞는 후보군 필터링 (일반 후보 / 히든 탐험 후보 분리)
+        const matchesExploreBase = (evt: GameEvent): boolean => {
           if (!categories.includes(evt.category)) return false;
           const [start, end] = evt.dayRange;
           if (day < start || day > end) return false;
@@ -1842,7 +1848,15 @@ export const useGameStore = create<GameState>()(
             if (!hasAll) return false;
           }
           return true;
-        });
+        };
+
+        const normalCandidates = gameEvents.filter(evt => !evt.tags.includes(HIDDEN_EXPLORATION_TAG) && matchesExploreBase(evt));
+        const hiddenCandidates = gameEvents.filter(evt => evt.tags.includes(HIDDEN_EXPLORATION_TAG) && matchesExploreBase(evt));
+
+        // 숨은 발견 후보가 있으면 낮은 확률로만 이번 탐색의 후보군에 합류시켜 "가끔 발견되는" 느낌을 준다.
+        const candidates = (hiddenCandidates.length > 0 && Math.random() < HIDDEN_EXPLORATION_CHANCE)
+          ? [...normalCandidates, ...hiddenCandidates]
+          : normalCandidates;
 
         if (candidates.length === 0) {
           get().showToast('더 이상 이 장소에서 탐색할 수 있는 새로운 사건이 없습니다.');
