@@ -2427,7 +2427,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
       {/* 5. RPG 캐릭터 멀티턴 대화 모달 (오버레이) */}
       {npcDialogueSession && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in animate-duration-200">
-          <div className="bg-[#FAF9F6] border-4 border-black rounded-2xl p-6 max-w-lg w-full shadow-school-deep relative flex flex-col justify-between min-h-[340px] text-slate-800">
+          <div className="bg-[#FAF9F6] border-4 border-black rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-school-deep relative flex flex-col justify-between min-h-[340px] text-slate-800">
             <div>
               {/* 스피커 이름 헤더 */}
               <div className="border-b-2 border-slate-900 pb-2 mb-4 flex items-center justify-between">
@@ -2554,7 +2554,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
       {/* 6. 스마트폰 메신저 선택형 이벤트 모달 (오버레이) */}
       {activeMessengerEvent && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-slate-900 border-4 border-sky-500 rounded-2xl p-6 max-w-md w-full shadow-school-deep text-white relative">
+          <div className="bg-slate-900 border-4 border-sky-500 rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-school-deep text-white relative">
             <div className="border-b border-sky-500/30 pb-3 mb-4 flex justify-between items-center">
               <h3 className="text-lg font-bold text-sky-400 flex items-center gap-2">
                 <Smartphone className="w-5 h-5 animate-pulse" />
@@ -2633,7 +2633,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
 
         return (
           <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-            <div className={`border-4 rounded-2xl p-6 max-w-md w-full shadow-school-deep relative ${modalBg}`}>
+            <div className={`border-4 rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-school-deep relative ${modalBg}`}>
               <div className={`border-b pb-3 mb-4 flex justify-between items-center ${isPositive ? 'border-rose-200' : 'border-violet-500/30'}`}>
                 <h3 className={`text-lg font-bold flex items-center gap-2 ${headerTextColor}`}>
                   <Smartphone className="w-5 h-5 animate-pulse" />
