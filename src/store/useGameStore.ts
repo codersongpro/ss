@@ -789,6 +789,8 @@ const getEventForTime = (
   const matchesBase = (evt: GameEvent, applyHistory: boolean): boolean => {
     // 0. 히든 탐험 이벤트는 exploreLocation에서만 낮은 확률로 등장 (시간대 자동 추첨에서는 제외)
     if (evt.tags.includes(HIDDEN_EXPLORATION_TAG)) return false;
+    // 0-1. [NEW · 장소 서사] location 전용 이벤트는 해당 장소 탐색으로만 등장 (저녁 자동추첨에서 제외)
+    if (evt.location) return false;
     // 1. 카테고리 매칭
     if (!category.includes(evt.category)) return false;
     // 2. 날짜 범위 확인
@@ -1860,6 +1862,8 @@ export const useGameStore = create<GameState>()(
         // 해당 카테고리와 날짜에 맞는 후보군 필터링 (일반 후보 / 히든 탐험 후보 분리)
         const matchesExploreBase = (evt: GameEvent): boolean => {
           if (!categories.includes(evt.category)) return false;
+          // [NEW · 장소 서사] location 지정 이벤트는 해당 장소를 탐색할 때만 등장 (장소 전용 스레드)
+          if (evt.location && evt.location !== currentLocation) return false;
           const [start, end] = evt.dayRange;
           if (day < start || day > end) return false;
           if (recentLogs.some(log => log.includes(evt.title))) return false;

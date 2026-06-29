@@ -255,6 +255,42 @@ const buildStoryThreads = (flags: string[], inventory: string[], day: number): S
     outcomeTone: collected >= 4 ? 'good' : 'pending',
   });
 
+  // ── 장소 서사: 위클래스 상담 아크 (위클래스를 탐색하다 만난 아이) ──
+  const weeOpen = flags.includes('arc_wee_open');
+  const weeTrust = flags.includes('arc_wee_trust');
+  const weeResolved = flags.includes('arc_wee_resolved');
+  if (weeOpen || weeTrust || weeResolved) {
+    threads.push({
+      id: 'wee',
+      title: '마음을 닫은 아이 (위클래스)',
+      emoji: '🪟',
+      stages: [
+        { label: '발단 — 구석에 혼자 있는 아이에게 다가갔다', status: 'done' },
+        { label: weeTrust || weeResolved ? '전개 — 매일 곁에서 이야기를 들어줬다' : '전개 — 마음을 여는 데는 꾸준함이 필요하다', status: weeTrust || weeResolved ? 'done' : 'current' },
+        { label: weeResolved ? '결말 — 아이가 건넨 쪽지에 진심으로 답했다' : '결말 — 신뢰가 더 쌓이면 이어진다', status: weeResolved ? 'done' : 'locked' },
+      ],
+      outcome: weeResolved ? '아이는 학교가 조금 덜 무서워졌다고 했다.' : '진행 중 — 위클래스에서 아이를 다시 만나보자.',
+      outcomeTone: weeResolved ? 'good' : 'pending',
+    });
+  }
+
+  // ── 장소 서사: 도서실 재능 발견 아크 (도서실에서 만난 책벌레) ──
+  const libFound = flags.includes('arc_lib_found');
+  const libResolved = flags.includes('arc_lib_resolved');
+  if (libFound || libResolved) {
+    threads.push({
+      id: 'lib',
+      title: '조용한 책벌레 (도서실)',
+      emoji: '✏️',
+      stages: [
+        { label: '발단 — 서가 뒤에서 그림 그리는 아이를 발견했다', status: 'done' },
+        { label: libResolved ? '결말 — 스케치북을 진지하게 봐주고 재능을 인정했다' : '결말 — 도서실에서 다시 만나면 이어진다', status: libResolved ? 'done' : 'current' },
+      ],
+      outcome: libResolved ? '누가 제 그림을 끝까지 봐준 건 처음이라고 했다.' : '진행 중 — 도서실을 다시 탐색해보자.',
+      outcomeTone: libResolved ? 'good' : 'pending',
+    });
+  }
+
   return threads;
 };
 
