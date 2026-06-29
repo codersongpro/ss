@@ -1119,7 +1119,8 @@ export const useGameStore = create<GameState>()(
             appliedDelayed.forEach(delayed => {
               newDelayedEffects.push({
                 ...delayed,
-                dayTrigger: clamp(day + delayed.dayTrigger, 1, 30)
+                // dayTrigger는 '발동될 절대 날짜(1~30)'. 과거로 예약되지 않도록 최소 내일(day+1)로 보정. [FIX]
+                dayTrigger: clamp(delayed.dayTrigger, Math.min(day + 1, 30), 30)
               });
             });
 
@@ -1189,7 +1190,8 @@ export const useGameStore = create<GameState>()(
             choice.delayedEffects.forEach(delayed => {
               newDelayedEffects.push({
                 ...delayed,
-                dayTrigger: clamp(day + delayed.dayTrigger, 1, 30)
+                // dayTrigger는 '발동될 절대 날짜(1~30)'. 과거로 예약되지 않도록 최소 내일(day+1)로 보정. [FIX]
+                dayTrigger: clamp(delayed.dayTrigger, Math.min(day + 1, 30), 30)
               });
             });
           }

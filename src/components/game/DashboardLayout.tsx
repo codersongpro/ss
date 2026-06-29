@@ -186,6 +186,78 @@ const buildDayNarrative = (
   return lines.slice(0, 3);
 };
 
+// [NEW · 어드벤처] 일지 탭에 '진행 중인 이야기'를 추적 가능한 퀘스트로 보여주기 위한 데이터.
+// 새 상태를 만들지 않고 기존 hiddenFlags/inventory/day에서 진행 단계를 파생한다.
+type StageStatus = 'done' | 'current' | 'locked';
+interface StoryStage { label: string; status: StageStatus; }
+interface StoryThread { id: string; title: string; emoji: string; stages: StoryStage[]; outcome: string; outcomeTone: 'good' | 'bad' | 'pending'; }
+
+const buildStoryThreads = (flags: string[], inventory: string[], day: number): StoryThread[] => {
+  const threads: StoryThread[] = [];
+
+  // ── 메인 아크: 지훈이 이야기 (급식소 다툼 중재 선택이 후반부로 되돌아온다) ──
+  const helped = flags.includes('arc_jihun_helped');
+  const neglected = flags.includes('arc_jihun_neglected');
+  const branched = helped || neglected;
+  const letter = inventory.includes('jihun_letter');
+  const relapseResolved = flags.includes('student_center') && neglected; // 재발 후 정면 대응 흔적(근사)
+
+  const jihunStages: StoryStage[] = [
+    { label: '발단 — 트러블메이커 지훈이와의 첫 충돌', status: (branched || day >= 8) ? 'done' : 'current' },
+    {
+      label: !branched
+        ? '전개 — 급식소 앞 다툼 사건 (15~18일차)'
+        : helped
+          ? '전개 — 회복적 대화로 지훈이의 속마음을 들어줬다'
+          : '전개 — 다툼을 빠르게 봉합하고 넘어갔다',
+      status: branched ? 'done' : day >= 15 ? 'current' : 'locked',
+    },
+    {
+      label: letter
+        ? '결말 — 지훈이의 손편지, 성장의 보답을 받았다'
+        : neglected
+          ? '결말 — 곪아버린 앙금이 터질 위기 (22~28일차)'
+          : '결말 — 당신의 선택에 따라 달라진다',
+      status: letter ? 'done' : branched && day >= 22 ? 'current' : 'locked',
+    },
+  ];
+  threads.push({
+    id: 'jihun',
+    title: '지훈이 이야기',
+    emoji: '🧩',
+    stages: jihunStages,
+    outcome: letter
+      ? '지훈이는 선생님 덕분에 다시 웃을 수 있었다.'
+      : relapseResolved
+        ? '늦었지만 진심이 닿아 갈등을 풀어냈다.'
+        : neglected
+          ? '봉합된 갈등이 곪을 위험이 남아 있다.'
+          : '진행 중 — 당신의 선택이 지훈이의 한 해를 바꾼다.',
+    outcomeTone: letter || relapseResolved ? 'good' : neglected ? 'bad' : 'pending',
+  });
+
+  // ── 비밀 아크: 아이들이 남긴 흔적 (단서 5종 수집 → 참된 스승 히든 엔딩) ──
+  const storyItems = ['jihun_letter', 'class_diary', 'class_council_charter', 'student_sketchbook', 'mystery_note'];
+  const collected = storyItems.filter(id => inventory.includes(id)).length;
+  const clueStages: StoryStage[] = storyItems.map(id => ({
+    label: getItemById(id)?.name ?? id,
+    status: inventory.includes(id) ? 'done' : 'locked',
+  }));
+  threads.push({
+    id: 'clues',
+    title: '아이들이 남긴 흔적',
+    emoji: '🔖',
+    stages: clueStages,
+    outcome:
+      collected >= 4
+        ? `단서 ${collected}/5 — '참된 스승' 히든 엔딩의 문이 열렸다.`
+        : `단서 ${collected}/5 — 4개 이상 모으고 신뢰를 쌓으면 숨겨진 결말이 열린다.`,
+    outcomeTone: collected >= 4 ? 'good' : 'pending',
+  });
+
+  return threads;
+};
+
 interface TutorialStepData {
   title: string;
   desc: string;
@@ -305,7 +377,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
     diceRollState,
     clearDiceRollState,
     inventory,
-    discoveryLog
+    discoveryLog,
+    hiddenFlags
   } = useGameStore();
 
   const toggleVolume = () => {
@@ -3064,6 +3137,39 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
               >
                 닫기
               </button>
+            </div>
+
+            {/* [NEW] 진행 중인 이야기 (메인/비밀 서사 퀘스트 트래커) */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-extrabold text-rose-800">📜 진행 중인 이야기</h4>
+              {buildStoryThreads(hiddenFlags, inventory, day).map(thread => (
+                <div key={thread.id} className="bg-rose-50/70 border-2 border-rose-200 rounded-xl p-3 space-y-2">
+                  <p className="text-xs font-extrabold text-rose-900">{thread.emoji} {thread.title}</p>
+                  <ol className="space-y-1">
+                    {thread.stages.map((stage, i) => (
+                      <li key={i} className="flex items-start gap-2 text-[11px] leading-snug">
+                        <span className="flex-shrink-0 mt-px">
+                          {stage.status === 'done' ? '✅' : stage.status === 'current' ? '🔸' : '🔒'}
+                        </span>
+                        <span className={
+                          stage.status === 'done' ? 'text-slate-700 font-semibold'
+                          : stage.status === 'current' ? 'text-rose-700 font-bold'
+                          : 'text-slate-400'
+                        }>
+                          {stage.label}
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                  <p className={`text-[11px] font-bold border-t border-rose-200 pt-1.5 ${
+                    thread.outcomeTone === 'good' ? 'text-emerald-700'
+                    : thread.outcomeTone === 'bad' ? 'text-rose-600'
+                    : 'text-amber-700'
+                  }`}>
+                    ➜ {thread.outcome}
+                  </p>
+                </div>
+              ))}
             </div>
 
             {/* 소지품 */}

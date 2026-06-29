@@ -411,6 +411,16 @@ export const gameEvents: GameEvent[] = [
           { stat: 'educationSoshin', value: -5 }
         ],
         hiddenFlags: ['organism_adaptation', 'fairness'],
+        delayedEffects: [
+          {
+            dayTrigger: 19,
+            effects: [
+              { stat: 'parentComplaint', value: 10 },
+              { stat: 'studentTrust', value: -6 }
+            ],
+            message: '매뉴얼대로 경위서를 올린 일이 지훈이 부모님 귀에 들어갔습니다. "왜 우리 아이만 가해자 취급하느냐"는 항의가 들어와 교무실 분위기가 싸늘해졌습니다.'
+          }
+        ],
         resultText: '관리자들은 매뉴얼대로 대처했다며 흡족해합니다. 하지만 지훈이는 억울함에 책상을 쾅 치며 "상대방 녀석이 먼저 욕했다고요!"라고 소리를 지릅니다.'
       },
       {
@@ -426,6 +436,16 @@ export const gameEvents: GameEvent[] = [
         hiddenFlags: ['student_center', 'collaboration', 'arc_jihun_helped'],
         studentEffects: [
           { studentId: 'student_jihun', changes: { behavior: 15, teacherTrust: 20 } }
+        ],
+        delayedEffects: [
+          {
+            dayTrigger: 19,
+            effects: [
+              { stat: 'reputation', value: 8 },
+              { stat: 'colleagueRelation', value: 6 }
+            ],
+            message: '지훈이를 회복적 대화로 끌어안았다는 이야기가 학년실에 조용히 퍼졌습니다. 옆 반 선생님이 "요즘 지훈이 표정이 한결 밝아졌더라"며 당신의 생활지도를 부러워합니다.'
+          }
         ],
         resultText: '매우 힘들고 에너지가 크게 소모되는 화해 중재 과정이었습니다. 다행히 상대방 교사와 원만하게 소통되어 두 학생은 서로의 오해를 깨닫고 악수하며 마무리했습니다.'
       },
