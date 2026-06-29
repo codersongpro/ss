@@ -1029,7 +1029,7 @@ export const funnyColleagueEvents: GameEvent[] = [
           { stat: 'hp', value: -5 }
         ],
         failResultText: '불판 화력 조절에 실패하여 삼겹살이 새까맣게 타며 유독 가스가 테이블을 지배했습니다. 교감 선생님이 연신 기침을 하시며 "김 선생은 펜대만 굴리는 게 낫겠군" 하고 핀잔을 주셨습니다. 분위기가 아찔해졌습니다.',
-        resultText: '삼겹살 굽기 결과'
+        resultText: '지글지글, 불판 위 삼겹살이 운명을 가르며 노릇하게 익어갑니다...'
       },
       {
         id: 'choice_funny_colleague_30_2',
