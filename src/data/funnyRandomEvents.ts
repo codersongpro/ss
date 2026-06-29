@@ -19,7 +19,8 @@ export const funnyRandomEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'mental', value: 15 },
           { stat: 'hp', value: 5 },
-          { stat: 'colleagueRelation', value: 5 }
+          { stat: 'colleagueRelation', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '아이들은 선생님을 알아보지 못하고 장난을 치며 다음 역에서 우르르 내렸습니다. 소중한 사생활과 퇴근길 힐링 평화를 완벽하게 사수했습니다.'
       },
@@ -63,7 +64,8 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '보건 붕대 위장술',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
-          { stat: 'mental', value: 12 }
+          { stat: 'mental', value: 12 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '보건 선생님은 박장대소하시며 반짝이는 붕대를 감아주셨고, 오히려 구호 양말 한 켤레를 기증해 주셔서 쾌적한 양말 패션으로 복귀했습니다.'
       }
@@ -86,7 +88,8 @@ export const funnyRandomEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'parentTrust', value: 10 },
           { stat: 'mental', value: 8 },
-          { stat: 'hp', value: 3 }
+          { stat: 'hp', value: 3 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '고춧가루가 흔적도 없이 목구멍으로 소멸했습니다. 학부모님은 깔끔하고 유창한 담임의 진로 상담 태도에 깊은 인상을 받으셨습니다.'
       },
@@ -97,7 +100,8 @@ export const funnyRandomEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'parentTrust', value: 15 },
           { stat: 'mental', value: 12 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '학부모님은 선생님의 인간적이고 유머러스한 털털함에 빵 터지시며 딱딱했던 상담 분위기가 단숨에 아주 훈훈하게 풀렸습니다.'
       }
@@ -130,7 +134,8 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '자본 활용 우아 출근',
         immediateEffects: [
           { stat: 'mental', value: 15 },
-          { stat: 'hp', value: 10 }
+          { stat: 'hp', value: 10 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '지갑 사정은 조금 얇아졌으나 체력을 완벽히 비축한 상태로 단정한 구두 소리를 내며 교문에 입성해 교사의 품위를 사수했습니다.'
       }
@@ -164,7 +169,8 @@ export const funnyRandomEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
           { stat: 'hp', value: 10 },
-          { stat: 'mental', value: 12 }
+          { stat: 'mental', value: 12 },
+          { stat: 'burnout', value: 5 }
         ],
         resultText: '보건 선생님은 "어머 김 선생님, 딱풀의 맛은 어때요?"라며 크게 웃으시며 립 케어 전용 에센스를 선물해 주셨습니다. 탕비실 다과 유대감이 한층 올랐습니다.'
       }
@@ -187,7 +193,8 @@ export const funnyRandomEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'parentTrust', value: 15 },
           { stat: 'mental', value: 12 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '어머님은 선생님의 호쾌한 유머에 빵 터지시며 한우 한 팩을 사서 내 카트에 선물로 턱 얹어 주셨습니다. 주말 고기 도파민이 폭발했습니다.'
       },
@@ -197,7 +204,8 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '초고속 시야 회피 이탈',
         immediateEffects: [
           { stat: 'mental', value: 15 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '기척 없이 군중 속으로 사라졌습니다. 꼬질꼬질한 내 홈웨어 프라이버시를 안전하게 수호하는 데 성공했습니다.'
       }
@@ -230,7 +238,8 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '로봇청소기 우회 휴식',
         immediateEffects: [
           { stat: 'mental', value: 15 },
-          { stat: 'hp', value: 10 }
+          { stat: 'hp', value: 10 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '로봇 청소기가 덜덜거리며 먼지를 쓸고 다니는 소리를 자장가 삼아 달콤한 토요일 꿀잠을 한껏 즐겼습니다.'
       }
@@ -253,7 +262,8 @@ export const funnyRandomEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'parentTrust', value: 20 },
           { stat: 'mental', value: 12 },
-          { stat: 'hp', value: 10 }
+          { stat: 'hp', value: 10 },
+          { stat: 'burnout', value: 5 }
         ],
         resultText: '아버님은 선생님의 꾸밈없는 소탈함에 감동하셨고 목욕탕 요금을 직접 대신 계산해 주셨습니다. 잊지 못할 탕내 상담이 끝났습니다.'
       },
@@ -263,7 +273,8 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '냉탕 신속 기밀 잠수',
         immediateEffects: [
           { stat: 'mental', value: 15 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '차가운 냉수 샤워를 맞으며 정신이 확 깼습니다. 사생활 영역의 알몸 비주얼(?)을 안전하게 보호하는 데 안도했습니다.'
       }
@@ -286,7 +297,8 @@ export const funnyRandomEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
           { stat: 'mental', value: 12 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '지우는 "아! 선생님도 우리랑 똑같은 사람이구나!"라며 깔깔 웃어젖혔고, 담임 선생님을 한층 더 다정하고 친근한 부모처럼 따르기 시작했습니다.'
       },
@@ -296,7 +308,8 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '교직 신비주의 가이드',
         immediateEffects: [
           { stat: 'studentTrust', value: 10 },
-          { stat: 'mental', value: 15 }
+          { stat: 'mental', value: 15 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '지우는 눈을 반짝이며 비밀 첩보원처럼 비밀을 지키겠다고 다짐했습니다. 교사의 환상적인 신비도가 유지되었습니다.'
       }
@@ -330,7 +343,8 @@ export const funnyRandomEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'mental', value: 20 },
           { stat: 'hp', value: 5 },
-          { stat: 'familySatisfaction', value: 10 }
+          { stat: 'familySatisfaction', value: 10 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '와플의 단맛이 도파민을 무제한 공급해 주었습니다. 침대와 완벽하게 물아일체가 되어 가장 아늑한 휴식 토요일을 만끽했습니다.'
       }
@@ -352,7 +366,8 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '습기 충전 방전 열기',
         immediateEffects: [
           { stat: 'hp', value: 5 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '스파크 없이 부드럽게 문이 열렸습니다. 사소하지만 정전기 공포증을 이겨내고 쾌적한 이동을 사수했습니다.'
       },
@@ -363,7 +378,8 @@ export const funnyRandomEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'studentTrust', value: 12 },
           { stat: 'expert', value: 10 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '유민이가 씩씩하게 문을 열어 주었습니다! 유민이는 정전기를 느끼지 않고 쿨하게 통과했고, 훌륭한 물리 생태 교육이 완수되었습니다.'
       }
@@ -396,7 +412,8 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '안구 보호 숲소리 청강',
         immediateEffects: [
           { stat: 'mental', value: 15 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '안구 건조가 크게 해소되고 마음의 평화를 되찾아 쾌적하게 동네 역에 하차했습니다.'
       }
@@ -419,7 +436,8 @@ export const funnyRandomEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
           { stat: 'mental', value: 12 },
-          { stat: 'expert', value: 5 }
+          { stat: 'expert', value: 5 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '혜원이도 교탁 옆에서 신이 나 한 다리로 서며 장난을 쳤고, 교실 내 가벼운 요가 체조 분위기가 펼쳐져 활기가 가득 찼습니다.'
       },
@@ -429,7 +447,8 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '엄숙 정자세 신속 복귀',
         immediateEffects: [
           { stat: 'classManagement', value: 12 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '혜원이는 의심 없이 수학 책을 들고 자리로 돌아갔습니다. 담임 교사의 단정하고 단호한 위엄을 즉시 복원했습니다.'
       }
@@ -452,7 +471,8 @@ export const funnyRandomEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'colleagueRelation', value: 20 },
           { stat: 'adminTrust', value: 15 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 6 }
         ],
         resultText: '교감 선생님이 매트 위에 누워 "어우 등뼈가 펴지는구만! 김 선생은 학교 복지의 락스타야!"라며 대찬사를 보냈고 교무실 내 꿀복지 명당이 완성되었습니다.'
       },
@@ -462,7 +482,8 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '퀵서비스 자취방 즉각 회수',
         immediateEffects: [
           { stat: 'mental', value: 15 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '택배가 10분 만에 조용히 사라졌습니다. 교무실 공사 구분을 위해 개인 살림살이 유출 소동을 안전하게 진화 완료했습니다.'
       }
@@ -495,7 +516,8 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '분식집 신속 타협 자취방 복귀',
         immediateEffects: [
           { stat: 'mental', value: 15 },
-          { stat: 'hp', value: 10 }
+          { stat: 'hp', value: 10 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '뙤약볕 노출 없이 빠르게 포만감을 채우고 이불 속에서 긴 낮잠을 즐겨 체력을 완벽히 충전했습니다.'
       }
@@ -518,7 +540,8 @@ export const funnyRandomEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
           { stat: 'hp', value: 10 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '보건 선생님의 친절한 보습 케어로 양말 없이도 쾌적하게 보송한 발을 유지하여 하루 일과를 건강하게 마쳤습니다.'
       },
@@ -551,7 +574,8 @@ export const funnyRandomEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'colleagueRelation', value: 12 },
           { stat: 'hp', value: 10 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '동료 쌤이 흔쾌히 교문을 교대해주어 안전하게 뱃속 화산을 진화했습니다. 서로의 의리가 한층 단단해졌습니다.'
       },
@@ -585,7 +609,8 @@ export const funnyRandomEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'adminTrust', value: 20 },
           { stat: 'colleagueRelation', value: 15 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 6 }
         ],
         resultText: '교감 선생님은 빵 터지시며 "하하! 김 선생도 파마하는구만!"이라며 디자이너에게 내 커트 비용을 본인 카드 플렉스로 대신 결제해 주셨습니다.'
       },
@@ -595,7 +620,8 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '잡지 얼굴 가리기 취침모드',
         immediateEffects: [
           { stat: 'mental', value: 15 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '눈물겨운 잡지 장막 덕분에 어색한 대화 없이 평온하게 헤어 스타일 셋팅을 마칠 수 있었습니다.'
       }
@@ -663,7 +689,8 @@ export const funnyRandomEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
           { stat: 'classManagement', value: 12 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 5 }
         ],
         resultText: '아이들은 쉬는 시간에만 관찰기를 적으며 약속을 칼같이 지켰고, 수업 시간에는 칠판 필기에 고도의 집중도를 보였습니다.'
       }
@@ -686,7 +713,8 @@ export const funnyRandomEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'hp', value: 12 },
           { stat: 'familySatisfaction', value: 10 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '만 보가 완성되자 시계화면에 불꽃 축제 그래픽이 터졌습니다. 소소한 건강 성취감 도파민을 한껏 쥐고 기쁘게 수면에 들었습니다.'
       },
@@ -696,7 +724,8 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '워치 해제 완전 숙면',
         immediateEffects: [
           { stat: 'mental', value: 15 },
-          { stat: 'hp', value: 10 }
+          { stat: 'hp', value: 10 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '알림 강박에서 해방되어 아주 부드럽고 평온하게 깊은 숙면 체력 회복을 사수해 냈습니다.'
       }
@@ -753,7 +782,8 @@ export const funnyRandomEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'expert', value: 15 },
           { stat: 'adminPower', value: 10 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '파티션 연장 보강판이 설치되어 안구 피로도와 거북목 압박에서 완벽하게 해방되었습니다. 쾌적한 결재 보안 환경을 사수했습니다.'
       },
@@ -763,7 +793,8 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '책받침 거치 안구 수평',
         immediateEffects: [
           { stat: 'hp', value: 12 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '모니터 높이가 정돈되어 목디스크 뻐근함이 크게 경감되었습니다. 지적인 스마트 교사 책상이 셋팅되었습니다.'
       }
@@ -796,7 +827,8 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '생활 예절 훈계 귀가',
         immediateEffects: [
           { stat: 'expert', value: 15 },
-          { stat: 'classManagement', value: 12 }
+          { stat: 'classManagement', value: 12 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '아이들은 수긍하며 안전하게 집으로 귀가했습니다. 방과 후 하굣길 안전 수칙을 명확히 각인시켰습니다.'
       }
@@ -829,7 +861,8 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '무설탕 아몬드 타협 귀가',
         immediateEffects: [
           { stat: 'hp', value: 12 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '밀가루 탄수화물과 설탕 섭취를 억제하여 주말 체중 감량과 혈당 스탯 안정 수호에 성공했습니다.'
       }
@@ -852,7 +885,8 @@ export const funnyRandomEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'studentTrust', value: 18 },
           { stat: 'mental', value: 15 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 5 }
         ],
         resultText: '교정에서 비글 장난을 치는 동우에게 화내는 대신 윙크를 던지며 넉살 좋게 다독였습니다. 아이들이 담임 선생님의 넓은 우주적 포용력에 감복했습니다.'
       },
@@ -862,7 +896,8 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '성적표 보관 및 교직 연구 기록',
         immediateEffects: [
           { stat: 'expert', value: 15 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '아동 관찰 지표 데이터에 대한 통찰이 깊어져 학부모 진로 상담 시 우수한 정서적 설득력을 확보했습니다.'
       }
@@ -885,7 +920,8 @@ export const funnyRandomEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
           { stat: 'hp', value: 5 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '파란색 체육복 바지가 아주 편안하여 하루 종일 에너지가 솟구쳤습니다. 보건 선생님과의 끈끈한 구호 연대가 확립되었습니다.'
       },
@@ -928,7 +964,8 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '헬스 배려 2병 실속 구매',
         immediateEffects: [
           { stat: 'mental', value: 15 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '양보의 미덕을 실천하여 마음의 청량함과 소박한 단백질 힐링을 맛있게 완료했습니다.'
       }
@@ -950,7 +987,8 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '가상 시야각 과학적 자가치유',
         immediateEffects: [
           { stat: 'mental', value: 15 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '교탁 나무판의 넓은 가림 면적을 계산해 보니 지퍼 각도는 완벽하게 가려졌음이 판명되어 안도의 한숨과 함께 쾌활하게 퇴근했습니다.'
       },
@@ -960,7 +998,8 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '유머러스한 지퍼 경보 전파',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
-          { stat: 'colleagueSolidarity', value: 15 }
+          { stat: 'colleagueSolidarity', value: 15 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '신규 교사들끼리 "어머 저도 그런 적 있어요!"라며 엄청난 웃음꽃 공감 단톡방 수다가 터져 위로를 얻었습니다.'
       }
@@ -983,7 +1022,8 @@ export const funnyRandomEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'mental', value: 18 },
           { stat: 'hp', value: 10 },
-          { stat: 'familySatisfaction', value: 10 }
+          { stat: 'familySatisfaction', value: 10 },
+          { stat: 'burnout', value: 5 }
         ],
         resultText: '친구들은 "오 역시 참된 은사님 바쁘시군!"이라며 꿀 응원을 보내왔고 따뜻한 꿀물과 함께 이불 속에서 주말 평화를 완벽하게 사수했습니다.'
       },
@@ -993,7 +1033,8 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '진동 무음 정통 수면',
         immediateEffects: [
           { stat: 'hp', value: 12 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '다음날 아침 아주 개운하게 눈을 떴습니다. 신체 건강과 정신 안정을 소박하게 지켜냈습니다.'
       }

@@ -2051,7 +2051,26 @@ export const useGameStore = create<GameState>()(
           const student = get().students.find(s => s.id === npcId);
           const role = student ? `${student.name} (우리 반 학생)` : '학생';
           steps = evt.generateSteps(npcName, role);
-        } 
+
+          // [NEW · 어드벤처] NPC가 그동안의 관계와 선택을 '기억'하도록, 누적 신뢰도/서사 플래그에 따라
+          // 첫 대사 앞에 짧은 회상 인사를 덧붙인다. (스텝 인덱스 참조가 깨지지 않게 본문만 가공)
+          if (student && steps.length > 0) {
+            const flags = get().hiddenFlags;
+            let memory = '';
+            if (npcId === 'student_jihun' && flags.includes('arc_jihun_helped')) {
+              memory = '(선생님을 보자 지훈이가 멋쩍게 웃으며) "선생님! 그때 제 얘기 끝까지 들어주신 거… 저 아직도 기억해요."';
+            } else if (npcId === 'student_jihun' && flags.includes('arc_jihun_neglected')) {
+              memory = '(지훈이가 선생님과 눈을 피하며 시큰둥하게) "…아, 네. 선생님."';
+            } else if (student.teacherTrust >= 75) {
+              memory = `(${student.name}이(가) 반갑게 다가오며) "선생님이랑 얘기하는 거 이제 진짜 편해요!"`;
+            } else if (student.teacherTrust <= 30) {
+              memory = `(${student.name}이(가) 아직은 조심스러운 표정으로 선생님을 바라본다.)`;
+            }
+            if (memory) {
+              steps = steps.map((s, i) => (i === 0 ? { ...s, text: `${memory}\n\n${s.text}` } : s));
+            }
+          }
+        }
         // 그 외에는 교직원 대화 150선 연동
         else {
           const completedIdxs = completedNpcEvents[npcId] || [];

@@ -87,7 +87,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
           { stat: 'mental', value: 10 },
-          { stat: 'expert', value: 5 }
+          { stat: 'expert', value: 5 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '영어 선생님은 흠칫 깨어나 침을 닦고 교과서를 읽는 척했고, 교감 선생님은 흐뭇한 미소를 지으며 지나가셨습니다. 전우애가 싹텄습니다.'
       },
@@ -165,7 +166,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         intent: '믹스커피 우회 전술',
         immediateEffects: [
           { stat: 'mental', value: 10 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '노란 믹스의 달달함이 스트레스를 날려주었습니다. 커피 머신은 결국 오후에 교무 부장님이 투덜대며 청소하셨습니다.'
       }
@@ -232,7 +234,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         intent: '자립심 유도 가이드 전달',
         immediateEffects: [
           { stat: 'expert', value: 12 },
-          { stat: 'colleagueRelation', value: 5 }
+          { stat: 'colleagueRelation', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '부장님은 안경을 고쳐 쓰며 가이드를 읽고 스스로 입력하셨습니다. 시간은 다소 걸렸으나 업무 자립도가 높아졌습니다.'
       }
@@ -255,7 +258,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'colleagueRelation', value: 12 },
           { stat: 'hp', value: 5 },
-          { stat: 'mental', value: 5 }
+          { stat: 'mental', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '동료들과 우정을 다지며 맛있는 뷔페를 먹어 스트레스가 풀렸습니다. 경조사 예절을 깔끔하게 치러냈습니다.'
       },
@@ -266,7 +270,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'mental', value: 15 },
           { stat: 'hp', value: 10 },
-          { stat: 'colleagueRelation', value: 5 }
+          { stat: 'colleagueRelation', value: 5 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '경제적 지출을 최소화하고 주말 동안 이불 속에서 뒹굴거리며 체력을 대폭 완벽 회복해 냈습니다.'
       }
@@ -289,7 +294,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
           { stat: 'hp', value: 10 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '영양사님은 광대가 승천하시며 "어머 김 선생, 돈가스 큰 조각으로 하나 더 먹어!"라며 왕돈가스 크기를 투척해 주셨습니다. 포만감이 가득 찼습니다.'
       },
@@ -299,7 +305,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         intent: '공평 배식 룰 준수',
         immediateEffects: [
           { stat: 'expert', value: 10 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '뒤에 서 있던 남학생들의 배식 돈가스 수량이 넉넉하게 돌아갔습니다. 모범적인 교육자 상을 유지했습니다.'
       }
@@ -322,7 +329,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
           { stat: 'mental', value: 10 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '부장님들은 스매싱할 때마다 "아자! 나이스 샷!"을 외치는 내 모습에 흡족해하시며 회식 자리에서 삼겹살 쌈을 먹여주셨습니다.'
       },
@@ -367,7 +375,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'colleagueRelation', value: 12 },
           { stat: 'expert', value: 5 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '행정실 주무관님이 신속히 와서 교체 수리해 주셨습니다. 수학 선생님의 자존심과 프라이버시가 안전하게 수호되었습니다.'
       }
@@ -390,7 +399,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'expert', value: 12 },
           { stat: 'mental', value: 10 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '역사 부장님은 "오! 문명의 통찰이 예리하구만!"이라며 칭찬하셨고 서평 베스트 교사로 선정되었습니다. 실속과 체력을 다 챙겼습니다.'
       },
@@ -458,7 +468,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
           { stat: 'mental', value: 10 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '양측 모두 만족하는 24도 평화 조약이 성립되었습니다. 교무실 중재자의 권위가 한층 드높아졌습니다.'
       },
@@ -468,7 +479,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         intent: '기물 구조 개선 기안',
         immediateEffects: [
           { stat: 'expert', value: 12 },
-          { stat: 'colleagueSolidarity', value: 10 }
+          { stat: 'colleagueSolidarity', value: 10 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '바람 가림막 설치로 직바람이 차단되어 교무실 전체의 냉방 만족도가 평화롭게 영구 안착되었습니다.'
       }
@@ -525,7 +537,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
           { stat: 'mental', value: 10 },
-          { stat: 'colleagueSolidarity', value: 15 }
+          { stat: 'colleagueSolidarity', value: 15 },
+          { stat: 'burnout', value: 5 }
         ],
         resultText: '2반 선생님은 크로플에 큰 에너지를 얻으셨고, 앞으로 학년 행사 때마다 서로의 교실에 보건/체육 꿀팁을 전수하는 의남매가 되었습니다.'
       },
@@ -569,7 +582,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'mental', value: 15 },
           { stat: 'hp', value: 10 },
-          { stat: 'colleagueRelation', value: 5 }
+          { stat: 'colleagueRelation', value: 5 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '교감 선생님은 라디오를 미풍으로 틀어 배려해 주셨고, 조용하고 아늑하게 집 근처 전철역에 도착해 에너지를 보존했습니다.'
       }
@@ -603,7 +617,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'mental', value: 15 },
           { stat: 'hp', value: 5 },
-          { stat: 'colleagueRelation', value: 10 }
+          { stat: 'colleagueRelation', value: 10 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '합리적인 서포터 지원으로 밴드 멤버들과 유대감은 높이고 내 개인 주말 휴식 에너지는 성공적으로 사수했습니다.'
       }
@@ -636,7 +651,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         intent: '정보 공유 및 친목 확보',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
-          { stat: 'colleagueSolidarity', value: 12 }
+          { stat: 'colleagueSolidarity', value: 12 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '나는 비록 실패했으나 내 꿀 정보로 성공한 다른 학년 선생님들이 감격하며 점심에 프리미엄 매콤 부대찌개를 사 주셨습니다.'
       }
@@ -693,7 +709,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
           { stat: 'hp', value: 5 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '2반 선생님은 기뻐하며 약과 절반을 떼어 주셨고, 두 교실 교탁 비밀 서랍은 매일 간식이 채워지는 연합 간식 저장고가 되었습니다.'
       },
@@ -736,7 +753,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         intent: '회의록 작성 집중',
         immediateEffects: [
           { stat: 'expert', value: 15 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '회의록이 깔끔하게 행정망에 등록되었습니다. 부장님은 썰을 멈추고 공식 안건 논의로 서둘러 회의를 봉합하셨습니다.'
       }
@@ -769,7 +787,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         intent: '선납 딜 처리',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 12 },
-          { stat: 'mental', value: 5 }
+          { stat: 'mental', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '총무 쌤은 장부 정리가 편해졌다며 대환영했습니다. 통 큰 교사 이미지로 쾌활하게 정리되었습니다.'
       }
@@ -792,7 +811,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
           { stat: 'hp', value: 10 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '부장님은 나중에 잠에서 깨어 "김 선생도 보건실 다녀갔다며? 교직이란 피곤한 법이지"라며 넌지시 동지애 어린 윙크를 보내오셨습니다.'
       },
@@ -802,7 +822,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         intent: '보건실 탕비실 대화',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 12 },
-          { stat: 'colleagueSolidarity', value: 10 }
+          { stat: 'colleagueSolidarity', value: 10 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '보건 선생님과의 비밀 탕비실 다과 대화로 스트레스가 풀렸고 교무실 내 보건 라인(?) 유대감이 공고해졌습니다.'
       }
@@ -825,7 +846,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'colleagueRelation', value: 20 },
           { stat: 'hp', value: 10 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 5 }
         ],
         resultText: '부장님은 가슴을 퉁퉁 치며 "이 정도 추위는 해병대 정신으로 껌이지!"라며 신이 나셨고, 교문 지도 시간이 훈훈한 수다 시간으로 채워졌습니다.'
       },
@@ -868,7 +890,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         intent: '교육 실용적 칭찬',
         immediateEffects: [
           { stat: 'expert', value: 12 },
-          { stat: 'colleagueRelation', value: 5 }
+          { stat: 'colleagueRelation', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '3반 선생님은 묘하게 현실적인 피드백에 풋 웃음을 터뜨리며 다음 수업 교재 연구 회의 준비로 자리를 옮기셨습니다.'
       }
@@ -891,7 +914,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
           { stat: 'expert', value: 10 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '부장님은 "와! 이게 바로 디지털 묶음의 기적이구만!"이라며 탄복하셨고, 다음 주 학년 예산 배정 회의에서 내 교실 학급 문구용품 예산을 최우선 배정해 주셨습니다.'
       },
@@ -901,7 +925,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         intent: '고객센터 링크 활용',
         immediateEffects: [
           { stat: 'expert', value: 12 },
-          { stat: 'colleagueRelation', value: 5 }
+          { stat: 'colleagueRelation', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '부장님은 링크를 보며 혼자 연구해 마침내 성공하셨습니다. 약간 퉁명스러우시지만 성취감을 맛보셨습니다.'
       }
@@ -958,7 +983,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'colleagueRelation', value: 20 },
           { stat: 'mental', value: 15 },
-          { stat: 'colleagueSolidarity', value: 20 }
+          { stat: 'colleagueSolidarity', value: 20 },
+          { stat: 'burnout', value: 7 }
         ],
         resultText: '동료들의 빛의 속도 가위질 덕분에 교실이 갤러리 미술관처럼 예쁘게 꾸며졌고, 다음 날 학부모 공개 수업은 초대박 성공을 기록했습니다.'
       },
@@ -993,7 +1019,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
           { stat: 'hp', value: 5 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 4 }
         ],
         successResultText: '교감 선생님은 노릇노릇한 삼겹살을 드시고 "음! 고기 굽는 솜씨를 보니 행정 공문 처리 솜씨도 명품이겠군!"이라며 대만족을 선언하셨습니다.',
         failEffects: [
@@ -1010,7 +1037,8 @@ export const funnyColleagueEvents: GameEvent[] = [
         intent: '얌전한 식사 및 대화 경청',
         immediateEffects: [
           { stat: 'mental', value: 12 },
-          { stat: 'hp', value: 10 }
+          { stat: 'hp', value: 10 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '조용하고 아늑한 대화 참여로 동료 교사들의 최근 민원 고충을 자세히 경청하여 공감대를 넓혔습니다.'
       }

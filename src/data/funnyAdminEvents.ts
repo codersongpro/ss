@@ -31,7 +31,8 @@ export const funnyAdminEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'mental', value: 15 },
           { stat: 'hp', value: 5 },
-          { stat: 'adminTrust', value: 5 }
+          { stat: 'adminTrust', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         successResultText: '교장 선생님은 "오, 학부모 상담이 더 중요하지!"라며 흔쾌히 가라고 하셨고, 덕분에 정시 퇴근에 성공하여 집에서 온전히 휴식했습니다.',
         failEffects: [
@@ -70,7 +71,8 @@ export const funnyAdminEvents: GameEvent[] = [
         intent: '수업 핑계 긴급 탈출',
         immediateEffects: [
           { stat: 'expert', value: 15 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '교감 선생님은 아쉬워하셨으나 수업 시간 준수 의지에 만족하시며 즉각 결재 도장을 찍어 주셨습니다. 훈화 감옥 탈출에 성공했습니다.'
       }
@@ -103,7 +105,8 @@ export const funnyAdminEvents: GameEvent[] = [
         intent: '의학적 핑계 정중 거절',
         immediateEffects: [
           { stat: 'mental', value: 12 },
-          { stat: 'adminTrust', value: 5 }
+          { stat: 'adminTrust', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '교장 선생님은 아쉬워하셨으나 건강이 우선이라며 찻잔을 거두셨고 대신 옥수수수염차 캔을 따서 훈훈하게 대화를 마쳤습니다.'
       }
@@ -136,7 +139,8 @@ export const funnyAdminEvents: GameEvent[] = [
         intent: '지적인 수업 연계 중재',
         immediateEffects: [
           { stat: 'expert', value: 18 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '퀴즈가 교육적 훈화로 자연스럽게 흡수되며 수업 진도가 오차 없이 마무리되었습니다. 장학사님은 담임의 뛰어난 수업 조율 스킬을 대호평하셨습니다.'
       }
@@ -159,7 +163,8 @@ export const funnyAdminEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'adminTrust', value: 15 },
           { stat: 'colleagueRelation', value: 10 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '교감 선생님은 흠칫 걸음을 늦추며 허허 웃으셨고, "음! 김 선생도 아침 조깅 운동 삼아 같이 걷게나" 하며 탕비실 꿀음료수를 한 병 주셨습니다.'
       },
@@ -169,7 +174,8 @@ export const funnyAdminEvents: GameEvent[] = [
         intent: '아동 훈육 연계형 기지',
         immediateEffects: [
           { stat: 'expert', value: 15 },
-          { stat: 'adminTrust', value: 12 }
+          { stat: 'adminTrust', value: 12 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '아이들이 재미있어하며 엉덩이를 흔들며 경보 보행을 따라 했습니다. 교감 선생님은 체면을 세워 준 나에게 흐뭇한 윙크를 보내셨습니다.'
       }
@@ -203,7 +209,8 @@ export const funnyAdminEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'studentTrust', value: 12 },
           { stat: 'adminTrust', value: 12 },
-          { stat: 'mental', value: 5 }
+          { stat: 'mental', value: 5 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '교장 선생님은 자기 시가 교실에 울려 퍼진다는 사실에 기쁨의 춤을 추셨고, 학급 도서 구매 비용으로 15만 원을 특별 추가 배정해 주셨습니다.'
       }
@@ -226,7 +233,8 @@ export const funnyAdminEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'adminTrust', value: 15 },
           { stat: 'mental', value: 10 },
-          { stat: 'expert', value: 5 }
+          { stat: 'expert', value: 5 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '교장 선생님은 잽싸게 물구나무를 풀고 옷매무새를 가다듬어 단정하게 결재 서명을 해주셨습니다. 서로의 품위를 안전하게 수호했습니다.'
       },
@@ -236,7 +244,8 @@ export const funnyAdminEvents: GameEvent[] = [
         intent: '서면 원격 결재 우회',
         immediateEffects: [
           { stat: 'expert', value: 12 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '오후에 전자 서명 시스템을 통해 공문이 통과되었습니다. 어색한 조우 없이 완벽한 업무 처리를 끝냈습니다.'
       }
@@ -259,7 +268,8 @@ export const funnyAdminEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
           { stat: 'mental', value: 12 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '교감 선생님은 흐뭇한 미소를 띠며 스파이처럼 사라지셨습니다. 버터 비스킷은 영혼을 치유할 만큼 고소하고 달콤했습니다.'
       },
@@ -269,7 +279,8 @@ export const funnyAdminEvents: GameEvent[] = [
         intent: '동료 연대 간식 반띵',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 12 },
-          { stat: 'colleagueSolidarity', value: 15 }
+          { stat: 'colleagueSolidarity', value: 15 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '신규 선생님은 "김 선생님은 제 생명의 은인이에요!"라며 감격하셨고 둘의 학교 협력 도가 대폭 굳건해졌습니다.'
       }
@@ -302,7 +313,8 @@ export const funnyAdminEvents: GameEvent[] = [
         intent: '수신호 활용 학생 질서 유지',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
-          { stat: 'classManagement', value: 15 }
+          { stat: 'classManagement', value: 15 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '아이들은 선생님의 퀴즈 힌트를 받으며 얌전하게 훈화를 경청했고 방학식은 큰 소동 없이 질서 정연하게 종료되었습니다.'
       }
@@ -336,7 +348,8 @@ export const funnyAdminEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'colleagueRelation', value: 10 },
           { stat: 'mental', value: 10 },
-          { stat: 'studentTrust', value: 10 }
+          { stat: 'studentTrust', value: 10 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '뜰채로 참새를 안전히 생포하여 방생했습니다. 참새 소동이 훈훈한 생태 교실 학습 사례로 전파되었습니다.'
       }
@@ -359,7 +372,8 @@ export const funnyAdminEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'adminTrust', value: 15 },
           { stat: 'colleagueRelation', value: 10 },
-          { stat: 'mental', value: 5 }
+          { stat: 'mental', value: 5 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '교감 선생님은 내 단정한 답글 밑에 하트 이모티콘을 달아 흡족함을 표시하셨습니다. 직장 내 프로 예절을 수호했습니다.'
       },
@@ -393,7 +407,8 @@ export const funnyAdminEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'adminTrust', value: 20 },
           { stat: 'hp', value: 5 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '교장 선생님은 "과연 내 맘을 아는군!"이라며 껄껄 웃으셨고, 동료 교사들에게도 쓴맛의 가치를 설교하시며 기분 좋게 커피 타임을 마쳤습니다.'
       },
@@ -404,7 +419,8 @@ export const funnyAdminEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'mental', value: 18 },
           { stat: 'hp', value: 10 },
-          { stat: 'adminTrust', value: 5 }
+          { stat: 'adminTrust', value: 5 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '1,500원으로 내 입맛의 힐링을 완벽하게 쟁취했습니다. 달달한 휘핑크림 덕에 오후 수업을 활기차게 리드했습니다.'
       }
@@ -438,7 +454,8 @@ export const funnyAdminEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'expert', value: 15 },
           { stat: 'mental', value: 12 },
-          { stat: 'adminTrust', value: 5 }
+          { stat: 'adminTrust', value: 5 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '활동성이 우수한 옷차림 덕에 등교하는 아이들의 돌발 킥보드 충돌 사고를 순발력 있게 몸으로 막아내 안전지도를 성공리에 끝냈습니다.'
       }
@@ -471,7 +488,8 @@ export const funnyAdminEvents: GameEvent[] = [
         intent: '공식 원예 용역 예산 청구',
         immediateEffects: [
           { stat: 'expert', value: 15 },
-          { stat: 'adminPower', value: 10 }
+          { stat: 'adminPower', value: 10 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '학교 운영 위원회 심의를 통과해 사설 화초 관리 용역 예산이 승인되어, 내 노동 없이 교장실 화분이 윤택하게 셋팅되었습니다.'
       }
@@ -505,7 +523,8 @@ export const funnyAdminEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'expert', value: 18 },
           { stat: 'adminTrust', value: 10 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 5 }
         ],
         resultText: '서류철을 아예 안 쓰고 전자 보관함 폴더에 바로 올림으로써 클립 각도 스트레스에서 완벽하게 해방되었습니다.'
       }
@@ -538,7 +557,8 @@ export const funnyAdminEvents: GameEvent[] = [
         intent: '수업 성과물 검수 복귀',
         immediateEffects: [
           { stat: 'expert', value: 18 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '학습 성과물 피드백 검수가 완벽하게 진행되어 장학사 참관 평가회에서 우수 모범 교사상을 수여받았습니다.'
       }
@@ -561,7 +581,8 @@ export const funnyAdminEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'mental', value: 15 },
           { stat: 'hp', value: 10 },
-          { stat: 'adminTrust', value: 5 }
+          { stat: 'adminTrust', value: 5 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '교장 선생님은 "에고 아프면 쉬어야지!"라며 대타를 다른 부장 교사에게 넘기셨고 주말 독신 자유 꿀잠을 안전히 수호했습니다.'
       },
@@ -595,7 +616,8 @@ export const funnyAdminEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'adminTrust', value: 15 },
           { stat: 'expert', value: 10 },
-          { stat: 'mental', value: 5 }
+          { stat: 'mental', value: 5 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '교감 선생님은 크게 기뻐하시며 "김 선생 목소리에 청렴한 선비의 혼이 깃들었다"며 교무실 청렴 리더로 임명하셨습니다.'
       },
@@ -606,7 +628,8 @@ export const funnyAdminEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'expert', value: 15 },
           { stat: 'hp', value: 5 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '머릿속으로 조립한 수업 교안 덕분에 3교시 수업이 대성공을 거두며 반 아이들이 분수의 원리를 완벽하게 깨달았습니다.'
       }
@@ -639,7 +662,8 @@ export const funnyAdminEvents: GameEvent[] = [
         intent: '정직한 쓰레기 수거 연출',
         immediateEffects: [
           { stat: 'expert', value: 15 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '교무실 분리배출 룰을 철저히 실천하여 친환경 녹색 교사 이미지를 굳건히 각인시켰습니다.'
       }
@@ -662,7 +686,8 @@ export const funnyAdminEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
           { stat: 'mental', value: 10 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '교감 선생님은 너무 신이 나셔서 내 식판 위에 꿔바로우 고기 조각을 본인 식판에서 3개나 더 얹어 주시며 기분 좋게 식사하셨습니다.'
       },
@@ -672,7 +697,8 @@ export const funnyAdminEvents: GameEvent[] = [
         intent: '침묵 웰빙 식사 고수',
         immediateEffects: [
           { stat: 'expert', value: 12 },
-          { stat: 'hp', value: 10 }
+          { stat: 'hp', value: 10 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '식사는 안전하고 소화가 아주 잘 되게 마쳤습니다. 교감 선생님도 조용히 낙지 수프를 비우셨습니다.'
       }
@@ -695,7 +721,8 @@ export const funnyAdminEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'adminTrust', value: 20 },
           { stat: 'expert', value: 10 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 5 }
         ],
         resultText: '교장 선생님은 안경을 쓰시고 "오! 라식 수술을 한 듯 해상도가 4K로 올라갔네!"라며 즉시 싸인 펜으로 서명을 휘갈겨 결재를 끝내주셨습니다. 안경 천은 영구 기증했습니다.'
       },
@@ -705,7 +732,8 @@ export const funnyAdminEvents: GameEvent[] = [
         intent: '티슈 제공 자립 닦기',
         immediateEffects: [
           { stat: 'adminTrust', value: 10 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '교장 선생님은 휴지로 슥슥 안경을 닦으셨고 다소 기포 얼룩이 남았으나 결재 서명은 완수되었습니다.'
       }
@@ -728,7 +756,8 @@ export const funnyAdminEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'mental', value: 18 },
           { stat: 'hp', value: 10 },
-          { stat: 'adminTrust', value: 5 }
+          { stat: 'adminTrust', value: 5 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '교감 선생님은 "아, 효도는 중대사지! 가문에 충실하게"라며 흔쾌히 납득하셨고 주말 이불 속 꿀잠을 안전히 수호했습니다.'
       },
@@ -772,7 +801,8 @@ export const funnyAdminEvents: GameEvent[] = [
         intent: '건강 보호용 대안 지연',
         immediateEffects: [
           { stat: 'expert', value: 15 },
-          { stat: 'adminTrust', value: 12 }
+          { stat: 'adminTrust', value: 12 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '교장 선생님은 목을 짚으며 "음! 건강이 우선이군!"이라며 에어로폰을 케이스에 넣으셨습니다. 아침 등굣길이 평화롭게 정돈되었습니다.'
       }
@@ -795,7 +825,8 @@ export const funnyAdminEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'adminTrust', value: 15 },
           { stat: 'adminPower', value: 12 },
-          { stat: 'mental', value: 5 }
+          { stat: 'mental', value: 5 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '교감 선생님은 모니터를 보며 "오! 역시 무지개 입체 효과야! 교직원의 품격이 철철 흐르는군!"이라며 대칭찬과 함께 결재를 쐈습니다.'
       },
@@ -805,7 +836,8 @@ export const funnyAdminEvents: GameEvent[] = [
         intent: '교육청 표준 매뉴얼 사수',
         immediateEffects: [
           { stat: 'expert', value: 18 },
-          { stat: 'adminTrust', value: 10 }
+          { stat: 'adminTrust', value: 10 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '교감 선생님은 교육청 룰북에 수긍하시며 아쉬워하셨으나 즉각 결재 도장을 누르셨습니다. 정제된 기안을 수호했습니다.'
       }
@@ -828,7 +860,8 @@ export const funnyAdminEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
           { stat: 'adminTrust', value: 18 },
-          { stat: 'mental', value: 10 }
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: 5 }
         ],
         resultText: '교장 선생님이 학교 순회 중 교실 뒷판의 정밀한 개운죽 성장 관찰지를 보시고 눈물을 글썽이며 대대적인 학급 물품 전폭 기부를 약속하셨습니다.'
       },
@@ -838,7 +871,8 @@ export const funnyAdminEvents: GameEvent[] = [
         intent: '미니멀 가습 배치',
         immediateEffects: [
           { stat: 'classManagement', value: 12 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '화분은 조용하고 안전하게 실내 천연 가습 효과를 내어 주었습니다. 교실 기본 환경 관리에 기여했습니다.'
       }
@@ -871,7 +905,8 @@ export const funnyAdminEvents: GameEvent[] = [
         intent: '국립국어원 규격 설득',
         immediateEffects: [
           { stat: 'expert', value: 18 },
-          { stat: 'adminTrust', value: 5 }
+          { stat: 'adminTrust', value: 5 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '교감 선생님은 다소 씁쓸해하셨으나 표준어 규정에 수긍하여 결재 서명을 완료하셨습니다. 문법 논의 역량이 향상되었습니다.'
       }
@@ -894,7 +929,8 @@ export const funnyAdminEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'adminTrust', value: 20 },
           { stat: 'hp', value: 10 },
-          { stat: 'mental', value: 12 }
+          { stat: 'mental', value: 12 },
+          { stat: 'burnout', value: 5 }
         ],
         resultText: '아이스크림의 단맛이 온몸의 피로를 날려주었습니다. 교장 선생님은 나를 최고 에이스 교사로 여기며 주간 보직 교사 승진 코치 면담을 은밀히 진행해주셨습니다.'
       },
@@ -904,7 +940,8 @@ export const funnyAdminEvents: GameEvent[] = [
         intent: '아이스크림 동료 배포',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
-          { stat: 'colleagueSolidarity', value: 12 }
+          { stat: 'colleagueSolidarity', value: 12 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '동료 교사들과 달콤한 아이스크림 간식 타임을 가지며 교무실 내 민원 극복 꿀팁을 전수하는 유익한 휴식을 보냈습니다.'
       }
@@ -927,7 +964,8 @@ export const funnyAdminEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'adminTrust', value: 20 },
           { stat: 'colleagueRelation', value: 10 },
-          { stat: 'hp', value: 5 }
+          { stat: 'hp', value: 5 },
+          { stat: 'burnout', value: 4 }
         ],
         resultText: '교감 선생님의 킥으로 발사된 공이 운동장 펜스를 크게 넘는 만루 대홈런을 기록했습니다! 교감 선생님은 기뻐서 운동장을 춤추며 도셨고 저녁에 삼겹살 한 판을 테이블 전체에 쏘셨습니다.'
       },
@@ -971,7 +1009,8 @@ export const funnyAdminEvents: GameEvent[] = [
         intent: '표준 조명 보정 사수',
         immediateEffects: [
           { stat: 'expert', value: 15 },
-          { stat: 'adminTrust', value: 10 }
+          { stat: 'adminTrust', value: 10 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '실물과 어긋나지 않는 단정하고 우아한 프로필 사진이 승인되어 지적이고 정직한 교직 프로필 규격을 수호했습니다.'
       }
@@ -1004,7 +1043,8 @@ export const funnyAdminEvents: GameEvent[] = [
         intent: '조경 수배 행정망 처리',
         immediateEffects: [
           { stat: 'expert', value: 15 },
-          { stat: 'adminPower', value: 10 }
+          { stat: 'adminPower', value: 10 },
+          { stat: 'burnout', value: 3 }
         ],
         resultText: '조경 업체의 즉각적인 조치로 화단이 완벽하게 가을 정원으로 데코레이션 완료되었습니다. 불필요한 노역 없이 학교 미화를 사수했습니다.'
       }
