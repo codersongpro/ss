@@ -95,6 +95,14 @@ export const EndingScreen: React.FC<EndingScreenProps> = ({ onRestart }) => {
           badgeColor: 'bg-red-950 text-white',
           illustration: '💣📢📰'
         };
+      case 'ending_true_mentor':
+        return {
+          title: '🕯️ 참된 스승 (히든 엔딩)',
+          subtitle: '아이들이 남긴 작은 흔적들이 한 권의 이야기가 되던 날',
+          desc: '지훈이의 삐뚤빼뚤한 손편지, 몰래 돌려 쓰던 학급 다이어리, 누군가의 비밀 스케치북, 익명의 쪽지… 한 학기 동안 아이들이 당신에게만 슬며시 건넨 흔적들이 책상 서랍 가득 쌓였습니다. 마지막 날, 아이들은 그 흔적들을 엮어 만든 단 한 권뿐인 학급 문집을 내밉니다. 화려한 성과도, 거창한 직함도 아니지만 당신은 아이 하나하나의 마음에 닿은 진짜 스승이었습니다. 이 이야기는 오래도록 그들 곁에 남을 것입니다.',
+          badgeColor: 'bg-gradient-to-r from-amber-300 to-rose-300 text-slate-900',
+          illustration: '🕯️📖💛'
+        };
       case 'ending_legendary_mentor':
         return {
           title: '🌟 전설의 참된 은사 (레전더리 멘토)',

@@ -46,6 +46,13 @@ export const EndingGallery: React.FC<EndingGalleryProps> = ({ onBackToTitle }) =
       icon: '💣'
     },
     {
+      id: 'ending_true_mentor',
+      title: '🕯️ 참된 스승 (히든)',
+      desc: '한 학기 동안 아이들이 건넨 손편지·다이어리·스케치북 등 서사 단서를 두루 모으고 신뢰까지 쌓아야 열리는 숨겨진 엔딩',
+      condition: '서사 단서 아이템 5종 중 4종 이상 수집 + 학생 신뢰도 70 이상',
+      icon: '🕯️'
+    },
+    {
       id: 'ending_legendary_mentor',
       title: '🌟 전설의 참된 은사',
       desc: '학생의 아픔을 공감하며 헌신해 온 결과 졸업식 날 감동의 롤링페이퍼와 눈물의 파티를 선사받는 참스승',

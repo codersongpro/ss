@@ -143,6 +143,49 @@ const statLabel = (stat: string) => STAT_LABELS[stat]?.label ?? stat;
 const stripInlineStatHints = (text: string) =>
   text.replace(/\s*\([^)]*[-+]\d+[^)]*\)/g, '').trim();
 
+// [NEW · 게임성/어드벤처] 30일을 5개 '막(章)'으로 나눠 기승전결을 체감시키는 챕터 헬퍼.
+// 날짜만으로 파생되므로 별도 상태가 필요 없다.
+interface ChapterInfo { act: number; title: string; subtitle: string; emoji: string; }
+const getChapter = (day: number): ChapterInfo => {
+  if (day <= 6)  return { act: 1, title: '새 학기, 낯선 교실', subtitle: '아이들의 이름조차 아직 낯선 첫 만남의 시간', emoji: '🌱' };
+  if (day <= 12) return { act: 2, title: '마음을 여는 시간', subtitle: '서로를 알아가며 작은 신뢰가 쌓이기 시작한다', emoji: '🤝' };
+  if (day <= 19) return { act: 3, title: '수면 위로 떠오른 갈등', subtitle: '미뤄둔 문제들이 마침내 부딪치는 위기의 한복판', emoji: '⚡' };
+  if (day <= 25) return { act: 4, title: '흩어진 마음을 잇다', subtitle: '갈등의 매듭을 풀고 관계를 다시 세우는 회복의 장', emoji: '🌗' };
+  return { act: 5, title: '작별을 준비하며', subtitle: '한 학기의 끝, 그리고 남겨질 이야기들', emoji: '🌅' };
+};
+
+// [NEW · 게임성/어드벤처] 정산 화면에 띄울 짧은 서술형 하루 요약을 생성한다.
+// 숫자 나열 대신 학급 분위기·교사 상태·서사 단서를 1~3줄의 내레이션으로 풀어 몰입을 돕는다.
+const buildDayNarrative = (
+  day: number,
+  stats: { studentTrust: number; burnout: number; hp: number; parentComplaint: number; teachingSatisfaction: number },
+  students: { name: string; teacherTrust: number }[],
+  inventory: string[]
+): string[] => {
+  const lines: string[] = [];
+
+  // 1) 학급 분위기 (학생 평균 신뢰 기반)
+  const avgTrust = students.length
+    ? Math.round(students.reduce((s, st) => s + st.teacherTrust, 0) / students.length)
+    : 50;
+  if (avgTrust >= 70) lines.push('교실에는 어느새 선생님을 믿고 따르는 온기가 감돈다. 아이들의 눈빛이 한결 편안해졌다.');
+  else if (avgTrust >= 45) lines.push('아이들은 아직 선생님을 조심스레 살핀다. 신뢰는 천천히, 그러나 분명히 쌓여가는 중이다.');
+  else lines.push('교실 공기는 여전히 서먹하다. 아이들과의 거리를 좁힐 계기가 필요해 보인다.');
+
+  // 2) 교사 자신의 상태
+  if (stats.burnout >= 75) lines.push('퇴근길 어깨가 천근만근이다. 이대로라면 번아웃이 모든 걸 집어삼킬지도 모른다.');
+  else if (stats.hp <= 30) lines.push('몸이 무겁다. 잠시라도 자신을 돌보지 않으면 버티기 어려운 날들이다.');
+  else if (stats.teachingSatisfaction >= 70) lines.push('고된 하루였지만, 가르치는 일의 보람이 마음 한켠을 든든히 채운다.');
+
+  // 3) 서사 단서 / 막바지 환기
+  const storyItems = ['jihun_letter', 'class_diary', 'class_council_charter', 'student_sketchbook', 'mystery_note'];
+  const collected = storyItems.filter(id => inventory.includes(id)).length;
+  if (collected >= 3) lines.push(`책상 서랍 속 아이들이 건넨 작은 흔적이 ${collected}개. 이 학기가 남긴 이야기가 차곡차곡 모이고 있다.`);
+  else if (day >= 26) lines.push('남은 날이 얼마 없다. 아직 매듭짓지 못한 아이의 얼굴이 자꾸 눈에 밟힌다.');
+
+  return lines.slice(0, 3);
+};
+
 interface TutorialStepData {
   title: string;
   desc: string;
@@ -774,6 +817,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
               <Calendar className="w-5 h-5 text-amber-400" />
               <span className="font-school font-bold text-lg">{day}일 차</span>
             </div>
+            {/* [NEW] 현재 막(챕터) 배지 — 30일 기승전결 체감용 */}
+            <div className="hidden sm:flex flex-col leading-tight bg-amber-50 border-2 border-amber-300 rounded-xl px-3 py-1" title={getChapter(day).subtitle}>
+              <span className="text-[10px] font-bold text-amber-700">{getChapter(day).emoji} 제{getChapter(day).act}막</span>
+              <span className="text-xs font-extrabold text-amber-900">{getChapter(day).title}</span>
+            </div>
             <div>
               <h1 className="font-bold text-base text-slate-900 flex items-center gap-1.5">
                 <span>{playerInfo?.name} 교사</span>
@@ -1228,6 +1276,21 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
               <h2 className="text-2xl font-school font-bold text-slate-900 border-b-2 border-black pb-2 flex items-center gap-1.5">
                 📝 {day}일 차 일과 정산 일기
               </h2>
+
+              {/* [NEW] 챕터(막) 헤더 + 서술형 하루 내레이션 — 어드벤처 몰입 강화 */}
+              <div className="bg-gradient-to-br from-slate-900 to-slate-700 text-white rounded-xl p-4 border-2 border-black space-y-2 shadow-school-deep">
+                <div className="flex items-center gap-2">
+                  <span className="text-amber-400 font-bold text-xs">{getChapter(day).emoji} 제{getChapter(day).act}막 · {getChapter(day).title}</span>
+                </div>
+                <div className="space-y-1.5 border-t border-white/15 pt-2">
+                  {buildDayNarrative(day, stats, students, inventory).map((line, idx) => (
+                    <p key={idx} className="text-sm text-slate-100 leading-relaxed flex gap-2">
+                      <span className="text-amber-400/80 flex-shrink-0">›</span>
+                      <span>{line}</span>
+                    </p>
+                  ))}
+                </div>
+              </div>
 
               <div className="space-y-4">
                 {/* 1. 지연 효과 알림 출력 */}

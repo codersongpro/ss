@@ -1623,8 +1623,17 @@ export const useGameStore = create<GameState>()(
         // 이미 게임오버나 다른 엔딩 상태가 세팅되어 있다면 즉시 반환하여 중복 해금을 차단합니다. [NEW]
         if (currentEnding) return;
 
-        const { stats, hiddenFlags } = get();
+        const { stats, hiddenFlags, inventory } = get();
         let finalEnding = 'ending_general'; // 기본 디폴트 평교사 엔딩
+
+        // [NEW · 어드벤처] 0. 비밀 엔딩 '참된 스승' — 한 학기 동안 아이들이 건넨 흔적(서사 단서 아이템)을
+        // 충분히 모으고(5종 중 4종 이상) 신뢰까지 쌓아야만 해금되는 최상위 히든 엔딩.
+        const storyItems = ['jihun_letter', 'class_diary', 'class_council_charter', 'student_sketchbook', 'mystery_note'];
+        const collectedStoryItems = storyItems.filter(id => inventory.includes(id)).length;
+        if (collectedStoryItems >= 4 && stats.studentTrust >= 70) {
+          set({ endingId: 'ending_true_mentor' });
+          return;
+        }
 
         // 1. 전설의 멘토 엔딩 (학생 신뢰도 극상, 보람 극상)
         if (stats.studentTrust >= 90 && stats.teachingSatisfaction >= 80) {
