@@ -1379,7 +1379,7 @@ export const taskTemplates: TaskTemplate[] = [
     canDelegate: true
   },
   {
-    title: "늘봄학교 특별 특별 강사 통장 사본 수집 및 정합성 검증",
+    title: "늘봄학교 특별 강사 통장 사본 수집 및 정합성 검증",
     category: "admin",
     urgency: 3,
     importance: 3,

@@ -411,6 +411,16 @@ export const gameEvents: GameEvent[] = [
           { stat: 'educationSoshin', value: -5 }
         ],
         hiddenFlags: ['organism_adaptation', 'fairness'],
+        delayedEffects: [
+          {
+            dayTrigger: 19,
+            effects: [
+              { stat: 'parentComplaint', value: 10 },
+              { stat: 'studentTrust', value: -6 }
+            ],
+            message: '매뉴얼대로 경위서를 올린 일이 지훈이 부모님 귀에 들어갔습니다. "왜 우리 아이만 가해자 취급하느냐"는 항의가 들어와 교무실 분위기가 싸늘해졌습니다.'
+          }
+        ],
         resultText: '관리자들은 매뉴얼대로 대처했다며 흡족해합니다. 하지만 지훈이는 억울함에 책상을 쾅 치며 "상대방 녀석이 먼저 욕했다고요!"라고 소리를 지릅니다.'
       },
       {
@@ -426,6 +436,16 @@ export const gameEvents: GameEvent[] = [
         hiddenFlags: ['student_center', 'collaboration', 'arc_jihun_helped'],
         studentEffects: [
           { studentId: 'student_jihun', changes: { behavior: 15, teacherTrust: 20 } }
+        ],
+        delayedEffects: [
+          {
+            dayTrigger: 19,
+            effects: [
+              { stat: 'reputation', value: 8 },
+              { stat: 'colleagueRelation', value: 6 }
+            ],
+            message: '지훈이를 회복적 대화로 끌어안았다는 이야기가 학년실에 조용히 퍼졌습니다. 옆 반 선생님이 "요즘 지훈이 표정이 한결 밝아졌더라"며 당신의 생활지도를 부러워합니다.'
+          }
         ],
         resultText: '매우 힘들고 에너지가 크게 소모되는 화해 중재 과정이었습니다. 다행히 상대방 교사와 원만하게 소통되어 두 학생은 서로의 오해를 깨닫고 악수하며 마무리했습니다.'
       },
@@ -2976,6 +2996,210 @@ export const gameEvents: GameEvent[] = [
       }
     ]
   },
+  // ==========================================
+  // [NEW · 장소 서사 스레드] 특정 장소(location)를 탐색할 때만 단계적으로 펼쳐지는 연속 아크.
+  // dayRange 창 + prerequisites 플래그로 발단→전개→결말을 잇고, 결말에서 서사 단서 아이템을 준다.
+  // ==========================================
+
+  // ── 위클래스 상담 아크: "마음을 닫은 아이" (location: wee_class) ──
+  {
+    id: 'evt_wee_arc_1',
+    dayRange: [4, 9],
+    title: '구석 자리의 침묵',
+    category: 'student',
+    situation: '위클래스 상담실',
+    location: 'wee_class',
+    narratorText: '위클래스 상담실 한쪽 구석, 쉬는 시간마다 혼자 앉아 무릎을 감싸 안고 있는 아이가 눈에 들어옵니다. 누구와도 어울리지 않고, 말을 거는 친구에게도 고개만 젓습니다.',
+    weight: 120,
+    valence: 'neutral',
+    tags: ['장소서사', '위클래스', '관계'],
+    choices: [
+      {
+        id: 'choice_wee_arc_1_1',
+        text: '옆에 조용히 앉아 아무것도 묻지 않고, 그저 같은 공간에 함께 있어준다.',
+        intent: '비언어적 곁 지키기',
+        immediateEffects: [
+          { stat: 'studentTrust', value: 10 },
+          { stat: 'mental', value: -4 },
+          { stat: 'hp', value: -4 }
+        ],
+        hiddenFlags: ['student_center', 'arc_wee_open'],
+        resultText: '아이는 여전히 말이 없지만, 자리를 뜨지 않는 선생님을 한 번 힐끔 올려다봅니다. 아주 작은 틈이 열린 것 같습니다.'
+      },
+      {
+        id: 'choice_wee_arc_1_2',
+        text: '지금은 바쁘니 다음에 상담 신청을 하라고 안내하고 자리를 뜬다.',
+        intent: '효율적 거리 두기',
+        immediateEffects: [
+          { stat: 'hp', value: 4 },
+          { stat: 'teachingSatisfaction', value: -6 },
+          { stat: 'educationSoshin', value: -4 }
+        ],
+        hiddenFlags: ['conflict_avoidance'],
+        resultText: '아이는 작게 고개를 끄덕이고 다시 무릎에 얼굴을 묻습니다. 돌아서는 발걸음이 어쩐지 무겁습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_wee_arc_2',
+    dayRange: [12, 18],
+    title: '조금씩 열리는 마음',
+    category: 'student',
+    situation: '위클래스 상담실',
+    location: 'wee_class',
+    prerequisites: ['arc_wee_open'],
+    narratorText: '며칠째 같은 자리를 찾아 곁에 앉아주자, 그 아이가 처음으로 먼저 입을 뗍니다. "선생님은… 왜 자꾸 와요?" 경계심과 호기심이 뒤섞인 목소리입니다.',
+    weight: 130,
+    valence: 'positive',
+    tags: ['장소서사', '위클래스', '관계'],
+    choices: [
+      {
+        id: 'choice_wee_arc_2_1',
+        text: '"그냥, 네가 궁금해서"라고 답하며 매일 짧게라도 이야기를 들어주기로 한다.',
+        intent: '꾸준한 정서적 동행',
+        immediateEffects: [
+          { stat: 'studentTrust', value: 12 },
+          { stat: 'teachingSatisfaction', value: 10 },
+          { stat: 'hp', value: -5 },
+          { stat: 'burnout', value: 5 }
+        ],
+        hiddenFlags: ['student_center', 'self_sacrifice', 'arc_wee_trust'],
+        resultText: '아이는 처음으로 옅게 웃었습니다. 그날 이후로 위클래스에 올 때마다 먼저 다가와 그날 있었던 일을 조금씩 들려줍니다.'
+      },
+      {
+        id: 'choice_wee_arc_2_2',
+        text: '오늘은 업무가 밀려 있어, 다음에 꼭 듣겠다며 서둘러 일어선다.',
+        intent: '업무 우선',
+        immediateEffects: [
+          { stat: 'workCapacity', value: 6 },
+          { stat: 'studentTrust', value: -8 },
+          { stat: 'teachingSatisfaction', value: -5 }
+        ],
+        hiddenFlags: ['work_avoid'],
+        resultText: '모처럼 열렸던 아이의 입이 다시 닫힙니다. "역시 다들 바쁘죠." 다음 기회는 쉽게 오지 않을 것 같습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_wee_arc_3',
+    dayRange: [20, 27],
+    title: '건네받은 쪽지',
+    category: 'student',
+    situation: '위클래스 상담실',
+    location: 'wee_class',
+    prerequisites: ['arc_wee_trust'],
+    narratorText: '여느 때처럼 상담실에 들어서자, 그 아이가 꼬깃꼬깃 접은 쪽지 한 장을 말없이 내밉니다. 얼굴이 빨갛습니다. "이거… 선생님 주려고요."',
+    weight: 150,
+    valence: 'positive',
+    tags: ['장소서사', '위클래스', '보람'],
+    choices: [
+      {
+        id: 'choice_wee_arc_3_1',
+        text: '그 자리에서 쪽지를 소중히 읽고, 진심을 담아 한 글자 한 글자 답장을 적어 돌려준다.',
+        intent: '진심 어린 응답',
+        immediateEffects: [
+          { stat: 'teachingSatisfaction', value: 15 },
+          { stat: 'studentTrust', value: 12 },
+          { stat: 'mental', value: 10 },
+          { stat: 'burnout', value: -8 }
+        ],
+        hiddenFlags: ['student_center', 'arc_wee_resolved'],
+        grantsItem: 'mystery_note',
+        resultText: '쪽지에는 "선생님 덕분에 학교가 조금 덜 무서워졌어요"라고 적혀 있었습니다. 한 아이의 세계에 닿았다는 사실이 가슴 깊이 차오릅니다.'
+      },
+      {
+        id: 'choice_wee_arc_3_2',
+        text: '고맙다고 짧게 인사하고, 나중에 천천히 읽어보겠다며 주머니에 넣는다.',
+        intent: '담담한 수용',
+        immediateEffects: [
+          { stat: 'studentTrust', value: 4 },
+          { stat: 'teachingSatisfaction', value: 3 }
+        ],
+        resultText: '아이는 살짝 실망한 듯하면서도 고개를 끄덕입니다. 용기 내어 건넨 마음이었던 만큼, 조금 더 살펴줄 걸 그랬나 싶습니다.'
+      }
+    ]
+  },
+
+  // ── 도서실 재능 발견 아크: "조용한 책벌레" (location: library) ──
+  {
+    id: 'evt_lib_arc_1',
+    dayRange: [5, 11],
+    title: '서가 구석의 그림',
+    category: 'student',
+    situation: '도서실',
+    location: 'library',
+    narratorText: '도서실 맨 끝 서가 뒤, 한 아이가 책 대신 공책에 무언가를 열중해서 그리고 있습니다. 인기척에 화들짝 공책을 가슴에 끌어안고 숨기듯 돌아섭니다.',
+    weight: 120,
+    valence: 'neutral',
+    tags: ['장소서사', '도서실', '재능'],
+    choices: [
+      {
+        id: 'choice_lib_arc_1_1',
+        text: '"방해해서 미안, 근데 방금 그거 정말 멋지더라"라고 조심스레 말을 건넨다.',
+        intent: '재능에 대한 호기심',
+        immediateEffects: [
+          { stat: 'studentTrust', value: 10 },
+          { stat: 'expert', value: 5 },
+          { stat: 'hp', value: -3 }
+        ],
+        hiddenFlags: ['student_center', 'arc_lib_found'],
+        resultText: '아이는 잠시 망설이다 공책 모서리를 아주 조금 보여줍니다. 거기엔 놀랍도록 섬세한 그림들이 빼곡했습니다.'
+      },
+      {
+        id: 'choice_lib_arc_1_2',
+        text: '집중을 깨지 않도록 못 본 척 조용히 지나친다.',
+        intent: '사적 공간 존중',
+        immediateEffects: [
+          { stat: 'mental', value: 4 },
+          { stat: 'teachingSatisfaction', value: -4 }
+        ],
+        resultText: '아이를 배려한 것이지만, 그 반짝이던 눈빛이 어딘가 마음에 남습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_lib_arc_2',
+    dayRange: [14, 22],
+    title: '보여준 스케치북',
+    category: 'student',
+    situation: '도서실',
+    location: 'library',
+    prerequisites: ['arc_lib_found'],
+    narratorText: '다시 도서실에서 마주친 그 아이가, 이번엔 먼저 다가와 두툼한 스케치북을 내밉니다. "선생님… 이거 한번 봐주실래요?" 손끝이 미세하게 떨립니다.',
+    weight: 140,
+    valence: 'positive',
+    tags: ['장소서사', '도서실', '재능'],
+    choices: [
+      {
+        id: 'choice_lib_arc_2_1',
+        text: '한 장 한 장 진지하게 넘겨보며 구체적으로 어떤 점이 훌륭한지 짚어 격려한다.',
+        intent: '강점 발견과 인정',
+        immediateEffects: [
+          { stat: 'teachingSatisfaction', value: 14 },
+          { stat: 'studentTrust', value: 12 },
+          { stat: 'expert', value: 8 },
+          { stat: 'hp', value: -4 },
+          { stat: 'burnout', value: 4 }
+        ],
+        hiddenFlags: ['student_center', 'arc_lib_resolved'],
+        grantsItem: 'student_sketchbook',
+        resultText: '아이의 얼굴이 환하게 펴집니다. "누가 제 그림을 끝까지 봐준 건 처음이에요." 그 한마디에 교사라는 일의 의미가 새삼 또렷해집니다.'
+      },
+      {
+        id: 'choice_lib_arc_2_2',
+        text: '재능은 인정하되, 그림만큼 공부도 소홀히 하면 안 된다고 현실적인 조언을 덧붙인다.',
+        intent: '균형 잡힌 훈계',
+        immediateEffects: [
+          { stat: 'expert', value: 6 },
+          { stat: 'studentTrust', value: -6 },
+          { stat: 'educationSoshin', value: -4 }
+        ],
+        hiddenFlags: ['performance_center'],
+        resultText: '아이는 "…네"라고 짧게 답하며 스케치북을 다시 가방 깊숙이 넣습니다. 용기 내어 내민 마음이 살짝 식어버린 듯합니다.'
+      }
+    ]
+  },
+
   // ==================== [탐험 보상형 히든 이벤트 (낮은 확률로만 등장) [NEW]] ====================
   {
     id: 'evt_hidden_time_capsule',

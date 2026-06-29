@@ -789,6 +789,8 @@ const getEventForTime = (
   const matchesBase = (evt: GameEvent, applyHistory: boolean): boolean => {
     // 0. 히든 탐험 이벤트는 exploreLocation에서만 낮은 확률로 등장 (시간대 자동 추첨에서는 제외)
     if (evt.tags.includes(HIDDEN_EXPLORATION_TAG)) return false;
+    // 0-1. [NEW · 장소 서사] location 전용 이벤트는 해당 장소 탐색으로만 등장 (저녁 자동추첨에서 제외)
+    if (evt.location) return false;
     // 1. 카테고리 매칭
     if (!category.includes(evt.category)) return false;
     // 2. 날짜 범위 확인
@@ -1119,7 +1121,8 @@ export const useGameStore = create<GameState>()(
             appliedDelayed.forEach(delayed => {
               newDelayedEffects.push({
                 ...delayed,
-                dayTrigger: clamp(day + delayed.dayTrigger, 1, 30)
+                // dayTrigger는 '발동될 절대 날짜(1~30)'. 과거로 예약되지 않도록 최소 내일(day+1)로 보정. [FIX]
+                dayTrigger: clamp(delayed.dayTrigger, Math.min(day + 1, 30), 30)
               });
             });
 
@@ -1189,7 +1192,8 @@ export const useGameStore = create<GameState>()(
             choice.delayedEffects.forEach(delayed => {
               newDelayedEffects.push({
                 ...delayed,
-                dayTrigger: clamp(day + delayed.dayTrigger, 1, 30)
+                // dayTrigger는 '발동될 절대 날짜(1~30)'. 과거로 예약되지 않도록 최소 내일(day+1)로 보정. [FIX]
+                dayTrigger: clamp(delayed.dayTrigger, Math.min(day + 1, 30), 30)
               });
             });
           }
@@ -1623,8 +1627,17 @@ export const useGameStore = create<GameState>()(
         // 이미 게임오버나 다른 엔딩 상태가 세팅되어 있다면 즉시 반환하여 중복 해금을 차단합니다. [NEW]
         if (currentEnding) return;
 
-        const { stats, hiddenFlags } = get();
+        const { stats, hiddenFlags, inventory } = get();
         let finalEnding = 'ending_general'; // 기본 디폴트 평교사 엔딩
+
+        // [NEW · 어드벤처] 0. 비밀 엔딩 '참된 스승' — 한 학기 동안 아이들이 건넨 흔적(서사 단서 아이템)을
+        // 충분히 모으고(5종 중 4종 이상) 신뢰까지 쌓아야만 해금되는 최상위 히든 엔딩.
+        const storyItems = ['jihun_letter', 'class_diary', 'class_council_charter', 'student_sketchbook', 'mystery_note'];
+        const collectedStoryItems = storyItems.filter(id => inventory.includes(id)).length;
+        if (collectedStoryItems >= 4 && stats.studentTrust >= 70) {
+          set({ endingId: 'ending_true_mentor' });
+          return;
+        }
 
         // 1. 전설의 멘토 엔딩 (학생 신뢰도 극상, 보람 극상)
         if (stats.studentTrust >= 90 && stats.teachingSatisfaction >= 80) {
@@ -1849,6 +1862,8 @@ export const useGameStore = create<GameState>()(
         // 해당 카테고리와 날짜에 맞는 후보군 필터링 (일반 후보 / 히든 탐험 후보 분리)
         const matchesExploreBase = (evt: GameEvent): boolean => {
           if (!categories.includes(evt.category)) return false;
+          // [NEW · 장소 서사] location 지정 이벤트는 해당 장소를 탐색할 때만 등장 (장소 전용 스레드)
+          if (evt.location && evt.location !== currentLocation) return false;
           const [start, end] = evt.dayRange;
           if (day < start || day > end) return false;
           if (recentLogs.some(log => log.includes(evt.title))) return false;
@@ -2042,7 +2057,26 @@ export const useGameStore = create<GameState>()(
           const student = get().students.find(s => s.id === npcId);
           const role = student ? `${student.name} (우리 반 학생)` : '학생';
           steps = evt.generateSteps(npcName, role);
-        } 
+
+          // [NEW · 어드벤처] NPC가 그동안의 관계와 선택을 '기억'하도록, 누적 신뢰도/서사 플래그에 따라
+          // 첫 대사 앞에 짧은 회상 인사를 덧붙인다. (스텝 인덱스 참조가 깨지지 않게 본문만 가공)
+          if (student && steps.length > 0) {
+            const flags = get().hiddenFlags;
+            let memory = '';
+            if (npcId === 'student_jihun' && flags.includes('arc_jihun_helped')) {
+              memory = '(선생님을 보자 지훈이가 멋쩍게 웃으며) "선생님! 그때 제 얘기 끝까지 들어주신 거… 저 아직도 기억해요."';
+            } else if (npcId === 'student_jihun' && flags.includes('arc_jihun_neglected')) {
+              memory = '(지훈이가 선생님과 눈을 피하며 시큰둥하게) "…아, 네. 선생님."';
+            } else if (student.teacherTrust >= 75) {
+              memory = `(${student.name}이(가) 반갑게 다가오며) "선생님이랑 얘기하는 거 이제 진짜 편해요!"`;
+            } else if (student.teacherTrust <= 30) {
+              memory = `(${student.name}이(가) 아직은 조심스러운 표정으로 선생님을 바라본다.)`;
+            }
+            if (memory) {
+              steps = steps.map((s, i) => (i === 0 ? { ...s, text: `${memory}\n\n${s.text}` } : s));
+            }
+          }
+        }
         // 그 외에는 교직원 대화 150선 연동
         else {
           const completedIdxs = completedNpcEvents[npcId] || [];
