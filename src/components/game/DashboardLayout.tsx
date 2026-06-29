@@ -135,12 +135,13 @@ const TypewriterText: React.FC<{ text: string; speed?: number }> = ({ text, spee
   return <span className="whitespace-pre-line">{displayedText}</span>;
 };
 
-// 선택지 텍스트에서 스탯 힌트를 필터링하는 헬퍼 [NEW]
-const filterStatHints = (text: string, showStatHints: boolean) => {
-  if (showStatHints) return text;
-  // 괄호 안에 +나 -로 시작하는 숫자가 포함된 부분을 제거 (예: "(HP -5)", "(멘탈 +10, 건강 -5)" 등)
-  return text.replace(/\s*\([^)]*[-+]\d+[^)]*\)/g, '');
-};
+// 스탯 키 → 한국어 라벨 (위 STAT_LABELS 중앙 매핑표를 재사용). 누락 시 키 그대로 반환. [NEW]
+const statLabel = (stat: string) => STAT_LABELS[stat]?.label ?? stat;
+
+// 선택지 텍스트에서 본문에 박혀 있던 스탯 표기 괄호를 항상 제거하는 헬퍼.
+// 표기 일관성을 위해 힌트는 본문 텍스트가 아니라 immediateEffects 배열에서 별도 칩으로 렌더링한다.
+const stripInlineStatHints = (text: string) =>
+  text.replace(/\s*\([^)]*[-+]\d+[^)]*\)/g, '').trim();
 
 interface TutorialStepData {
   title: string;
@@ -1375,15 +1376,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                                       : 'bg-rose-950/80 text-rose-400 border-rose-900'
                                   }`}
                                 >
-                                  {eff.stat === 'hp' ? '체력' :
-                                   eff.stat === 'mental' ? '멘탈' :
-                                   eff.stat === 'burnout' ? '번아웃' :
-                                   eff.stat === 'expert' ? '전문성' :
-                                   eff.stat === 'studentTrust' ? '학생신뢰' :
-                                   eff.stat === 'parentTrust' ? '학부모신뢰' :
-                                   eff.stat === 'colleagueRelation' ? '동료관계' :
-                                   eff.stat === 'adminTrust' ? '관리자신뢰' :
-                                   eff.stat === 'familySatisfaction' ? '가정만족' : '소신'} {isPositive ? '+' : ''}{eff.value}
+                                  {statLabel(eff.stat)} {isPositive ? '+' : ''}{eff.value}
                                 </span>
                               );
                             })}
@@ -1438,7 +1431,32 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                               {index + 1}
                             </span>
                             <div className="flex-1">
-                              <p className="font-medium text-white/95 leading-snug">{filterStatHints(choice.text, showStatHints)}</p>
+                              <p className="font-medium text-white/95 leading-snug">{stripInlineStatHints(choice.text)}</p>
+                              {/* 힌트 켜짐 시 effects 배열에서 한국어 라벨 칩을 직접 생성 (본문 표기와 무관하게 항상 일치) [NEW] */}
+                              {showStatHints && choice.immediateEffects.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-1.5">
+                                  {choice.immediateEffects.map((eff, i) => {
+                                    const isPositive = eff.value > 0;
+                                    return (
+                                      <span
+                                        key={i}
+                                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
+                                          isPositive
+                                            ? 'bg-emerald-950/70 text-emerald-300 border-emerald-800'
+                                            : 'bg-rose-950/70 text-rose-300 border-rose-900'
+                                        }`}
+                                      >
+                                        {statLabel(eff.stat)} {isPositive ? '+' : ''}{eff.value}
+                                      </span>
+                                    );
+                                  })}
+                                  {choice.successRate !== undefined && (
+                                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border bg-amber-950/70 text-amber-300 border-amber-800">
+                                      성공 {choice.successRate}%
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                               <span className="text-xs text-white/50 font-mono mt-1 block">
                                 [의도: {choice.intent}]
                               </span>

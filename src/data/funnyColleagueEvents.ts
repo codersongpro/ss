@@ -14,7 +14,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_01_1',
-        text: '빛의 속도로 달려가 "부장님의 열정적인 교육 철학 썰(Soul)을 혼자만 듣기 아까워 교무실 전체에 브레이크 없이(?) 공유하자는 찬사였습니다!"라고 아부한다. (colleagueRelation +15, 멘탈 +10, hp -5)',
+        text: '빛의 속도로 달려가 "부장님의 열정적인 교육 철학 썰(Soul)을 혼자만 듣기 아까워 교무실 전체에 브레이크 없이(?) 공유하자는 찬사였습니다!"라고 아부한다.',
         intent: '현란한 아부 수습',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
@@ -25,7 +25,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_01_2',
-        text: '정직하게 기술적 메신저 키보드 오작동 에러임을 실토하고 정중하게 고개 숙여 사과한다. (expert +12, 멘탈 -5, colleagueRelation +5)',
+        text: '정직하게 기술적 메신저 키보드 오작동 에러임을 실토하고 정중하게 고개 숙여 사과한다.',
         intent: '정직한 사실 고백',
         immediateEffects: [
           { stat: 'expert', value: 12 },
@@ -48,7 +48,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_02_1',
-        text: '입가에 묻은 약과 가루를 털어내며 "너무 맛있어서 영혼을 빼앗겼습니다. 퇴근 길에 꿀약과 한 상자 사서 냉장고에 보충해 놓겠습니다!"라고 이실직고한다. (colleagueRelation +15, hp -5, 멘탈 +10)',
+        text: '입가에 묻은 약과 가루를 털어내며 "너무 맛있어서 영혼을 빼앗겼습니다. 퇴근 길에 꿀약과 한 상자 사서 냉장고에 보충해 놓겠습니다!"라고 이실직고한다.',
         intent: '솔직한 자백 및 보상 약속',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
@@ -59,7 +59,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_02_2',
-        text: '옆에 있던 체육 선생님을 가리키며 "아까 체육 쌤이 탕비실에 침입하시는 것을 얼핏 본 것 같습니다..."라며 은밀하게 물타기를 시도한다. (interpersonal -5, colleagueRelation -10, 멘탈 +5)',
+        text: '옆에 있던 체육 선생님을 가리키며 "아까 체육 쌤이 탕비실에 침입하시는 것을 얼핏 본 것 같습니다..."라며 은밀하게 물타기를 시도한다.',
         intent: '타인 용의자 지목 물타기',
         immediateEffects: [
           { stat: 'interpersonal', value: -5 },
@@ -82,7 +82,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_03_1',
-        text: '팔꿈치로 옆구리를 세게 툭 쳐서 깨우고, 내 교재를 그 선생님 이마 위에 덮어주어 열공하는 척 연출한다. (colleagueRelation +15, 멘탈 +10, expert +5)',
+        text: '팔꿈치로 옆구리를 세게 툭 쳐서 깨우고, 내 교재를 그 선생님 이마 위에 덮어주어 열공하는 척 연출한다.',
         intent: '신속한 동료 구출',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
@@ -93,7 +93,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_03_2',
-        text: '교감 선생님의 시선을 돌리기 위해 손을 번쩍 들고 "강사님! 심폐소생술 압박 깊이에 대해 질문이 있습니다!"라고 우렁차게 질문을 던진다. (expert +15, colleagueRelation +10, hp -5)',
+        text: '교감 선생님의 시선을 돌리기 위해 손을 번쩍 들고 "강사님! 심폐소생술 압박 깊이에 대해 질문이 있습니다!"라고 우렁차게 질문을 던진다.',
         intent: '지적 질문으로 미끼 역할',
         immediateEffects: [
           { stat: 'expert', value: 15 },
@@ -116,7 +116,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_04_1',
-        text: '"주말에 마침 무릎 슬개골 연골 연화증 치료 물리치료가 예약되어 있습니다"라며 아쉬운 척 무릎을 짚고 거절한다. (멘탈 +15, hp +10, colleagueRelation -5)',
+        text: '"주말에 마침 무릎 슬개골 연골 연화증 치료 물리치료가 예약되어 있습니다"라며 아쉬운 척 무릎을 짚고 거절한다.',
         intent: '의학적 핑계 거절',
         immediateEffects: [
           { stat: 'mental', value: 15 },
@@ -127,7 +127,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_04_2',
-        text: '"산사나이 체육 부장님을 따라 산의 정기를 받아오겠습니다!"라며 기분 좋게 신청서에 서명한다. (colleagueRelation +20, hp -15, burnout +10)',
+        text: '"산사나이 체육 부장님을 따라 산의 정기를 받아오겠습니다!"라며 기분 좋게 신청서에 서명한다.',
         intent: '조직 융화형 등산 동참',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 20 },
@@ -150,7 +150,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_05_1',
-        text: '팔을 걷어붙이고 10분 동안 구석구석 완벽하게 물때를 닦아내고 원두 찌꺼기를 비워 쾌적하게 셋팅해 둔다. (colleagueRelation +15, hp -5, colleagueSolidarity +10)',
+        text: '팔을 걷어붙이고 10분 동안 구석구석 완벽하게 물때를 닦아내고 원두 찌꺼기를 비워 쾌적하게 셋팅해 둔다.',
         intent: '희생적 청소 솔선수범',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
@@ -161,7 +161,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_05_2',
-        text: '경고등을 슬쩍 보고는 믹스커피 포트를 끓여 노란 봉지 믹스커피를 타 마시며 눈치 게임에서 조용히 탈출한다. (멘탈 +10, hp +5)',
+        text: '경고등을 슬쩍 보고는 믹스커피 포트를 끓여 노란 봉지 믹스커피를 타 마시며 눈치 게임에서 조용히 탈출한다.',
         intent: '믹스커피 우회 전술',
         immediateEffects: [
           { stat: 'mental', value: 10 },
@@ -183,7 +183,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_06_1',
-        text: '택시 호출 화면을 보여주며 "아차, 아내가 문간에 빗자루를 들고 서 있다는 연락이 와서 내무부장관 결재 서류 처리를 위해 먼저 가보겠습니다"라며 코믹하게 빠져나간다. (멘탈 +15, hp +10, colleagueRelation -5)',
+        text: '택시 호출 화면을 보여주며 "아차, 아내가 문간에 빗자루를 들고 서 있다는 연락이 와서 내무부장관 결재 서류 처리를 위해 먼저 가보겠습니다"라며 코믹하게 빠져나간다.',
         intent: '가정 핑계 유머 탈출',
         immediateEffects: [
           { stat: 'mental', value: 15 },
@@ -194,7 +194,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_06_2',
-        text: '탬버린 두 개를 양손에 쥐고 현란한 엇박자 탬버린 롤링을 시전하여 교장 선생님의 무대를 콘서트 홀로 메이킹한다. (colleagueRelation +20, hp -15, burnout +12)',
+        text: '탬버린 두 개를 양손에 쥐고 현란한 엇박자 탬버린 롤링을 시전하여 교장 선생님의 무대를 콘서트 홀로 메이킹한다.',
         intent: '무대 예술 동참형 올인',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 20 },
@@ -211,13 +211,13 @@ export const funnyColleagueEvents: GameEvent[] = [
     title: '부장 교사의 기계식 독수리 타자 결재 건의',
     category: 'colleague',
     situation: '교무실 내 자리',
-    narratorText: '학교 교육 계획서 입력 기한 전날, 옆 자리의 정년 퇴임을 2년 앞두신 부장 교사님이 돋보기안경을 쓰시고 손가락 두 개로 키보드를 기계식 타자기 치듯 독수리 타법으로 두드리고 계십니다. 그리곤 한숨을 푹 쉬며 커피 캔을 내미십니다. "김 선생, 내가 품의 기안 올리는 엑셀 파일 표가 다 깨져 버렸는데 결재 좀 대신 만져주면 안 될까?" 어떻게 도시겠습니까?',
+    narratorText: '학교 교육 계획서 입력 기한 전날, 옆 자리의 정년 퇴임을 2년 앞두신 부장 교사님이 돋보기안경을 쓰시고 손가락 두 개로 키보드를 기계식 타자기 치듯 독수리 타법으로 두드리고 계십니다. 그리곤 한숨을 푹 쉬며 커피 캔을 내미십니다. "김 선생, 내가 품의 기안 올리는 엑셀 파일 표가 다 깨져 버렸는데 결재 좀 대신 만져주면 안 될까?" 어떻게 도와드릴까요?',
     weight: 100,
     tags: ['독수리타법', '품의기안', '부장님구출'],
     choices: [
       {
         id: 'choice_funny_colleague_07_1',
-        text: '친절하게 부장님 컴퓨터 앞에 앉아 깨진 표 라인을 바로잡고 기안 입력 팁을 원클릭 매크로 형식으로 셋팅해 드린다. (colleagueRelation +15, expert +10, hp -5)',
+        text: '친절하게 부장님 컴퓨터 앞에 앉아 깨진 표 라인을 바로잡고 기안 입력 팁을 원클릭 매크로 형식으로 셋팅해 드린다.',
         intent: '실무 기술 기부 및 훈훈 조력',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
@@ -228,7 +228,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_07_2',
-        text: '행정실 공식 공문 작성 가이드북 피디에프 파일을 바탕화면에 깔아 드리고 스스로 입력하시도록 조언한다. (expert +12, colleagueRelation +5)',
+        text: '행정실 공식 공문 작성 가이드북 피디에프 파일을 바탕화면에 깔아 드리고 스스로 입력하시도록 조언한다.',
         intent: '자립심 유도 가이드 전달',
         immediateEffects: [
           { stat: 'expert', value: 12 },
@@ -250,7 +250,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_08_1',
-        text: '동료들과 금액을 5만 원으로 통일하여 내고, 주말 식장에 참석하여 갈비탕 식사를 푸짐하게 완식하여 본전을 뽑는다. (colleagueRelation +12, hp +5, 멘탈 +5)',
+        text: '동료들과 금액을 5만 원으로 통일하여 내고, 주말 식장에 참석하여 갈비탕 식사를 푸짐하게 완식하여 본전을 뽑는다.',
         intent: '동료 연대감 통일 및 식사 참가',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 12 },
@@ -261,7 +261,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_08_2',
-        text: '3만 원을 봉투에 넣고 조용히 봉투만 전달한 뒤 주말에는 온전한 개인 홈 힐링(집순이/집돌이)을 택한다. (멘탈 +15, hp +10, colleagueRelation +5)',
+        text: '3만 원을 봉투에 넣고 조용히 봉투만 전달한 뒤 주말에는 온전한 개인 홈 힐링(집순이/집돌이)을 택한다.',
         intent: '미니멀 실속 경조사',
         immediateEffects: [
           { stat: 'mental', value: 15 },
@@ -284,7 +284,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_09_1',
-        text: '"영양사님! 오늘 돈가스 튀김 상태가 호텔 미슐랭급 예술이네요!"라며 화사한 꽃미소 칭찬을 건네며 슬쩍 식판을 내민다. (colleagueRelation +15, hp +10, 멘탈 +10)',
+        text: '"영양사님! 오늘 돈가스 튀김 상태가 호텔 미슐랭급 예술이네요!"라며 화사한 꽃미소 칭찬을 건네며 슬쩍 식판을 내민다.',
         intent: '칭찬 기반 추가 배식 획득',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
@@ -295,7 +295,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_09_2',
-        text: '배식 기준 수량을 묵묵히 준수하며 작은 돈가스 조각에 만족하고 남들 눈치 없이 식사 자리로 이동한다. (expert +10, hp +5)',
+        text: '배식 기준 수량을 묵묵히 준수하며 작은 돈가스 조각에 만족하고 남들 눈치 없이 식사 자리로 이동한다.',
         intent: '공평 배식 룰 준수',
         immediateEffects: [
           { stat: 'expert', value: 10 },
@@ -317,7 +317,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_10_1',
-        text: '부장님들의 강력한 실력을 과장되게 칭찬하며 공 줍기 셔틀 자원봉사 및 리액션 담당으로 역할을 전환한다. (colleagueRelation +15, 멘탈 +10, hp +5)',
+        text: '부장님들의 강력한 실력을 과장되게 칭찬하며 공 줍기 셔틀 자원봉사 및 리액션 담당으로 역할을 전환한다.',
         intent: '아부형 리액션 요원',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
@@ -328,7 +328,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_10_2',
-        text: '체력 소모를 각오하고 전신 슬라이딩을 감행하여 셔틀콕을 기필코 받아 넘기는 혼신의 배틀을 벌인다. (colleagueRelation +20, hp -15, burnout +10)',
+        text: '체력 소모를 각오하고 전신 슬라이딩을 감행하여 셔틀콕을 기필코 받아 넘기는 혼신의 배틀을 벌인다.',
         intent: '스포츠맨십 올인 투혼',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 20 },
@@ -351,7 +351,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_11_1',
-        text: '조용히 다가가 복합기 롤러 수동 핀셋을 쥐고 함께 종이를 조심스레 잡아당겨 찢어내고 찌꺼기를 안전하게 제거 수리해 준다. (colleagueRelation +15, expert +10, hp -5)',
+        text: '조용히 다가가 복합기 롤러 수동 핀셋을 쥐고 함께 종이를 조심스레 잡아당겨 찢어내고 찌꺼기를 안전하게 제거 수리해 준다.',
         intent: '실무적 비밀 수리 공조',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
@@ -362,7 +362,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_11_2',
-        text: '공식 고장 접수를 행정실에 신속하게 대리 등록해 주며, 수학 쌤의 과실을 감추고 공공 기계 노후화 오작동으로 처리되게 돕는다. (colleagueRelation +12, expert +5, 멘탈 +10)',
+        text: '공식 고장 접수를 행정실에 신속하게 대리 등록해 주며, 수학 쌤의 과실을 감추고 공공 기계 노후화 오작동으로 처리되게 돕는다.',
         intent: '행정실 이관 및 은폐 공조',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 12 },
@@ -385,7 +385,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_12_1',
-        text: '유튜브나 도서 요약 앱을 가동해 10분짜리 요약본 내용을 바탕으로 그럴듯한 서평 문장 10줄을 재치 있게 조합해 제출한다. (expert +12, 멘탈 +10, hp +5)',
+        text: '유튜브나 도서 요약 앱을 가동해 10분짜리 요약본 내용을 바탕으로 그럴듯한 서평 문장 10줄을 재치 있게 조합해 제출한다.',
         intent: '영리한 도서 요약 활용',
         immediateEffects: [
           { stat: 'expert', value: 12 },
@@ -396,7 +396,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_12_2',
-        text: '정직하게 밤을 새워 700페이지를 읽으며 줄치고 독서노트를 성실히 작성하여 교육 연구용으로 제출한다. (expert +18, hp -15, burnout +12)',
+        text: '정직하게 밤을 새워 700페이지를 읽으며 줄치고 독서노트를 성실히 작성하여 교육 연구용으로 제출한다.',
         intent: '학술적 정공법 완독',
         immediateEffects: [
           { stat: 'expert', value: 18 },
@@ -419,7 +419,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_13_1',
-        text: '비타민 음료 한 병을 들고 행정실로 내려가 눈웃음과 함께 "주무관님의 철저하고 명석한 예산 감시 덕에 나라 지갑이 튼튼합니다!"라며 넉살스럽게 딜한다. (colleagueRelation +15, 멘탈 +10, hp -5)',
+        text: '비타민 음료 한 병을 들고 행정실로 내려가 눈웃음과 함께 "주무관님의 철저하고 명석한 예산 감시 덕에 나라 지갑이 튼튼합니다!"라며 넉살스럽게 딜한다.',
         intent: '음료 공세 및 넉살 딜',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
@@ -430,7 +430,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_13_2',
-        text: '규정집을 꼼꼼히 대조하며 한 치의 오차도 없는 표준 주행 연비 산출 수식으로 문서를 정식 재기안한다. (expert +15, hp -10, burnout +5)',
+        text: '규정집을 꼼꼼히 대조하며 한 치의 오차도 없는 표준 주행 연비 산출 수식으로 문서를 정식 재기안한다.',
         intent: '완벽한 정석 행정 처리',
         immediateEffects: [
           { stat: 'expert', value: 15 },
@@ -453,7 +453,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_14_1',
-        text: '리모컨을 압수하여 공공 희망온도인 24도 제습 강풍으로 설정하고, 체육 쌤에겐 탁상 미풍 선풍기를, 보건 쌤에겐 꿀약차 핫팩을 선물한다. (colleagueRelation +15, 멘탈 +10, hp +5)',
+        text: '리모컨을 압수하여 공공 희망온도인 24도 제습 강풍으로 설정하고, 체육 쌤에겐 탁상 미풍 선풍기를, 보건 쌤에겐 꿀약차 핫팩을 선물한다.',
         intent: '솔로몬식 물리 중재',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
@@ -464,7 +464,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_14_2',
-        text: '에어컨 바람막이 가림판 설치 기안 공문을 행정실에 정식 품의하여 에어컨 사각지대 구조를 영구 개선한다. (expert +12, colleagueSolidarity +10)',
+        text: '에어컨 바람막이 가림판 설치 기안 공문을 행정실에 정식 품의하여 에어컨 사각지대 구조를 영구 개선한다.',
         intent: '기물 구조 개선 기안',
         immediateEffects: [
           { stat: 'expert', value: 12 },
@@ -486,7 +486,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_15_1',
-        text: '국그릇을 밥 위에 뒤집어엎어 빈 그릇처럼 보이게 하는 고난도 탑 쌓기 기술을 발휘해 뻔뻔하게 퇴식구를 통과한다. (멘탈 +12, hp +5, colleagueRelation -5)',
+        text: '국그릇을 밥 위에 뒤집어엎어 빈 그릇처럼 보이게 하는 고난도 탑 쌓기 기술을 발휘해 뻔뻔하게 퇴식구를 통과한다.',
         intent: '식판 위장 위장술',
         immediateEffects: [
           { stat: 'mental', value: 12 },
@@ -497,7 +497,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_15_2',
-        text: '정직하게 숟가락으로 남은 소스까지 매워 눈물을 흘리며 쓱쓱 다 비우고 당당히 확인 스탬프를 받는다. (expert +15, hp -10, colleagueRelation +10)',
+        text: '정직하게 숟가락으로 남은 소스까지 매워 눈물을 흘리며 쓱쓱 다 비우고 당당히 확인 스탬프를 받는다.',
         intent: '성실한 완식 솔선수범',
         immediateEffects: [
           { stat: 'expert', value: 15 },
@@ -520,7 +520,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_16_1',
-        text: '방수 타포린을 사물함 뒤에 함께 설치하고, 감사와 의리의 뜻으로 다음 날 달콤한 생초콜릿 크로플 상자를 책상 위에 배달한다. (colleagueRelation +15, 멘탈 +10, colleagueSolidarity +15)',
+        text: '방수 타포린을 사물함 뒤에 함께 설치하고, 감사와 의리의 뜻으로 다음 날 달콤한 생초콜릿 크로플 상자를 책상 위에 배달한다.',
         intent: '디저트 답례 및 우정 돈독',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
@@ -531,7 +531,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_16_2',
-        text: '신속하게 행정실 시설관리 긴급 전화를 돌려 방수 공사 주무관님을 소환해 사태를 공적으로 해결한다. (expert +12, hp -5)',
+        text: '신속하게 행정실 시설관리 긴급 전화를 돌려 방수 공사 주무관님을 소환해 사태를 공적으로 해결한다.',
         intent: '신속한 공적 시설물 해결',
         immediateEffects: [
           { stat: 'expert', value: 12 },
@@ -553,7 +553,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_17_1',
-        text: '교감 선생님의 운전 실력과 차 내의 클래식 디퓨저 향이 고품격이라고 칭찬을 드린 뒤 교육부 최신 공문 이슈에 대한 고견을 묻는다. (colleagueRelation +15, 멘탈 +10, hp -5)',
+        text: '교감 선생님의 운전 실력과 차 내의 클래식 디퓨저 향이 고품격이라고 칭찬을 드린 뒤 교육부 최신 공문 이슈에 대한 고견을 묻는다.',
         intent: '고품격 업무 질문 대화 개시',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
@@ -564,7 +564,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_17_2',
-        text: '피곤함을 핑계로 "교감 선생님, 사실 오늘 수업 에너지를 다 쏟아서 목이 좀 잠겼습니다"라며 눈을 가볍게 감고 자는 척을 감행한다. (멘탈 +15, hp +10, colleagueRelation +5)',
+        text: '피곤함을 핑계로 "교감 선생님, 사실 오늘 수업 에너지를 다 쏟아서 목이 좀 잠겼습니다"라며 눈을 가볍게 감고 자는 척을 감행한다.',
         intent: '자는 척 침묵 고수',
         immediateEffects: [
           { stat: 'mental', value: 15 },
@@ -587,7 +587,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_18_1',
-        text: '"과거 대학 밴드 동아리 시절의 소울을 불태워 보겠습니다!"라며 밴드 가입 원서를 제출하고 주말 잼 세션에 참여한다. (colleagueRelation +20, hp -15, burnout +10)',
+        text: '"과거 대학 밴드 동아리 시절의 소울을 불태워 보겠습니다!"라며 밴드 가입 원서를 제출하고 주말 잼 세션에 참여한다.',
         intent: '락 스피릿 교사 밴드 가입',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 20 },
@@ -598,7 +598,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_18_2',
-        text: '"저는 심각한 음치 박치라 악기 연주 시 헤드폰 볼륨이 터집니다"라며 대신 관객으로서 응원 도구(야광봉)를 지참해 가겠다고 딜한다. (멘탈 +15, hp +5, colleagueRelation +10)',
+        text: '"저는 심각한 음치 박치라 악기 연주 시 헤드폰 볼륨이 터집니다"라며 대신 관객으로서 응원 도구(야광봉)를 지참해 가겠다고 딜한다.',
         intent: '특급 관객 서포터 딜',
         immediateEffects: [
           { stat: 'mental', value: 15 },
@@ -621,7 +621,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_19_1',
-        text: '아침 8시 58분에 노트북 시계를 켜놓고 네이비즘 서버 시간 대조 후 정각에 미친 광클로 연수 신청 수급에 골인한다. (expert +15, 멘탈 +10, hp -5)',
+        text: '아침 8시 58분에 노트북 시계를 켜놓고 네이비즘 서버 시간 대조 후 정각에 미친 광클로 연수 신청 수급에 골인한다.',
         intent: '광클릭 꿀연수 수령',
         immediateEffects: [
           { stat: 'expert', value: 15 },
@@ -632,7 +632,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_19_2',
-        text: '아침 조회 시간이 겹쳐 수강 신청 타이밍을 놓치고 대신 다른 동료에게 정보를 더 뿌려 동료애를 올린다. (colleagueRelation +15, colleagueSolidarity +12)',
+        text: '아침 조회 시간이 겹쳐 수강 신청 타이밍을 놓치고 대신 다른 동료에게 정보를 더 뿌려 동료애를 올린다.',
         intent: '정보 공유 및 친목 확보',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
@@ -654,7 +654,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_20_1',
-        text: '1초 만에 메시지를 삭제하고, "방금 영수 어머님의 뜨거운 과제 교육 열의에 대해 감탄하며 동료 교사 연구방에 쓸 글이 오폭되었습니다. 교무 질서를 어지럽혀 송구합니다"라고 수습 문자를 올린다. (expert +15, colleagueRelation +10, hp -5)',
+        text: '1초 만에 메시지를 삭제하고, "방금 영수 어머님의 뜨거운 과제 교육 열의에 대해 감탄하며 동료 교사 연구방에 쓸 글이 오폭되었습니다. 교무 질서를 어지럽혀 송구합니다"라고 수습 문자를 올린다.',
         intent: '초고속 삭제 및 업무형 포장',
         immediateEffects: [
           { stat: 'expert', value: 15 },
@@ -665,7 +665,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_20_2',
-        text: '멘붕이 와서 조용히 폰을 비행기 모드로 바꾸고 침대에 이불을 덮고 누워 깊은 현실 도피 잠을 청한다. (멘탈 -10, hp +10, burnout +12)',
+        text: '멘붕이 와서 조용히 폰을 비행기 모드로 바꾸고 침대에 이불을 덮고 누워 깊은 현실 도피 잠을 청한다.',
         intent: '비행기모드 현실도피',
         immediateEffects: [
           { stat: 'mental', value: -10 },
@@ -688,7 +688,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_21_1',
-        text: '내 주머니에 들어있던 최애 힐링 에너지바 2개와 매실 캔디 3개를 물물교환 카드로 내밀며 공동 간식 동맹을 제안한다. (colleagueRelation +15, hp +5, 멘탈 +10)',
+        text: '내 주머니에 들어있던 최애 힐링 에너지바 2개와 매실 캔디 3개를 물물교환 카드로 내밀며 공동 간식 동맹을 제안한다.',
         intent: '포켓 간식 물물교환',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
@@ -699,7 +699,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_21_2',
-        text: '간식은 보지 못한 척 예의 바르게 교재만 빌려 조용히 우리 반 교실로 복귀해 업무를 지속한다. (expert +10, hp -5)',
+        text: '간식은 보지 못한 척 예의 바르게 교재만 빌려 조용히 우리 반 교실로 복귀해 업무를 지속한다.',
         intent: '엄격한 선 긋기 및 교재 수급',
         immediateEffects: [
           { stat: 'expert', value: 10 },
@@ -721,7 +721,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_22_1',
-        text: '양손으로 가상의 붉은악마 박수를 치며 "와! 부장님이 바로 그 4강 신화의 교내 숨은 주역이셨군요! 완전 소름 돋았습니다!"라고 격렬하게 춤추듯 리액션한다. (colleagueRelation +20, 멘탈 +12, hp -5)',
+        text: '양손으로 가상의 붉은악마 박수를 치며 "와! 부장님이 바로 그 4강 신화의 교내 숨은 주역이셨군요! 완전 소름 돋았습니다!"라고 격렬하게 춤추듯 리액션한다.',
         intent: '락스타급 격렬 리액션',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 20 },
@@ -732,7 +732,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_22_2',
-        text: '영혼 없는 차분한 목인사로 고개를 끄덕인 뒤 회의록 문서 대장에 회의 내용을 성실히 타이핑 정리한다. (expert +15, hp +5)',
+        text: '영혼 없는 차분한 목인사로 고개를 끄덕인 뒤 회의록 문서 대장에 회의 내용을 성실히 타이핑 정리한다.',
         intent: '회의록 작성 집중',
         immediateEffects: [
           { stat: 'expert', value: 15 },
@@ -754,7 +754,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_23_1',
-        text: '즉시 모바일 앱을 켜서 계좌이체로 5,000원을 송금하고, 미술 쌤 자리에 귀여운 미니 젤리 한 봉지를 얹어주며 깜빡해서 미안하다고 전한다. (colleagueRelation +15, hp -5, 멘탈 +10)',
+        text: '즉시 모바일 앱을 켜서 계좌이체로 5,000원을 송금하고, 미술 쌤 자리에 귀여운 미니 젤리 한 봉지를 얹어주며 깜빡해서 미안하다고 전한다.',
         intent: '신속 송금 및 사과',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
@@ -765,7 +765,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_23_2',
-        text: '5,000원 송금 대신 지갑 속의 신사임당 5만 원권 현금을 건네며 "다음 달 친목 독서회 비용까지 통 크게 선납 처리해 달라"고 한다. (colleagueRelation +12, 멘탈 +5)',
+        text: '5,000원 송금 대신 지갑 속의 신사임당 5만 원권 현금을 건네며 "다음 달 친목 독서회 비용까지 통 크게 선납 처리해 달라"고 한다.',
         intent: '선납 딜 처리',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 12 },
@@ -787,7 +787,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_24_1',
-        text: '부장님의 단잠을 깨우지 않도록 숨소리를 죽이고 커튼을 쳐 비밀을 엄수해 준 뒤 공강 시간이 끝날 때 조용히 퇴각한다. (colleagueRelation +15, hp +10, 멘탈 +10)',
+        text: '부장님의 단잠을 깨우지 않도록 숨소리를 죽이고 커튼을 쳐 비밀을 엄수해 준 뒤 공강 시간이 끝날 때 조용히 퇴각한다.',
         intent: '비밀 엄수형 공조 낮잠',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
@@ -798,7 +798,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_24_2',
-        text: '보건 선생님께 살짝 "부장님 코골이 가습기가 필요해 보입니다"라고 장난스레 조율하며 교무실 복귀용 차 한잔을 같이 마신다. (colleagueRelation +12, colleagueSolidarity +10)',
+        text: '보건 선생님께 살짝 "부장님 코골이 가습기가 필요해 보입니다"라고 장난스레 조율하며 교무실 복귀용 차 한잔을 같이 마신다.',
         intent: '보건실 탕비실 대화',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 12 },
@@ -820,7 +820,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_25_1',
-        text: '뜨끈한 핫팩을 쥐고 눈물을 글썽이며 "부장님은 얼어붙은 교정에 따뜻한 등대 같은 존재이십니다!"라며 감사의 눈빛을 보낸다. (colleagueRelation +20, hp +10, 멘탈 +10)',
+        text: '뜨끈한 핫팩을 쥐고 눈물을 글썽이며 "부장님은 얼어붙은 교정에 따뜻한 등대 같은 존재이십니다!"라며 감사의 눈빛을 보낸다.',
         intent: '폭풍 감사 및 극찬 피드백',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 20 },
@@ -831,7 +831,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_25_2',
-        text: '핫팩의 든든한 화력에 힘입어 교문 앞 빙판길 안전 염화칼슘 뿌리기 작업을 자원하여 교문 앞 안전을 책임진다. (expert +15, hp -5)',
+        text: '핫팩의 든든한 화력에 힘입어 교문 앞 빙판길 안전 염화칼슘 뿌리기 작업을 자원하여 교문 앞 안전을 책임진다.',
         intent: '핫팩 파워 기반 안전 지도 솔선수범',
         immediateEffects: [
           { stat: 'expert', value: 15 },
@@ -853,7 +853,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_26_1',
-        text: '"와! 완전 런던 패션위크 런웨이 모델인 줄 알았습니다! 상큼함이 터져서 교실이 환해졌어요!"라고 리액션 폭발을 시전한다. (colleagueRelation +15, 멘탈 +10, hp -5)',
+        text: '"와! 완전 런던 패션위크 런웨이 모델인 줄 알았습니다! 상큼함이 터져서 교실이 환해졌어요!"라고 리액션 폭발을 시전한다.',
         intent: '우주급 패션 리액션',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
@@ -864,7 +864,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_26_2',
-        text: '"단정하고 활동성이 좋아서 아이들 급식 지도할 때 머리카락 흘러내릴 걱정은 제로겠네요"라며 극도로 실용적인 교육적 관점으로 답한다. (expert +12, colleagueRelation +5)',
+        text: '"단정하고 활동성이 좋아서 아이들 급식 지도할 때 머리카락 흘러내릴 걱정은 제로겠네요"라며 극도로 실용적인 교육적 관점으로 답한다.',
         intent: '교육 실용적 칭찬',
         immediateEffects: [
           { stat: 'expert', value: 12 },
@@ -886,7 +886,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_27_1',
-        text: '부장님 폰을 직접 쥐어드리고 [사진 묶어보내기] 체크박스 위치를 크레파스로 그리듯 상세히 눌러 설명해 드리고 단축 버튼 설정을 셋팅해 드린다. (colleagueRelation +15, expert +10, 멘탈 +10)',
+        text: '부장님 폰을 직접 쥐어드리고 [사진 묶어보내기] 체크박스 위치를 크레파스로 그리듯 상세히 눌러 설명해 드리고 단축 버튼 설정을 셋팅해 드린다.',
         intent: '상세 IT 교육 기부',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
@@ -897,7 +897,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_27_2',
-        text: '카카오톡 공식 고객센터 도움말 화면 링크를 메신저로 넌지시 전송하여 스스로 공부하시도록 가이드를 드린다. (expert +12, colleagueRelation +5)',
+        text: '카카오톡 공식 고객센터 도움말 화면 링크를 메신저로 넌지시 전송하여 스스로 공부하시도록 가이드를 드린다.',
         intent: '고객센터 링크 활용',
         immediateEffects: [
           { stat: 'expert', value: 12 },
@@ -919,7 +919,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_28_1',
-        text: '주머니에 시원한 보리차 캔 2개를 넣고 행정실로 내려가 "주무관님의 칼 같은 공문 검수력 덕에 학교 예산이 낭비 없이 철저히 보존됩니다!"라며 기분 좋은 아부를 시전한다. (colleagueRelation +15, 멘탈 +10, hp -5)',
+        text: '주머니에 시원한 보리차 캔 2개를 넣고 행정실로 내려가 "주무관님의 칼 같은 공문 검수력 덕에 학교 예산이 낭비 없이 철저히 보존됩니다!"라며 기분 좋은 아부를 시전한다.',
         intent: '보리차 신속 아부 딜',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
@@ -930,7 +930,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_28_2',
-        text: '정식 반려 사유 지침을 메모해 내 자리에 돌아와 공문 한 자 한 자 자와 각도를 맞추듯 완벽히 대조 수정해 재기안한다. (expert +15, hp -10, burnout +5)',
+        text: '정식 반려 사유 지침을 메모해 내 자리에 돌아와 공문 한 자 한 자 자와 각도를 맞추듯 완벽히 대조 수정해 재기안한다.',
         intent: '완벽한 서체 교정 재기안',
         immediateEffects: [
           { stat: 'expert', value: 15 },
@@ -953,7 +953,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_29_1',
-        text: '피자를 함께 뜯어 먹으며 동료들의 폭풍 가위질 지원을 받아 30분 만에 화려하게 환경 정리를 완료하고, 다음 공개 수업 때 똑같이 도와주기로 약속한다. (colleagueRelation +20, 멘탈 +15, colleagueSolidarity +20)',
+        text: '피자를 함께 뜯어 먹으며 동료들의 폭풍 가위질 지원을 받아 30분 만에 화려하게 환경 정리를 완료하고, 다음 공개 수업 때 똑같이 도와주기로 약속한다.',
         intent: '피자 수혈 및 동료 야간 공조',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 20 },
@@ -964,7 +964,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_29_2',
-        text: '동료들의 고생에 미안함을 느껴 "괜찮으니 피자만 맛있게 먹고 얼른 퇴근하라"며 서둘러 돌려보내고 혼자 야근을 마저 처리한다. (expert +12, hp -10, burnout +8)',
+        text: '동료들의 고생에 미안함을 느껴 "괜찮으니 피자만 맛있게 먹고 얼른 퇴근하라"며 서둘러 돌려보내고 혼자 야근을 마저 처리한다.',
         intent: '동료 부담 배제 배려',
         immediateEffects: [
           { stat: 'expert', value: 12 },
@@ -987,7 +987,7 @@ export const funnyColleagueEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_colleague_30_1',
-        text: '집게를 과감히 쥐고 마늘과 고기를 겉바속촉 미디움 웰던 규격으로 구워 교감 선생님과 동료들의 식판에 조용히 얹어준다. (성공률 70% -> 동료관계 +15, hp +5, 멘탈 +10 / 실패 -> 동료관계 -10, 멘탈 -10, hp -5)',
+        text: '집게를 과감히 쥐고 마늘과 고기를 겉바속촉 미디움 웰던 규격으로 구워 교감 선생님과 동료들의 식판에 조용히 얹어준다.',
         intent: '고기 굽기 신공 아부',
         successRate: 70,
         immediateEffects: [
@@ -1006,7 +1006,7 @@ export const funnyColleagueEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_colleague_30_2',
-        text: '집게를 다른 동료에게 양보하고 얌전하게 상추에 고기를 싸 먹으며 수다와 친목 대화 리스닝에만 조용히 전념한다. (멘탈 +12, hp +10)',
+        text: '집게를 다른 동료에게 양보하고 얌전하게 상추에 고기를 싸 먹으며 수다와 친목 대화 리스닝에만 조용히 전념한다.',
         intent: '얌전한 식사 및 대화 경청',
         immediateEffects: [
           { stat: 'mental', value: 12 },

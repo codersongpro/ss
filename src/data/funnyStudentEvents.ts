@@ -14,7 +14,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_01_1',
-        text: '옆 반 선생님께 즉시 뛰어가 예의 바르게 사과하고 장조림 대신 먹을 음료수를 건넨다. (멘탈 +5, 동료관계 +10, hp -5)',
+        text: '옆 반 선생님께 즉시 뛰어가 예의 바르게 사과하고 장조림 대신 먹을 음료수를 건넨다.',
         intent: '공식 사과 및 수습',
         immediateEffects: [
           { stat: 'mental', value: 5 },
@@ -25,7 +25,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_01_2',
-        text: '민우에게 탄성력과 각도 조절의 물리적 법칙을 장난스레 설명하며 조심해서 먹도록 지도한다. (학생신뢰 +10, 멘탈 +10, expert +5)',
+        text: '민우에게 탄성력과 각도 조절의 물리적 법칙을 장난스레 설명하며 조심해서 먹도록 지도한다.',
         intent: '유머러스한 생활지도',
         immediateEffects: [
           { stat: 'studentTrust', value: 10 },
@@ -48,7 +48,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_02_1',
-        text: '거래 중인 "흑요석"을 전량 압수하고, 교실 청소 시간에 지우개 가루 청소 봉사를 시킨다. (학급운영 +10, hp -5, 번아웃 +5)',
+        text: '거래 중인 "흑요석"을 전량 압수하고, 교실 청소 시간에 지우개 가루 청소 봉사를 시킨다.',
         intent: '시장 경제 통제',
         immediateEffects: [
           { stat: 'classManagement', value: 10 },
@@ -59,7 +59,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_02_2',
-        text: '가루를 뭉쳐 창작 활동을 한 장인정신은 칭찬하되, 위생과 정식 학용품 소중함에 대해 타이른다. (학생신뢰 +12, 멘탈 +10, expert +5)',
+        text: '가루를 뭉쳐 창작 활동을 한 장인정신은 칭찬하되, 위생과 정식 학용품 소중함에 대해 타이른다.',
         intent: '창의성 존중 및 훈육',
         immediateEffects: [
           { stat: 'studentTrust', value: 12 },
@@ -82,7 +82,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_03_1',
-        text: '분필을 들고 초상화 옆에 "머리숱 보강 공사"를 직접 그려 넣어 대머리 논란을 유쾌하게 해명한다. (학생신뢰 +15, 멘탈 +15, hp +5)',
+        text: '분필을 들고 초상화 옆에 "머리숱 보강 공사"를 직접 그려 넣어 대머리 논란을 유쾌하게 해명한다.',
         intent: '예술적 동참',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
@@ -93,7 +93,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_03_2',
-        text: '준서에게 지우개를 주며 "수업 1분 전이니 미술학원은 방과 후에 열어라"며 칠판을 지우게 한다. (학급운영 +10, expert +5)',
+        text: '준서에게 지우개를 주며 "수업 1분 전이니 미술학원은 방과 후에 열어라"며 칠판을 지우게 한다.',
         intent: '공적 시간 경계 구분',
         immediateEffects: [
           { stat: 'classManagement', value: 10 },
@@ -115,7 +115,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_04_1',
-        text: '교탁 옆 빗자루를 길게 뻗어 안전하게 실내화를 떼어내고, 둘에게 실내화 닦기 숙제를 준다. (학급운영 +10, hp -5)',
+        text: '교탁 옆 빗자루를 길게 뻗어 안전하게 실내화를 떼어내고, 둘에게 실내화 닦기 숙제를 준다.',
         intent: '안전 수거 및 훈육',
         immediateEffects: [
           { stat: 'classManagement', value: 10 },
@@ -125,7 +125,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_04_2',
-        text: '체육 선생님의 협조를 구해 강당의 긴 장대를 빌려오며 가벼운 운동 삼아 다녀온다. (동료관계 +5, 멘탈 +10, burnout -5)',
+        text: '체육 선생님의 협조를 구해 강당의 긴 장대를 빌려오며 가벼운 운동 삼아 다녀온다.',
         intent: '외부 도구 활용',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 5 },
@@ -148,7 +148,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_05_1',
-        text: '지성이를 안전교육 위반으로 즉시 격리하고 과학실 청소 지도 및 실험 주의 지침을 재교육한다. (expert +10, 학급운영 +10, 멘탈 -5)',
+        text: '지성이를 안전교육 위반으로 즉시 격리하고 과학실 청소 지도 및 실험 주의 지침을 재교육한다.',
         intent: '안전사고 재발 방지',
         immediateEffects: [
           { stat: 'expert', value: 10 },
@@ -159,7 +159,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_05_2',
-        text: '웅이의 엉덩이에 급히 찬물을 뿌려 진정시키고 보건실로 보내 상태를 점검하게 한다. (학생신뢰 +12, hp -5, 멘탈 +5)',
+        text: '웅이의 엉덩이에 급히 찬물을 뿌려 진정시키고 보건실로 보내 상태를 점검하게 한다.',
         intent: '신속한 응급처치',
         immediateEffects: [
           { stat: 'studentTrust', value: 12 },
@@ -182,7 +182,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_06_1',
-        text: '정성껏 틀린 맞춤법을 빨간 펜으로 고쳐주고, 방과 후에 오답 노트를 3번 쓰도록 지도한다. (expert +12, burnout +5)',
+        text: '정성껏 틀린 맞춤법을 빨간 펜으로 고쳐주고, 방과 후에 오답 노트를 3번 쓰도록 지도한다.',
         intent: '원칙적 맞춤법 교정',
         immediateEffects: [
           { stat: 'expert', value: 12 },
@@ -192,7 +192,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_06_2',
-        text: '아이의 무한한 문학적 상상력에 피식 웃으며, 개별적으로 단어를 재치 있게 발음 대조 지도한다. (학생신뢰 +15, 멘탈 +15, expert +5)',
+        text: '아이의 무한한 문학적 상상력에 피식 웃으며, 개별적으로 단어를 재치 있게 발음 대조 지도한다.',
         intent: '감성 피드백 및 발음 지도',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
@@ -215,7 +215,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_07_1',
-        text: '복도에 모여 조롱하는 학생들을 즉각 교실로 들여보내고, 타인의 생리 현상을 존중하라고 훈육한다. (학급운영 +12, expert +5)',
+        text: '복도에 모여 조롱하는 학생들을 즉각 교실로 들여보내고, 타인의 생리 현상을 존중하라고 훈육한다.',
         intent: '엄격한 인권/예절 훈육',
         immediateEffects: [
           { stat: 'classManagement', value: 12 },
@@ -225,7 +225,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_07_2',
-        text: '아이들에게 웃음을 참으며 "인간의 자연스러운 생리 현상일 뿐이니 흩어지자"라며 주의를 환기시킨다. (학생신뢰 +10, 멘탈 +12, hp +5)',
+        text: '아이들에게 웃음을 참으며 "인간의 자연스러운 생리 현상일 뿐이니 흩어지자"라며 주의를 환기시킨다.',
         intent: '온건한 해산 및 유머 대응',
         immediateEffects: [
           { stat: 'studentTrust', value: 10 },
@@ -248,7 +248,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_08_1',
-        text: '학교 내 물건 거래 금지 규칙에 근거해 거래를 무효화하고 각자 물건을 돌려주게 한다. (학급운영 +12, expert +5)',
+        text: '학교 내 물건 거래 금지 규칙에 근거해 거래를 무효화하고 각자 물건을 돌려주게 한다.',
         intent: '원칙 중심 거래 철회',
         immediateEffects: [
           { stat: 'classManagement', value: 12 },
@@ -258,7 +258,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_08_2',
-        text: '서로 합의하여 빌려주는 대여 계약서(?)를 작성하게 하고 다음 주에 반납하게 중재한다. (학생신뢰 +15, 멘탈 +10, expert +8)',
+        text: '서로 합의하여 빌려주는 대여 계약서(?)를 작성하게 하고 다음 주에 반납하게 중재한다.',
         intent: '창의적 계약식 중재',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
@@ -281,7 +281,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_09_1',
-        text: '정색하지 않고 칠판에 큰 하트를 그리며 "선생님은 평생 영원한 스무 살 청춘이란다"라며 장난스레 받아친다. (학생신뢰 +12, 멘탈 +15, hp +5)',
+        text: '정색하지 않고 칠판에 큰 하트를 그리며 "선생님은 평생 영원한 스무 살 청춘이란다"라며 장난스레 받아친다.',
         intent: '유머러스한 방어',
         immediateEffects: [
           { stat: 'studentTrust', value: 12 },
@@ -292,7 +292,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_09_2',
-        text: '주민등록증이나 정식 교사 프로필을 슬쩍 환기하며 "선생님 아직 젊다"고 팩트로 대처한다. (멘탈 +5, expert +5)',
+        text: '주민등록증이나 정식 교사 프로필을 슬쩍 환기하며 "선생님 아직 젊다"고 팩트로 대처한다.',
         intent: '사실 확인 교육',
         immediateEffects: [
           { stat: 'mental', value: 5 },
@@ -314,7 +314,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_10_1',
-        text: '교사용 교실 빗자루와 쓰레받기를 사용해 사마귀를 신속하게 포획하여 화단 밖으로 방생한다. (학급운영 +15, hp -5, 멘탈 +5)',
+        text: '교사용 교실 빗자루와 쓰레받기를 사용해 사마귀를 신속하게 포획하여 화단 밖으로 방생한다.',
         intent: '신속한 물리적 포획 및 구출',
         immediateEffects: [
           { stat: 'classManagement', value: 15 },
@@ -325,7 +325,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_10_2',
-        text: '과학 동호회 출신 아이에게 생태 관찰통을 가져오게 하여 잠시 관찰한 뒤 방생하게 유도한다. (studentTrust +15, expert +10, hp -5)',
+        text: '과학 동호회 출신 아이에게 생태 관찰통을 가져오게 하여 잠시 관찰한 뒤 방생하게 유도한다.',
         intent: '생태 관찰 교육 연계',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
@@ -348,7 +348,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_11_1',
-        text: '물티슈를 한 장 뽑아주며 "빨간 수염 신선님, 식사 예절을 지키고 입을 닦아주세요"라고 웃으며 훈육한다. (학생신뢰 +12, 멘탈 +12, expert +5)',
+        text: '물티슈를 한 장 뽑아주며 "빨간 수염 신선님, 식사 예절을 지키고 입을 닦아주세요"라고 웃으며 훈육한다.',
         intent: '유머러스한 위생 지도',
         immediateEffects: [
           { stat: 'studentTrust', value: 12 },
@@ -359,7 +359,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_11_2',
-        text: '조용히 다가가 식사 도중 장난을 치면 체할 수 있음을 엄중하고 정중하게 고지한다. (학급운영 +10, hp +5)',
+        text: '조용히 다가가 식사 도중 장난을 치면 체할 수 있음을 엄중하고 정중하게 고지한다.',
         intent: '단호한 기본 생활 지도',
         immediateEffects: [
           { stat: 'classManagement', value: 10 },
@@ -381,7 +381,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_12_1',
-        text: '하준이에게 "피카츄는 캐릭터 이름이니 해리포터나 피터팬 같은 영문 이름으로 고르자"고 타협을 유도한다. (expert +10, 멘탈 +10, studentTrust +5)',
+        text: '하준이에게 "피카츄는 캐릭터 이름이니 해리포터나 피터팬 같은 영문 이름으로 고르자"고 타협을 유도한다.',
         intent: '적절한 대안 타협',
         immediateEffects: [
           { stat: 'expert', value: 10 },
@@ -392,7 +392,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_12_2',
-        text: '원어민 선생님에게 "아이의 영어 흥미 유발을 위해 일주일만 피카츄로 부르게 허용하자"고 귓속말로 중재한다. (학생신뢰 +15, 멘탈 +10, colleagueRelation +5)',
+        text: '원어민 선생님에게 "아이의 영어 흥미 유발을 위해 일주일만 피카츄로 부르게 허용하자"고 귓속말로 중재한다.',
         intent: '창의적 허용 중재',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
@@ -415,7 +415,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_13_1',
-        text: '즉시 리코더 연주를 중단시키고, 물비누와 소독용 알코올을 주어 화장실에서 직접 세척 소독하도록 명령한다. (학급운영 +12, hp +5, 번아웃 +5)',
+        text: '즉시 리코더 연주를 중단시키고, 물비누와 소독용 알코올을 주어 화장실에서 직접 세척 소독하도록 명령한다.',
         intent: '엄격한 위생 훈육',
         immediateEffects: [
           { stat: 'classManagement', value: 12 },
@@ -426,7 +426,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_13_2',
-        text: '피식 웃음을 참으며 "선생님은 코 대신 입으로 연주하는 정상적인 듀엣을 감상하고 싶다"고 정중히 타일러 바로잡는다. (학생신뢰 +15, 멘탈 +15, expert +5)',
+        text: '피식 웃음을 참으며 "선생님은 코 대신 입으로 연주하는 정상적인 듀엣을 감상하고 싶다"고 정중히 타일러 바로잡는다.',
         intent: '부드럽고 품격 있는 유도',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
@@ -449,7 +449,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_14_1',
-        text: '무릎과 바지의 흙을 털어주며 "세이프는 맞지만 슬라이딩하다 다칠 수 있으니 다음엔 안전하게 30초만 일찍 출근하자"고 타이른다. (학생신뢰 +15, 멘탈 +12, hp +5)',
+        text: '무릎과 바지의 흙을 털어주며 "세이프는 맞지만 슬라이딩하다 다칠 수 있으니 다음엔 안전하게 30초만 일찍 출근하자"고 타이른다.',
         intent: '따뜻한 안전 훈육',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
@@ -460,7 +460,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_14_2',
-        text: '규정대로 지각 처리 대장에 이름을 기록하고 교문 앞에서는 뛰지 않도록 벌점을 고지한다. (학급운영 +10, expert +5)',
+        text: '규정대로 지각 처리 대장에 이름을 기록하고 교문 앞에서는 뛰지 않도록 벌점을 고지한다.',
         intent: '규정 중심 통제',
         immediateEffects: [
           { stat: 'classManagement', value: 10 },
@@ -482,7 +482,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_15_1',
-        text: '애니메이션 연출력을 칭찬하되, 수업 시간에는 수업용 교과서 내용에 낙서 대신 공책에 필기하라고 설득한다. (학생신뢰 +15, 멘탈 +10, expert +8)',
+        text: '애니메이션 연출력을 칭찬하되, 수업 시간에는 수업용 교과서 내용에 낙서 대신 공책에 필기하라고 설득한다.',
         intent: '창작성 지지와 수업 복귀',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
@@ -493,7 +493,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_15_2',
-        text: '교과서 훼손 및 수업 태도 불량으로 낙서된 모서리를 지우개로 깨끗이 지우게 한다. (학급운영 +10, hp -5)',
+        text: '교과서 훼손 및 수업 태도 불량으로 낙서된 모서리를 지우개로 깨끗이 지우게 한다.',
         intent: '엄격한 교무 원칙',
         immediateEffects: [
           { stat: 'classManagement', value: 10 },
@@ -515,7 +515,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_16_1',
-        text: '즉시 교실 창문을 전면 개방하고 선풍기를 강풍으로 틀게 한 후, 양말을 반드시 착용하도록 지시한다. (학급운영 +12, hp -5, 번아웃 +5)',
+        text: '즉시 교실 창문을 전면 개방하고 선풍기를 강풍으로 틀게 한 후, 양말을 반드시 착용하도록 지시한다.',
         intent: '물리적 위생 환경 개선',
         immediateEffects: [
           { stat: 'classManagement', value: 12 },
@@ -526,7 +526,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_16_2',
-        text: '물휴지와 손세정제를 주어 발을 간단히 닦아 땀을 말리도록 부드럽게 지도한다. (학생신뢰 +12, 멘탈 +10, hp +5)',
+        text: '물휴지와 손세정제를 주어 발을 간단히 닦아 땀을 말리도록 부드럽게 지도한다.',
         intent: '체계적인 위생 조치',
         immediateEffects: [
           { stat: 'studentTrust', value: 12 },
@@ -549,7 +549,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_17_1',
-        text: '암호를 조용히 대조 분석하여 "비밀 젤리 먹은 것 다 안단다"라고 암호 해독 답장을 남겨준다. (학생신뢰 +15, 멘탈 +15, expert +8)',
+        text: '암호를 조용히 대조 분석하여 "비밀 젤리 먹은 것 다 안단다"라고 암호 해독 답장을 남겨준다.',
         intent: '재치 있는 암호 해독 동참',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
@@ -560,7 +560,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_17_2',
-        text: '일기는 타인이 알아볼 수 있는 한글 원칙으로 작성해야 함을 주지시키고 다음엔 한글로 쓰도록 타이른다. (학급운영 +10, expert +5)',
+        text: '일기는 타인이 알아볼 수 있는 한글 원칙으로 작성해야 함을 주지시키고 다음엔 한글로 쓰도록 타이른다.',
         intent: '한글 쓰기 원칙 교정',
         immediateEffects: [
           { stat: 'classManagement', value: 10 },
@@ -582,7 +582,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_18_1',
-        text: '아이의 긍정적인 가치관은 격려하되, 우주의 지식을 채우기 위해 방과 후 5분 낱말 복습 지도를 약속한다. (expert +12, 학생신뢰 +10, hp -5)',
+        text: '아이의 긍정적인 가치관은 격려하되, 우주의 지식을 채우기 위해 방과 후 5분 낱말 복습 지도를 약속한다.',
         intent: '학습 결손 보충 및 지도',
         immediateEffects: [
           { stat: 'expert', value: 12 },
@@ -593,7 +593,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_18_2',
-        text: '"과연 우주급 철학이구나!"라며 크게 웃고 다음 주에는 블랙홀에 한글 단어를 가득 채워오라고 귀엽게 약속한다. (학생신뢰 +15, 멘탈 +12, hp +5)',
+        text: '"과연 우주급 철학이구나!"라며 크게 웃고 다음 주에는 블랙홀에 한글 단어를 가득 채워오라고 귀엽게 약속한다.',
         intent: '유머러스한 정서 수용',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
@@ -616,7 +616,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_19_1',
-        text: '신속하게 버스 창문을 살짝 열어 찬바람을 쐬게 하고, 준비해 둔 검은 봉투와 힐링 매실 사탕을 긴급 배포한다. (expert +12, hp -10, 멘탈 +5)',
+        text: '신속하게 버스 창문을 살짝 열어 찬바람을 쐬게 하고, 준비해 둔 검은 봉투와 힐링 매실 사탕을 긴급 배포한다.',
         intent: '신속한 응급 장비 가동',
         immediateEffects: [
           { stat: 'expert', value: 12 },
@@ -627,7 +627,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_19_2',
-        text: '버스 기사님께 양해를 구해 휴게소나 졸음쉼터에 임시 정차하여 아이들을 내리고 땅을 밟게 한다. (학생신뢰 +15, 멘탈 +10, hp -5)',
+        text: '버스 기사님께 양해를 구해 휴게소나 졸음쉼터에 임시 정차하여 아이들을 내리고 땅을 밟게 한다.',
         intent: '안전 정차 및 휴식',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
@@ -650,7 +650,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_20_1',
-        text: '윤수에게 대걸레와 사다리를 주어 천장 우유 얼룩과 교실 바닥을 깨끗이 닦게 하고 반성문을 쓰게 한다. (학급운영 +15, hp -5, 번아웃 +5)',
+        text: '윤수에게 대걸레와 사다리를 주어 천장 우유 얼룩과 교실 바닥을 깨끗이 닦게 하고 반성문을 쓰게 한다.',
         intent: '인과응보적 청소 지도',
         immediateEffects: [
           { stat: 'classManagement', value: 15 },
@@ -661,7 +661,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_20_2',
-        text: '윤수에게 물리 법칙에 따른 우유의 사출 현상을 가볍게 설명하고, 교실 청소 자원봉사자로 지정한다. (학생신뢰 +12, 멘탈 +10, expert +5)',
+        text: '윤수에게 물리 법칙에 따른 우유의 사출 현상을 가볍게 설명하고, 교실 청소 자원봉사자로 지정한다.',
         intent: '재치 있는 훈육 적용',
         immediateEffects: [
           { stat: 'studentTrust', value: 12 },
@@ -684,7 +684,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_21_1',
-        text: '역할 분담표를 다시 가져오게 하여 "지시형 리더" 대신 모든 구성원이 한 가지씩 실무 업무를 전담하도록 직접 배분 중재한다. (expert +12, 학급운영 +10, hp -5)',
+        text: '역할 분담표를 다시 가져오게 하여 "지시형 리더" 대신 모든 구성원이 한 가지씩 실무 업무를 전담하도록 직접 배분 중재한다.',
         intent: '실무적 역할 재배분',
         immediateEffects: [
           { stat: 'expert', value: 12 },
@@ -695,7 +695,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_21_2',
-        text: '준우에게 리더십의 본질은 솔선수범임을 설명하고 모둠원들에게 피자/간식(젤리) 양보를 유도해 화해시킨다. (학생신뢰 +15, 멘탈 +12, hp +5)',
+        text: '준우에게 리더십의 본질은 솔선수범임을 설명하고 모둠원들에게 피자/간식(젤리) 양보를 유도해 화해시킨다.',
         intent: '리더십 훈화 및 정서 중재',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
@@ -718,7 +718,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_22_1',
-        text: '즉시 경기를 중단시키고 "피구는 친구를 다치게 하는 전쟁이 아니라 패스로 조율하는 협동 게임"임을 단호하게 교육한다. (학급운영 +12, expert +5)',
+        text: '즉시 경기를 중단시키고 "피구는 친구를 다치게 하는 전쟁이 아니라 패스로 조율하는 협동 게임"임을 단호하게 교육한다.',
         intent: '단호한 안전/우정 규칙 정비',
         immediateEffects: [
           { stat: 'classManagement', value: 12 },
@@ -728,7 +728,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_22_2',
-        text: '유민이의 상태를 확인해 보건실에 데려가고, 예서에게 유민이의 땀을 닦아주며 사과하도록 정서적으로 유도한다. (학생신뢰 +15, 멘탈 +10, hp -5)',
+        text: '유민이의 상태를 확인해 보건실에 데려가고, 예서에게 유민이의 땀을 닦아주며 사과하도록 정서적으로 유도한다.',
         intent: '정서적 관계 회복',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
@@ -751,7 +751,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_23_1',
-        text: '하늘이의 부모님께 연락하여 사물함 힌지 수리 비용에 대해 조율하고, 하늘이에게 반성문 작성을 지시한다. (학급운영 +12, parentTrust -5, 번아웃 +5)',
+        text: '하늘이의 부모님께 연락하여 사물함 힌지 수리 비용에 대해 조율하고, 하늘이에게 반성문 작성을 지시한다.',
         intent: '원칙적 손해 배상 및 훈육',
         immediateEffects: [
           { stat: 'classManagement', value: 12 },
@@ -762,7 +762,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_23_2',
-        text: '하늘이에게 직접 드라이버와 테이프를 쥐여주어 담임 교사 협조 아래 사물함을 스스로 수리 복구하게 유도한다. (학생신뢰 +15, 멘탈 +10, expert +5)',
+        text: '하늘이에게 직접 드라이버와 테이프를 쥐여주어 담임 교사 협조 아래 사물함을 스스로 수리 복구하게 유도한다.',
         intent: '자율적 결자해지 복구',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
@@ -785,7 +785,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_24_1',
-        text: '현우의 폰을 즉시 압수하여 종례 시간까지 보관하고, 수업 중 전자기기 무단 사용 규칙에 맞춰 부모님께 통지한다. (학급운영 +12, hp +5, parentTrust +5)',
+        text: '현우의 폰을 즉시 압수하여 종례 시간까지 보관하고, 수업 중 전자기기 무단 사용 규칙에 맞춰 부모님께 통지한다.',
         intent: '교칙에 따른 즉각 제재',
         immediateEffects: [
           { stat: 'classManagement', value: 12 },
@@ -796,7 +796,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_24_2',
-        text: '현우 옆에 다가가 귀에 슬쩍 "현우야, 거북목 예방을 위해 폰은 집에서 편하게 보자"고 조용히 속삭인다. (학생신뢰 +15, 멘탈 +12, expert +5)',
+        text: '현우 옆에 다가가 귀에 슬쩍 "현우야, 거북목 예방을 위해 폰은 집에서 편하게 보자"고 조용히 속삭인다.',
         intent: '부드러운 사생활 존중 주의',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
@@ -819,7 +819,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_06_1',
-        text: '빨간 펜으로 정성스레 "떡볶이"로 고쳐주고, 오답 카드를 3번씩 소리 내어 쓰게 지도한다. (expert +10, hp -5)',
+        text: '빨간 펜으로 정성스레 "떡볶이"로 고쳐주고, 오답 카드를 3번씩 소리 내어 쓰게 지도한다.',
         intent: '원칙 맞춤법 교정',
         immediateEffects: [
           { stat: 'expert', value: 10 },
@@ -829,7 +829,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_25_2',
-        text: '아이에게 "선생님이 떡보기가 아닌 진짜 떡볶이를 사 먹을 수 있게 한글 퀴즈 맞추기 놀이를 하자"고 유쾌하게 다가간다. (학생신뢰 +15, 멘탈 +15, hp +5)',
+        text: '아이에게 "선생님이 떡보기가 아닌 진짜 떡볶이를 사 먹을 수 있게 한글 퀴즈 맞추기 놀이를 하자"고 유쾌하게 다가간다.',
         intent: '재치 넘치는 동기 부여',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
@@ -852,7 +852,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_26_1',
-        text: '하하 웃으며 "쉿, 사실 이 머리 안에는 참새의 황금알이 숨겨져 있단다"라고 장난스럽게 받아쳐 교실 분위기를 띄운다. (학생신뢰 +15, 멘탈 +15, hp +5)',
+        text: '하하 웃으며 "쉿, 사실 이 머리 안에는 참새의 황금알이 숨겨져 있단다"라고 장난스럽게 받아쳐 교실 분위기를 띄운다.',
         intent: '위트 있는 리액션',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
@@ -863,7 +863,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_26_2',
-        text: '교실 뒷거울로 가서 단정하게 머리를 빗고, 단정한 용모의 중요성에 대해 짧게 훈화한다. (학급운영 +10, expert +5)',
+        text: '교실 뒷거울로 가서 단정하게 머리를 빗고, 단정한 용모의 중요성에 대해 짧게 훈화한다.',
         intent: '용모 단정 생활지도',
         immediateEffects: [
           { stat: 'classManagement', value: 10 },
@@ -885,7 +885,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_27_1',
-        text: '모기약을 신속히 살포해 상황을 잠재우고, 다시 칠판으로 이목을 집중시켜 진도를 나간다. (expert +10, 학급운영 +10, hp -5)',
+        text: '모기약을 신속히 살포해 상황을 잠재우고, 다시 칠판으로 이목을 집중시켜 진도를 나간다.',
         intent: '신속한 차단 및 수업 복귀',
         immediateEffects: [
           { stat: 'expert', value: 10 },
@@ -896,7 +896,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_27_2',
-        text: '아이들에게 "이 모기를 격퇴하는 모둠에게 오늘 청소 면제 쿠폰을 주마!"라며 1분간의 사냥(?) 이벤트를 허용한다. (학생신뢰 +15, 멘탈 +15, burnout -5)',
+        text: '아이들에게 "이 모기를 격퇴하는 모둠에게 오늘 청소 면제 쿠폰을 주마!"라며 1분간의 사냥(?) 이벤트를 허용한다.',
         intent: '돌발 이벤트 승화',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
@@ -919,7 +919,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_28_1',
-        text: '공평하게 즉석 가위바위보 단판 승부로 낙찰자를 결정하여 잔반을 배부한다. (학생신뢰 +12, 멘탈 +10, hp +5)',
+        text: '공평하게 즉석 가위바위보 단판 승부로 낙찰자를 결정하여 잔반을 배부한다.',
         intent: '공평한 게임 해결',
         immediateEffects: [
           { stat: 'studentTrust', value: 12 },
@@ -930,7 +930,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_28_2',
-        text: '남은 돈가스를 공평하게 3등분하여 사이좋게 나눠서 배분해 준다. (학급운영 +10, expert +5)',
+        text: '남은 돈가스를 공평하게 3등분하여 사이좋게 나눠서 배분해 준다.',
         intent: '균등 분배',
         immediateEffects: [
           { stat: 'classManagement', value: 10 },
@@ -952,7 +952,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_29_1',
-        text: '미소와 함께 "위대한 우주 외교관님, 내일부터는 외계인 협상 시간을 고려하여 10분만 우주선을 일찍 타자"며 가볍게 타이른다. (학생신뢰 +15, 멘탈 +15, hp +5)',
+        text: '미소와 함께 "위대한 우주 외교관님, 내일부터는 외계인 협상 시간을 고려하여 10분만 우주선을 일찍 타자"며 가볍게 타이른다.',
         intent: '유머러스한 훈육 수용',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
@@ -963,7 +963,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_29_2',
-        text: '허무맹랑한 핑계는 생활 기록 대장에 지각으로 기록됨을 상기시키고 단호히 경고한다. (학급운영 +10, expert +5)',
+        text: '허무맹랑한 핑계는 생활 기록 대장에 지각으로 기록됨을 상기시키고 단호히 경고한다.',
         intent: '사실 중심 규율 확립',
         immediateEffects: [
           { stat: 'classManagement', value: 10 },
@@ -985,7 +985,7 @@ export const funnyStudentEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_student_30_1',
-        text: '자 대고 직접 정밀하게 중간 선을 확인해 주고, 서로 배려하는 짝꿍 조율 계약을 맺게 한다. (학급운영 +12, expert +5, 멘탈 +5)',
+        text: '자 대고 직접 정밀하게 중간 선을 확인해 주고, 서로 배려하는 짝꿍 조율 계약을 맺게 한다.',
         intent: '공평한 규칙 설정 및 화해',
         immediateEffects: [
           { stat: 'classManagement', value: 12 },
@@ -996,7 +996,7 @@ export const funnyStudentEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_student_30_2',
-        text: '선을 그은 부분을 지우게 하고, 계속 싸우면 다음 주 짝꿍을 전격 격리 조치하겠다고 선언한다. (학급운영 +10, hp +5)',
+        text: '선을 그은 부분을 지우게 하고, 계속 싸우면 다음 주 짝꿍을 전격 격리 조치하겠다고 선언한다.',
         intent: '단호한 격리 경고',
         immediateEffects: [
           { stat: 'classManagement', value: 10 },

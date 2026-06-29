@@ -14,7 +14,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_01_1',
-        text: '호미를 쥐고 무릎을 꿇은 채 화단 구석구석을 이 잡듯 뒤져 대왕 민들레 뿌리까지 완벽하게 추출하여 화단 평화를 구축한다. (adminTrust +20, hp -15, burnout +10)',
+        text: '호미를 쥐고 무릎을 꿇은 채 화단 구석구석을 이 잡듯 뒤져 대왕 민들레 뿌리까지 완벽하게 추출하여 화단 평화를 구축한다.',
         intent: '화단 올인 봉사',
         immediateEffects: [
           { stat: 'adminTrust', value: 20 },
@@ -25,7 +25,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_01_2',
-        text: '"교장 선생님의 명품 원예 솜씨에 감탄했습니다! 다만 제가 지금 교실에 학부모 긴급 폰 알림 상담이 잡혀 있어서 먼저 퇴실을 허가받고자 합니다"라며 부드럽게 빠져나간다. (성공률 65%) (멘탈 +15, hp +5, adminTrust +5)',
+        text: '"교장 선생님의 명품 원예 솜씨에 감탄했습니다! 다만 제가 지금 교실에 학부모 긴급 폰 알림 상담이 잡혀 있어서 먼저 퇴실을 허가받고자 합니다"라며 부드럽게 빠져나간다. (성공률 65%)',
         intent: '업무 핑계 합리적 회피',
         successRate: 65,
         immediateEffects: [
@@ -55,7 +55,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_02_1',
-        text: '공책을 꺼내 교감 선생님의 서체 비율 철학을 꼼꼼히 받아 적으며 "바탕체의 획 끝에 깃든 교육 철학에 깊이 동감합니다"라고 감탄을 보낸다. (adminTrust +15, adminPower +10, hp -5)',
+        text: '공책을 꺼내 교감 선생님의 서체 비율 철학을 꼼꼼히 받아 적으며 "바탕체의 획 끝에 깃든 교육 철학에 깊이 동감합니다"라고 감탄을 보낸다.',
         intent: '지적 경청 및 아부',
         immediateEffects: [
           { stat: 'adminTrust', value: 15 },
@@ -66,7 +66,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_02_2',
-        text: '"다음 수업 예비 종이 1분 남아서 교실로 신속히 이동해 수업 질서를 사수하겠습니다"라며 서류를 올려두고 빠르게 복귀한다. (expert +15, 멘탈 +10)',
+        text: '"다음 수업 예비 종이 1분 남아서 교실로 신속히 이동해 수업 질서를 사수하겠습니다"라며 서류를 올려두고 빠르게 복귀한다.',
         intent: '수업 핑계 긴급 탈출',
         immediateEffects: [
           { stat: 'expert', value: 15 },
@@ -88,7 +88,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_03_1',
-        text: '숨을 꾹 참고 뜨거운 십전대보 대추차를 한 방울도 남김없이 단숨에 원샷한 뒤, 컵을 내려놓으며 "인생의 깊은 교육의 맛입니다!"라고 선언한다. (adminTrust +20, hp +10, 멘탈 -5)',
+        text: '숨을 꾹 참고 뜨거운 십전대보 대추차를 한 방울도 남김없이 단숨에 원샷한 뒤, 컵을 내려놓으며 "인생의 깊은 교육의 맛입니다!"라고 선언한다.',
         intent: '의리의 한약 원샷',
         immediateEffects: [
           { stat: 'adminTrust', value: 20 },
@@ -99,7 +99,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_03_2',
-        text: '"의사 선생님이 한약재가 현재 복용 중인 영양제와 상극이라 금하라고 하셔서..."라며 정중하게 찻잔을 내려놓고 마음만 수령한다. (멘탈 +12, adminTrust +5)',
+        text: '"의사 선생님이 한약재가 현재 복용 중인 영양제와 상극이라 금하라고 하셔서..."라며 정중하게 찻잔을 내려놓고 마음만 수령한다.',
         intent: '의학적 핑계 정중 거절',
         immediateEffects: [
           { stat: 'mental', value: 12 },
@@ -121,7 +121,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_04_1',
-        text: '칠판에 교장 선생님의 이름을 크고 예쁜 정자체로 판서하고, 전교생과 함께 우렁찬 소리로 교장 선생님 이름을 연호하도록 리드한다. (adminTrust +20, studentTrust +10, hp -5)',
+        text: '칠판에 교장 선생님의 이름을 크고 예쁜 정자체로 판서하고, 전교생과 함께 우렁찬 소리로 교장 선생님 이름을 연호하도록 리드한다.',
         intent: '우렁찬 교장 성함 연호 리드',
         immediateEffects: [
           { stat: 'adminTrust', value: 20 },
@@ -132,7 +132,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_04_2',
-        text: '"어린이 여러분, 교장 선생님께서 수업의 몰입도를 높이기 위해 재치 있는 한글 퀴즈를 내주셨군요!"라며 수학 단원 내용과 자연스럽게 결부지어 흐름을 가져온다. (expert +18, 멘탈 +10)',
+        text: '"어린이 여러분, 교장 선생님께서 수업의 몰입도를 높이기 위해 재치 있는 한글 퀴즈를 내주셨군요!"라며 수학 단원 내용과 자연스럽게 결부지어 흐름을 가져온다.',
         intent: '지적인 수업 연계 중재',
         immediateEffects: [
           { stat: 'expert', value: 18 },
@@ -154,7 +154,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_05_1',
-        text: '공손하게 허리를 굽혀 90도 각도로 인사하며 "교감 선생님의 등교 안전 쾌속 경보 무빙이 국가대표급이십니다! 역시 행정 처리 속도도 남다르십니다!"라고 칭찬한다. (adminTrust +15, colleagueRelation +10, 멘탈 +10)',
+        text: '공손하게 허리를 굽혀 90도 각도로 인사하며 "교감 선생님의 등교 안전 쾌속 경보 무빙이 국가대표급이십니다! 역시 행정 처리 속도도 남다르십니다!"라고 칭찬한다.',
         intent: '유쾌한 경보 무빙 칭찬',
         immediateEffects: [
           { stat: 'adminTrust', value: 15 },
@@ -165,7 +165,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_05_2',
-        text: '모르는 척 복도 학생들에게 "얘들아, 복도에서는 교감 선생님처럼 안전하게 파워워킹 경보로 다니자"라며 주의를 환기해 교감을 띄워준다. (expert +15, adminTrust +12)',
+        text: '모르는 척 복도 학생들에게 "얘들아, 복도에서는 교감 선생님처럼 안전하게 파워워킹 경보로 다니자"라며 주의를 환기해 교감을 띄워준다.',
         intent: '아동 훈육 연계형 기지',
         immediateEffects: [
           { stat: 'expert', value: 15 },
@@ -187,7 +187,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_06_1',
-        text: '주말에 시집의 3대 명시(낙엽, 흙먼지, 빗자루)를 정독하고 감성적인 은유 기법을 극찬하는 A4 반 페이지 분량의 문학 소감 답장을 보낸다. (adminTrust +20, 멘탈 +10, hp -5)',
+        text: '주말에 시집의 3대 명시(낙엽, 흙먼지, 빗자루)를 정독하고 감성적인 은유 기법을 극찬하는 A4 반 페이지 분량의 문학 소감 답장을 보낸다.',
         intent: '문학 소감 성실 답장',
         immediateEffects: [
           { stat: 'adminTrust', value: 20 },
@@ -198,7 +198,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_06_2',
-        text: '"과연 명문 시집이네요! 교실 독서 코너에 비치해 반 아이들에게 아름다운 자연의 은유를 낭독해 주겠습니다"라며 기증본을 보관한다. (studentTrust +12, adminTrust +12, 멘탈 +5)',
+        text: '"과연 명문 시집이네요! 교실 독서 코너에 비치해 반 아이들에게 아름다운 자연의 은유를 낭독해 주겠습니다"라며 기증본을 보관한다.',
         intent: '교실 비치 및 낭독 활용',
         immediateEffects: [
           { stat: 'studentTrust', value: 12 },
@@ -221,7 +221,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_07_1',
-        text: '복도에서 발소리를 크게 내어 "크흠! 교감 선생님, 행정실 공문 처리하러 가겠습니다!"라고 외쳐 교장이 요가를 해체할 시간을 벌어주고 노크한다. (adminTrust +15, 멘탈 +10, expert +5)',
+        text: '복도에서 발소리를 크게 내어 "크흠! 교감 선생님, 행정실 공문 처리하러 가겠습니다!"라고 외쳐 교장이 요가를 해체할 시간을 벌어주고 노크한다.',
         intent: '소리로 경보 발령 및 대기',
         immediateEffects: [
           { stat: 'adminTrust', value: 15 },
@@ -232,7 +232,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_07_2',
-        text: '노크를 생략하고 교장실 비서실(교무실) 결재 보관함에 공문서류철을 살짝 꽂아놓은 뒤 행정망으로 원격 서명을 유도한다. (expert +12, hp +5)',
+        text: '노크를 생략하고 교장실 비서실(교무실) 결재 보관함에 공문서류철을 살짝 꽂아놓은 뒤 행정망으로 원격 서명을 유도한다.',
         intent: '서면 원격 결재 우회',
         immediateEffects: [
           { stat: 'expert', value: 12 },
@@ -254,7 +254,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_08_1',
-        text: '주머니를 움켜쥐고 소리 없이 "이 은혜는 올해 행정 평가 만점으로 반드시 보답하겠습니다!"라고 비장하게 속삭인다. (colleagueRelation +15, 멘탈 +12, hp +5)',
+        text: '주머니를 움켜쥐고 소리 없이 "이 은혜는 올해 행정 평가 만점으로 반드시 보답하겠습니다!"라고 비장하게 속삭인다.',
         intent: '기밀 준수형 맹세 피드백',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
@@ -265,7 +265,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_08_2',
-        text: '비스킷을 들고 옆 반 신규 동료 선생님 자리로 가 반씩 쪼개 먹으며 간식의 동료애 연대를 전파한다. (colleagueRelation +12, colleagueSolidarity +15)',
+        text: '비스킷을 들고 옆 반 신규 동료 선생님 자리로 가 반씩 쪼개 먹으며 간식의 동료애 연대를 전파한다.',
         intent: '동료 연대 간식 반띵',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 12 },
@@ -287,7 +287,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_09_1',
-        text: '가장 진중하고 감명받은 눈빛으로 단상 위 교장 선생님을 빤히 바라보며 중간중간 수첩에 필기하는 척 연출한다. (adminTrust +20, hp -5, burnout +5)',
+        text: '가장 진중하고 감명받은 눈빛으로 단상 위 교장 선생님을 빤히 바라보며 중간중간 수첩에 필기하는 척 연출한다.',
         intent: '감명받은 필기형 표정 사수',
         immediateEffects: [
           { stat: 'adminTrust', value: 20 },
@@ -298,7 +298,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_09_2',
-        text: '아이들의 지루함을 덜어주기 위해 조용히 수신호로 "방학 퀴즈 이벤트가 교실에 대기 중"임을 암시해 학생들의 질서를 사수한다. (studentTrust +15, classManagement +15)',
+        text: '아이들의 지루함을 덜어주기 위해 조용히 수신호로 "방학 퀴즈 이벤트가 교실에 대기 중"임을 암시해 학생들의 질서를 사수한다.',
         intent: '수신호 활용 학생 질서 유지',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
@@ -320,7 +320,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_10_1',
-        text: '신속하게 교장실 모든 에어컨을 끄고 넓은 외측 창문들을 전면 개방한 뒤, 빗자루를 휘둘러 안전하게 창문 쪽 화단 밖으로 방생 유도한다. (adminTrust +20, hp -5, expert +10)',
+        text: '신속하게 교장실 모든 에어컨을 끄고 넓은 외측 창문들을 전면 개방한 뒤, 빗자루를 휘둘러 안전하게 창문 쪽 화단 밖으로 방생 유도한다.',
         intent: '신속한 방생 및 기물 수호',
         immediateEffects: [
           { stat: 'adminTrust', value: 20 },
@@ -331,7 +331,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_10_2',
-        text: '보건 선생님과 생물 동아리 학생을 소환하여 생태 구조 포획용 뜰채 장비를 지원받아 공적으로 안전 포획한다. (colleagueRelation +10, 멘탈 +10, studentTrust +10)',
+        text: '보건 선생님과 생물 동아리 학생을 소환하여 생태 구조 포획용 뜰채 장비를 지원받아 공적으로 안전 포획한다.',
         intent: '생태 구조팀 공적 소환',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 10 },
@@ -354,7 +354,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_11_1',
-        text: '가장 예의 바르고 단정한 "네! 알겠습니다 부장님!" 멘트와 함께 폴더인사 90도 고전 스티커를 전송해 충성도를 사수한다. (adminTrust +15, colleagueRelation +10, 멘탈 +5)',
+        text: '가장 예의 바르고 단정한 "네! 알겠습니다 부장님!" 멘트와 함께 폴더인사 90도 고전 스티커를 전송해 충성도를 사수한다.',
         intent: '폴더인사형 표준 대응',
         immediateEffects: [
           { stat: 'adminTrust', value: 15 },
@@ -365,7 +365,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_11_2',
-        text: '이모티콘 경쟁 대신 조용히 내 행정 시스템을 켜서 해당 기한 공문 결재 기안 서류를 10분 먼저 결재 올려 행동으로 신속히 보여준다. (expert +18, adminTrust +15, hp -5)',
+        text: '이모티콘 경쟁 대신 조용히 내 행정 시스템을 켜서 해당 기한 공문 결재 기안 서류를 10분 먼저 결재 올려 행동으로 신속히 보여준다.',
         intent: '기안 실행으로 실무 충성 표출',
         immediateEffects: [
           { stat: 'expert', value: 18 },
@@ -388,7 +388,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_12_1',
-        text: '"아메리카노의 깊은 쓴맛이야말로 행정의 쓴맛과 단맛을 모두 담은 교장 선생님의 인생 커피 철학입니다!"라며 원샷하고 극찬한다. (adminTrust +20, hp +5, 멘탈 +10)',
+        text: '"아메리카노의 깊은 쓴맛이야말로 행정의 쓴맛과 단맛을 모두 담은 교장 선생님의 인생 커피 철학입니다!"라며 원샷하고 극찬한다.',
         intent: '아메리카노 철학화 극찬 아부',
         immediateEffects: [
           { stat: 'adminTrust', value: 20 },
@@ -399,7 +399,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_12_2',
-        text: '내 지갑에서 1,500원을 꺼내 당당히 자부담 결제하고 평소 먹고 싶던 달콤한 돌체 멜론 라떼를 휘핑 가득 얹어 먹는다. (멘탈 +18, hp +10, adminTrust +5)',
+        text: '내 지갑에서 1,500원을 꺼내 당당히 자부담 결제하고 평소 먹고 싶던 달콤한 돌체 멜론 라떼를 휘핑 가득 얹어 먹는다.',
         intent: '실속 자부담 달콤 라떼 획득',
         immediateEffects: [
           { stat: 'mental', value: 18 },
@@ -422,7 +422,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_13_1',
-        text: '장롱 속에 묵혀두었던 알록달록한 전통 개량 한복 바지를 착용하고 출근해 교문 앞을 훈훈한 잔치 분위기로 연출한다. (adminTrust +18, studentTrust +15, hp -10)',
+        text: '장롱 속에 묵혀두었던 알록달록한 전통 개량 한복 바지를 착용하고 출근해 교문 앞을 훈훈한 잔치 분위기로 연출한다.',
         intent: '한복 착용 동참',
         immediateEffects: [
           { stat: 'adminTrust', value: 18 },
@@ -433,7 +433,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_13_2',
-        text: '깔끔하고 단정한 네이비 셔츠와 슬랙스 평상복을 고수하여, 안전 등교 지도 활동 시 옷자락 밟힘 사고 등을 사전에 차단한다. (expert +15, 멘탈 +12, adminTrust +5)',
+        text: '깔끔하고 단정한 네이비 셔츠와 슬랙스 평상복을 고수하여, 안전 등교 지도 활동 시 옷자락 밟힘 사고 등을 사전에 차단한다.',
         intent: '실용 평상복 복장 고수',
         immediateEffects: [
           { stat: 'expert', value: 15 },
@@ -456,7 +456,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_14_1',
-        text: '기분 좋게 물뿌리개를 받아 매주 수요일 공강 시간에 화분에 영양제를 꽂아주며 교장 선생님과 가벼운 커피 차담을 진행한다. (adminTrust +20, colleagueRelation +10, hp -5)',
+        text: '기분 좋게 물뿌리개를 받아 매주 수요일 공강 시간에 화분에 영양제를 꽂아주며 교장 선생님과 가벼운 커피 차담을 진행한다.',
         intent: '개운죽 물주기 및 차담 동참',
         immediateEffects: [
           { stat: 'adminTrust', value: 20 },
@@ -467,7 +467,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_14_2',
-        text: '"식물 원예 관리는 시설 관리 행정망 공식 직무 영역이므로, 행정실 원예 보조 용역 예산을 청구하겠다"며 공문 처리 대안을 세운다. (expert +15, adminPower +10)',
+        text: '"식물 원예 관리는 시설 관리 행정망 공식 직무 영역이므로, 행정실 원예 보조 용역 예산을 청구하겠다"며 공문 처리 대안을 세운다.',
         intent: '공식 원예 용역 예산 청구',
         immediateEffects: [
           { stat: 'expert', value: 15 },
@@ -489,7 +489,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_15_1',
-        text: '즉시 그 자리에서 클립 철심을 90도 직각 자를 대듯 똑바로 고쳐 조율하고 "행정의 시작은 정렬이라는 점을 뼈저리게 배웠습니다!"라고 깍듯이 답한다. (adminTrust +15, adminPower +12, hp -5)',
+        text: '즉시 그 자리에서 클립 철심을 90도 직각 자를 대듯 똑바로 고쳐 조율하고 "행정의 시작은 정렬이라는 점을 뼈저리게 배웠습니다!"라고 깍듯이 답한다.',
         intent: '정밀 서류 정렬 아부',
         immediateEffects: [
           { stat: 'adminTrust', value: 15 },
@@ -500,7 +500,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_15_2',
-        text: '"요즘은 친환경 페이퍼리스(Paperless) 교육청 방침에 따라 금속 클립을 아예 쓰지 않는 전자 문서 PDF 편철로 전환하겠다"고 딜한다. (expert +18, adminTrust +10, 멘탈 +10)',
+        text: '"요즘은 친환경 페이퍼리스(Paperless) 교육청 방침에 따라 금속 클립을 아예 쓰지 않는 전자 문서 PDF 편철로 전환하겠다"고 딜한다.',
         intent: '디지털 전자편철 전환',
         immediateEffects: [
           { stat: 'expert', value: 18 },
@@ -523,7 +523,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_16_1',
-        text: '교감의 손을 잡고 몽쉘과 귤을 자 대고 잰 듯 2cm 황금비율로 배치하고 녹차 잔 손잡이를 45도로 완벽 셋팅해 낸다. (adminTrust +15, colleagueRelation +10, hp -5)',
+        text: '교감의 손을 잡고 몽쉘과 귤을 자 대고 잰 듯 2cm 황금비율로 배치하고 녹차 잔 손잡이를 45도로 완벽 셋팅해 낸다.',
         intent: '황금비율 다과 셋팅 동참',
         immediateEffects: [
           { stat: 'adminTrust', value: 15 },
@@ -534,7 +534,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_16_2',
-        text: '"장학의 본질은 수업 참관이오니 교무실에 올려둔 국어 평가 포트폴리오 기안 서류 최종 검수하러 가겠다"며 자리를 옮긴다. (expert +18, 멘탈 +10)',
+        text: '"장학의 본질은 수업 참관이오니 교무실에 올려둔 국어 평가 포트폴리오 기안 서류 최종 검수하러 가겠다"며 자리를 옮긴다.',
         intent: '수업 성과물 검수 복귀',
         immediateEffects: [
           { stat: 'expert', value: 18 },
@@ -556,7 +556,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_17_1',
-        text: '"주말에 마침 손목 건초염 한의원 침 물리치료 패키지가 잡혀 있어 골프채 그립만 쥐어도 손이 꺾입니다"라며 아쉬움 가득 담아 거절한다. (멘탈 +15, hp +10, adminTrust +5)',
+        text: '"주말에 마침 손목 건초염 한의원 침 물리치료 패키지가 잡혀 있어 골프채 그립만 쥐어도 손이 꺾입니다"라며 아쉬움 가득 담아 거절한다.',
         intent: '건초염 핑계 정중 거절',
         immediateEffects: [
           { stat: 'mental', value: 15 },
@@ -567,7 +567,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_17_2',
-        text: '"머리 올리러 출격하겠습니다!"라며 스크린 골프장으로 향해, 혼신의 헛스윙 리액션으로 교장실 VIP 친목을 다진다. (adminTrust +20, hp -15, burnout +10)',
+        text: '"머리 올리러 출격하겠습니다!"라며 스크린 골프장으로 향해, 혼신의 헛스윙 리액션으로 교장실 VIP 친목을 다진다.',
         intent: '스크린골프 올인 친목 동참',
         immediateEffects: [
           { stat: 'adminTrust', value: 20 },
@@ -590,7 +590,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_18_1',
-        text: '목소리를 가장 크게 하여 낭독 성우처럼 "제 5조 1항! 부정 청탁을 금하노라!"라고 웅장하게 발음해 교감의 청렴 의지에 부응한다. (adminTrust +15, expert +10, 멘탈 +5)',
+        text: '목소리를 가장 크게 하여 낭독 성우처럼 "제 5조 1항! 부정 청탁을 금하노라!"라고 웅장하게 발음해 교감의 청렴 의지에 부응한다.',
         intent: '웅장한 강령 낭독 동참',
         immediateEffects: [
           { stat: 'adminTrust', value: 15 },
@@ -601,7 +601,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_18_2',
-        text: '조용히 눈을 감고 아침 묵상을 하는 척하며 머릿속으로 오늘 3교시 수학 분수 수업 진행 교안 레이아웃을 완성해 체력을 아낀다. (expert +15, hp +5, 멘탈 +10)',
+        text: '조용히 눈을 감고 아침 묵상을 하는 척하며 머릿속으로 오늘 3교시 수학 분수 수업 진행 교안 레이아웃을 완성해 체력을 아낀다.',
         intent: '아침 묵상 우회 체력 보존',
         immediateEffects: [
           { stat: 'expert', value: 15 },
@@ -624,7 +624,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_19_1',
-        text: '빛의 속도로 빈 봉지를 서랍 속에 쳐 넣고, 책상 위에 물티슈를 얹어 교장 선생님 발 앞의 책상 왁스 광을 미친 듯이 낸다. (adminTrust +15, classManagement +10, hp -5)',
+        text: '빛의 속도로 빈 봉지를 서랍 속에 쳐 넣고, 책상 위에 물티슈를 얹어 교장 선생님 발 앞의 책상 왁스 광을 미친 듯이 낸다.',
         intent: '초고속 물티슈 광내기',
         immediateEffects: [
           { stat: 'adminTrust', value: 15 },
@@ -635,7 +635,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_19_2',
-        text: '정직하게 쓰레기통에 젤리 봉지를 버리고 오며 "아이들에게 정리정돈의 모범을 보이기 위해 마침 쓰레기 배출 중이었습니다"라고 대답한다. (expert +15, 멘탈 +10)',
+        text: '정직하게 쓰레기통에 젤리 봉지를 버리고 오며 "아이들에게 정리정돈의 모범을 보이기 위해 마침 쓰레기 배출 중이었습니다"라고 대답한다.',
         intent: '정직한 쓰레기 수거 연출',
         immediateEffects: [
           { stat: 'expert', value: 15 },
@@ -657,7 +657,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_20_1',
-        text: '꿔바로우를 씹으며 "와! 청나라 건륭제의 사천 요리 철학이 이 꿔바로우 소스의 단맛에 고스란히 묻어있군요!"라며 극도로 유창한 역사 맞장구를 쳐준다. (colleagueRelation +15, 멘탈 +10, hp +5)',
+        text: '꿔바로우를 씹으며 "와! 청나라 건륭제의 사천 요리 철학이 이 꿔바로우 소스의 단맛에 고스란히 묻어있군요!"라며 극도로 유창한 역사 맞장구를 쳐준다.',
         intent: '식탁 인문학 맞장구',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
@@ -668,7 +668,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_20_2',
-        text: '"마라의 매운 캡사이신 열독이 위벽을 자극할 수 있으니 침묵 속에 천천히 씹어 드시어 위장 안전을 도모합시다"라며 조용히 식사에 전념한다. (expert +12, hp +10)',
+        text: '"마라의 매운 캡사이신 열독이 위벽을 자극할 수 있으니 침묵 속에 천천히 씹어 드시어 위장 안전을 도모합시다"라며 조용히 식사에 전념한다.',
         intent: '침묵 웰빙 식사 고수',
         immediateEffects: [
           { stat: 'expert', value: 12 },
@@ -684,13 +684,13 @@ export const funnyAdminEvents: GameEvent[] = [
     title: '교장 선생님의 안경 뿌염 크리너 클렌징 헌신',
     category: 'admin',
     situation: '교장실',
-    narratorText: '수업 기안문 서명을 받기 위해 대기하던 중, 교장 선생님이 만년필을 쥐셨으나 돋보기안경 알이 입김과 콧김 먼지로 뿌옇게 흐려져 인상을 쓰십니다. "김 선생, 안경알이 먼지로 덮여 결재선 글씨가 도저히 안 보정이 안 되는군. 결재 서명 보류하겠네." 서명 파기 위기입니다. 어떻게 헌신하시겠습니까?',
+    narratorText: '수업 기안문 서명을 받기 위해 대기하던 중, 교장 선생님이 만년필을 쥐셨으나 돋보기안경 알이 입김과 콧김 먼지로 뿌옇게 흐려져 인상을 쓰십니다. "김 선생, 안경알이 먼지로 덮여 결재선 글씨가 도저히 보이지가 않는군. 결재 서명 보류하겠네." 서명 파기 위기입니다. 어떻게 헌신하시겠습니까?',
     weight: 100,
     tags: ['교장안경', '클리너천', '결재서명수호'],
     choices: [
       {
         id: 'choice_funny_admin_21_1',
-        text: '주머니 속 최고급 극세사 초극세 안경 클리너 타월 천을 꺼내 "교장 선생님, 안구의 광명을 복원해 드리겠습니다!"라며 안경을 반짝이게 닦아 드린다. (adminTrust +20, expert +10, 멘탈 +10)',
+        text: '주머니 속 최고급 극세사 초극세 안경 클리너 타월 천을 꺼내 "교장 선생님, 안구의 광명을 복원해 드리겠습니다!"라며 안경을 반짝이게 닦아 드린다.',
         intent: '안경 닦기 헌신',
         immediateEffects: [
           { stat: 'adminTrust', value: 20 },
@@ -701,7 +701,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_21_2',
-        text: '교장실 테이블 위에 있던 티슈에 물을 살짝 묻혀 건네며 스스로 안경을 닦도록 배려 유도한다. (adminTrust +10, hp +5)',
+        text: '교장실 테이블 위에 있던 티슈에 물을 살짝 묻혀 건네며 스스로 안경을 닦도록 배려 유도한다.',
         intent: '티슈 제공 자립 닦기',
         immediateEffects: [
           { stat: 'adminTrust', value: 10 },
@@ -723,7 +723,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_22_1',
-        text: '"주말에 마침 양가 조모님의 생신 제사가 겹쳐 시골 가문 행사 참가가 예약되어 있어 눈물을 머금고 거절합니다"라고 공손히 사절 답장한다. (멘탈 +18, hp +10, adminTrust +5)',
+        text: '"주말에 마침 양가 조모님의 생신 제사가 겹쳐 시골 가문 행사 참가가 예약되어 있어 눈물을 머금고 거절합니다"라고 공손히 사절 답장한다.',
         intent: '조모님 제사 핑계 사절',
         immediateEffects: [
           { stat: 'mental', value: 18 },
@@ -734,7 +734,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_22_2',
-        text: '토요일 오전 노트북 줌을 켜놓고 연수를 완독 청강하여 예산 기안 항목 처리 수료증을 획득한다. (expert +18, adminTrust +20, hp -10)',
+        text: '토요일 오전 노트북 줌을 켜놓고 연수를 완독 청강하여 예산 기안 항목 처리 수료증을 획득한다.',
         intent: '주말 연수 이수 올인',
         immediateEffects: [
           { stat: 'expert', value: 18 },
@@ -757,7 +757,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_23_1',
-        text: '탬버린을 흔들며 교장의 클래식 연주 박자를 완벽히 정밀 메이킹해 훌륭한 교문 음악회를 완수한다. (adminTrust +20, studentTrust +15, hp -10)',
+        text: '탬버린을 흔들며 교장의 클래식 연주 박자를 완벽히 정밀 메이킹해 훌륭한 교문 음악회를 완수한다.',
         intent: '탬버린 반주 동참',
         immediateEffects: [
           { stat: 'adminTrust', value: 20 },
@@ -768,7 +768,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_23_2',
-        text: '"아침 공기가 쌀쌀하여 교장 선생님의 고귀한 성대와 기관지 안전을 위해 음악회는 따뜻한 실내 강당 행사로 연기하시죠"라며 보건적 제안을 한다. (expert +15, adminTrust +12)',
+        text: '"아침 공기가 쌀쌀하여 교장 선생님의 고귀한 성대와 기관지 안전을 위해 음악회는 따뜻한 실내 강당 행사로 연기하시죠"라며 보건적 제안을 한다.',
         intent: '건강 보호용 대안 지연',
         immediateEffects: [
           { stat: 'expert', value: 15 },
@@ -790,7 +790,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_24_1',
-        text: '즉시 내 노트북 파워포인트를 켜서 제목 글씨에 네온 광원과 3D 무지개 회전 효과를 흠뻑 난사한 표지로 수정해 올린다. (adminTrust +15, adminPower +12, 멘탈 +5)',
+        text: '즉시 내 노트북 파워포인트를 켜서 제목 글씨에 네온 광원과 3D 무지개 회전 효과를 흠뻑 난사한 표지로 수정해 올린다.',
         intent: '3D 무지개 광원 수정 완료',
         immediateEffects: [
           { stat: 'adminTrust', value: 15 },
@@ -801,7 +801,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_24_2',
-        text: '정식 교육청 공식 기안문 문서 작성 매뉴얼 책자를 펼쳐 "표지 디자인은 오직 공문서 흰색 바탕 검정 명조 16포인트 단일 포맷 규정"임을 차분히 안내한다. (expert +18, adminTrust +10)',
+        text: '정식 교육청 공식 기안문 문서 작성 매뉴얼 책자를 펼쳐 "표지 디자인은 오직 공문서 흰색 바탕 검정 명조 16포인트 단일 포맷 규정"임을 차분히 안내한다.',
         intent: '교육청 표준 매뉴얼 사수',
         immediateEffects: [
           { stat: 'expert', value: 18 },
@@ -823,7 +823,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_25_1',
-        text: '교실 뒤 개운죽 일일 당번 학생을 지정하고 매주 개운죽의 잎사귀 성장 그래프 관찰 일지를 교실 뒷판 환경 미화판에 화려하게 공지한다. (studentTrust +15, adminTrust +18, 멘탈 +10)',
+        text: '교실 뒤 개운죽 일일 당번 학생을 지정하고 매주 개운죽의 잎사귀 성장 그래프 관찰 일지를 교실 뒷판 환경 미화판에 화려하게 공지한다.',
         intent: '성장일지 뒷판 환경 구성',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
@@ -834,7 +834,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_25_2',
-        text: '교실 구석 그늘진 책장 위에 두고 자연 가습기 효과 대용으로 얌전하고 깨끗하게 배치 보존만 해둔다. (classManagement +12, hp +5)',
+        text: '교실 구석 그늘진 책장 위에 두고 자연 가습기 효과 대용으로 얌전하고 깨끗하게 배치 보존만 해둔다.',
         intent: '미니멀 가습 배치',
         immediateEffects: [
           { stat: 'classManagement', value: 12 },
@@ -856,7 +856,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_26_1',
-        text: '신속히 자리로 돌아가 문서 내 모든 "및"을 "아울러"와 "그리고"로 자동 치환 수정하여 광속 재기안을 완료해 올린다. (adminTrust +15, adminPower +12, hp -5)',
+        text: '신속히 자리로 돌아가 문서 내 모든 "및"을 "아울러"와 "그리고"로 자동 치환 수정하여 광속 재기안을 완료해 올린다.',
         intent: '아울러 그리고 치환',
         immediateEffects: [
           { stat: 'adminTrust', value: 15 },
@@ -867,7 +867,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_26_2',
-        text: '국립국어원 표준 표준어 규격 가이드를 들어 "및"도 공식 허용되는 최고 빈도의 표준 조사임을 넌지시 설명하고 원안 결재를 요청한다. (expert +18, adminTrust +5)',
+        text: '국립국어원 표준 표준어 규격 가이드를 들어 "및"도 공식 허용되는 최고 빈도의 표준 조사임을 넌지시 설명하고 원안 결재를 요청한다.',
         intent: '국립국어원 규격 설득',
         immediateEffects: [
           { stat: 'expert', value: 18 },
@@ -889,7 +889,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_27_1',
-        text: '숟가락을 쥐고 팥빙수를 싹싹 긁어 마시며 "교장 선생님과 먹는 팥빙수의 시원함이 올해 폭염을 완벽하게 삭제해 줍니다!"라며 감격을 나눈다. (adminTrust +20, hp +10, 멘탈 +12)',
+        text: '숟가락을 쥐고 팥빙수를 싹싹 긁어 마시며 "교장 선생님과 먹는 팥빙수의 시원함이 올해 폭염을 완벽하게 삭제해 줍니다!"라며 감격을 나눈다.',
         intent: '팥빙수 올인 원샷',
         immediateEffects: [
           { stat: 'adminTrust', value: 20 },
@@ -900,7 +900,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_27_2',
-        text: '팥빙수를 들고 교무실 공용 테이블로 나와 동료 신규 교사들에게 자랑스럽게 배포하며 기쁨을 전파한다. (colleagueRelation +15, colleagueSolidarity +12)',
+        text: '팥빙수를 들고 교무실 공용 테이블로 나와 동료 신규 교사들에게 자랑스럽게 배포하며 기쁨을 전파한다.',
         intent: '아이스크림 동료 배포',
         immediateEffects: [
           { stat: 'colleagueRelation', value: 15 },
@@ -922,7 +922,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_28_1',
-        text: '누구나 걷어차기 편한 한가운데 5km짜리 대포알 무회전 풍선 배팅볼을 얌전하게 굴려 드려 교감의 만루 홈런 포문을 가동한다. (adminTrust +20, colleagueRelation +10, hp +5)',
+        text: '누구나 걷어차기 편한 한가운데 5km짜리 대포알 무회전 풍선 배팅볼을 얌전하게 굴려 드려 교감의 만루 홈런 포문을 가동한다.',
         intent: '만루 홈런용 배팅볼 헌정',
         immediateEffects: [
           { stat: 'adminTrust', value: 20 },
@@ -933,7 +933,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_28_2',
-        text: '스포츠맨십의 엄정함을 지키기 위해 강속구 체인지업 슬라이더를 굴려 무참히 삼진 아웃으로 복귀시킨다. (expert +18, 멘탈 +12, adminTrust -5)',
+        text: '스포츠맨십의 엄정함을 지키기 위해 강속구 체인지업 슬라이더를 굴려 무참히 삼진 아웃으로 복귀시킨다.',
         intent: '엄정 삼진 아웃 피칭',
         immediateEffects: [
           { stat: 'expert', value: 18 },
@@ -956,7 +956,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_29_1',
-        text: '즉시 이미지 보정 앱을 켜서 눈망울에 별빛 광원을 칠하고 볼살을 갸름한 K팝 보이그룹 멤버처럼 깎아 초호화 뷰티 필터 단체 보정을 완료한다. (adminTrust +20, expert +10, hp -5)',
+        text: '즉시 이미지 보정 앱을 켜서 눈망울에 별빛 광원을 칠하고 볼살을 갸름한 K팝 보이그룹 멤버처럼 깎아 초호화 뷰티 필터 단체 보정을 완료한다.',
         intent: 'K팝보이그룹형 필터 보정',
         immediateEffects: [
           { stat: 'adminTrust', value: 20 },
@@ -967,7 +967,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_29_2',
-        text: '정식 프로필용 사진의 과도한 왜곡은 교육청 실물 신원 대조 규정에 어긋나므로 표준 조명 보정만 미세 적용해 품위를 지킨다. (expert +15, adminTrust +10)',
+        text: '정식 프로필용 사진의 과도한 왜곡은 교육청 실물 신원 대조 규정에 어긋나므로 표준 조명 보정만 미세 적용해 품위를 지킨다.',
         intent: '표준 조명 보정 사수',
         immediateEffects: [
           { stat: 'expert', value: 15 },
@@ -989,7 +989,7 @@ export const funnyAdminEvents: GameEvent[] = [
     choices: [
       {
         id: 'choice_funny_admin_30_1',
-        text: '나침반 앱을 켜서 남동쪽 45도 방향을 조준하고 국화 화분 50개의 꽃잎 각도를 1도 오차 없이 일렬로 칼정렬해 배치 완료한다. (adminTrust +20, hp -15, burnout +10)',
+        text: '나침반 앱을 켜서 남동쪽 45도 방향을 조준하고 국화 화분 50개의 꽃잎 각도를 1도 오차 없이 일렬로 칼정렬해 배치 완료한다.',
         intent: '나침반 국화 칼정렬',
         immediateEffects: [
           { stat: 'adminTrust', value: 20 },
@@ -1000,7 +1000,7 @@ export const funnyAdminEvents: GameEvent[] = [
       },
       {
         id: 'choice_funny_admin_30_2',
-        text: '"화분 배치는 전문 조경 업체 계약 기안의 실무 범위에 해당하오니, 행정망을 통해 안전 조경팀 출장 수배를 넣겠다"고 딜한다. (expert +15, adminPower +10)',
+        text: '"화분 배치는 전문 조경 업체 계약 기안의 실무 범위에 해당하오니, 행정망을 통해 안전 조경팀 출장 수배를 넣겠다"고 딜한다.',
         intent: '조경 수배 행정망 처리',
         immediateEffects: [
           { stat: 'expert', value: 15 },
