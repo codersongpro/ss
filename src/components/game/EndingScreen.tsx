@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useGameStore } from '@/store/useGameStore';
 import { Mail, Heart, ArrowLeft } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { endingImages, type EndingImageId } from '@/assets/gameImageAssets';
 
 interface EndingScreenProps {
   onRestart: () => void;
@@ -283,6 +284,9 @@ export const EndingScreen: React.FC<EndingScreenProps> = ({ onRestart }) => {
   };
 
   const details = getEndingDetails(endingId);
+  const endingImage = endingId && endingId in endingImages
+    ? endingImages[endingId as EndingImageId]
+    : endingImages.ending_general;
 
   // 학생들의 익명 편지 생성
   const generateLetters = () => {
@@ -315,7 +319,11 @@ export const EndingScreen: React.FC<EndingScreenProps> = ({ onRestart }) => {
         
         {/* 1. 최종 엔딩 카드 */}
         <div className="paper-card bg-white p-8 border-4 border-slate-900 shadow-school-deep text-center space-y-6">
-          <div className="text-6xl">{details.illustration}</div>
+          <img
+            src={endingImage}
+            alt={`${details.title} 일러스트`}
+            className="w-full max-w-md mx-auto aspect-square object-cover rounded-xl border-4 border-slate-900 shadow-school-flat bg-slate-100"
+          />
           
           <div className="space-y-2">
             <span className={`inline-block px-4 py-1.5 rounded-full border-2 border-black text-sm font-bold shadow-school-press ${details.badgeColor}`}>
