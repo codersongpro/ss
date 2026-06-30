@@ -1,6 +1,7 @@
 import React from 'react';
 import { useGameStore } from '@/store/useGameStore';
 import { BookOpen, Play, RotateCcw, Award } from 'lucide-react';
+import { titleHeroImage } from '@/assets/gameImageAssets';
 
 interface TitleScreenProps {
   onStartNewGame: () => void;
@@ -43,6 +44,12 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
 
         {/* 장식용 아이콘 */}
         <BookOpen className="w-16 h-16 text-emerald-300 mb-4 animate-float" />
+
+        <img
+          src={titleHeroImage}
+          alt="칠판 앞에서 새 학기를 바라보는 교사의 뒷모습"
+          className="w-full max-w-2xl aspect-[16/9] object-cover rounded-lg border-4 border-black shadow-school-press mb-6 bg-black/20"
+        />
 
         {/* 대문 타이틀 */}
         <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white mb-3 chalk-text leading-tight">

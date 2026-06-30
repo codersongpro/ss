@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import type { Student } from '@/game/types';
 import { getItemById } from '@/data/items';
+import { locationImages } from '@/assets/gameImageAssets';
 
 // 스탯명 한글화 및 이모지 매핑 테이블 [NEW]
 const STAT_LABELS: Record<string, { label: string; icon: string }> = {
@@ -1820,6 +1821,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                     /* 2) 개별 장소 뷰 */
                     (() => {
                       const theme = getLocationTheme(currentLocation);
+                      const locationImage = locationImages[currentLocation];
                       return (
                         <div className={`paper-card p-6 border-4 border-slate-900 shadow-school-deep flex flex-col justify-between min-h-[450px] text-slate-800 bg-[#FAF9F6]`}>
                           <div>
@@ -1839,6 +1841,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                             <p className="text-xs text-slate-500 mb-6 italic leading-relaxed font-medium bg-slate-50 p-2.5 rounded-lg border border-slate-200">
                               {theme.desc}
                             </p>
+
+                            <img
+                              src={locationImage}
+                              alt={`${theme.name} 일러스트`}
+                              className="w-full aspect-[4/3] object-cover rounded-xl border-4 border-slate-900 shadow-school-flat mb-6 bg-slate-100"
+                            />
 
                             <div className="space-y-6">
                               {/* 1. 상주 NPC 구역 */}

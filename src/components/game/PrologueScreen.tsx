@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { PlayerInfo } from '@/game/types';
 import { Film, ArrowRight } from 'lucide-react';
+import { prologueImages } from '@/assets/gameImageAssets';
 
 interface PrologueScreenProps {
   playerInfo: PlayerInfo;
@@ -23,6 +24,7 @@ export const PrologueScreen: React.FC<PrologueScreenProps> = ({ playerInfo, onFi
     "다시 교실을 바라보면 아이들의 눈빛은 여전히 당신을 향합니다.\n그리고 교무실에서는 또 다른 하루가 당신을 기다리고 있습니다.",
     `[${playerInfo.name}] 선생님, 앞으로 30일.\n당신은 어떤 교사로 살아가시겠습니까?`
   ];
+  const activePrologueImage = prologueImages[Math.min(activeStep, prologueImages.length - 1)];
 
   useEffect(() => {
     if (activeStep >= prologueTexts.length) return;
@@ -63,6 +65,15 @@ export const PrologueScreen: React.FC<PrologueScreenProps> = ({ playerInfo, onFi
       onClick={handleContainerClick}
       className="fixed inset-0 z-50 bg-black text-slate-100 flex flex-col items-center justify-center p-6 font-serif select-none animate-fade-in animate-duration-1000 cursor-pointer"
     >
+      <div className="absolute inset-0 pointer-events-none">
+        <img
+          src={activePrologueImage}
+          alt=""
+          className="w-full h-full object-cover opacity-35"
+        />
+        <div className="absolute inset-0 bg-black/65" />
+      </div>
+
       {/* 화면 상단 중앙 오프닝 스킵 버튼 [수정] */}
       {activeStep < prologueTexts.length && (
         <button
@@ -75,7 +86,7 @@ export const PrologueScreen: React.FC<PrologueScreenProps> = ({ playerInfo, onFi
       )}
 
       {/* 시네마틱 텍스트 영역 */}
-      <div className="max-w-2xl w-full text-center min-h-[160px] flex items-center justify-center">
+      <div className="relative z-10 max-w-2xl w-full text-center min-h-[160px] flex items-center justify-center">
         {activeStep < prologueTexts.length ? (
           <p
             className={`text-lg md:text-xl font-medium leading-relaxed whitespace-pre-line tracking-wider text-slate-200 transition-all duration-500 ${

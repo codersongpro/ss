@@ -1,5 +1,6 @@
 import React from 'react';
-import { Award, Lock, ArrowLeft, RefreshCw } from 'lucide-react';
+import { Award, ArrowLeft, RefreshCw } from 'lucide-react';
+import { endingImages, uiImages, type EndingImageId } from '@/assets/gameImageAssets';
 
 interface EndingGalleryProps {
   onBackToTitle: () => void;
@@ -254,6 +255,7 @@ export const EndingGallery: React.FC<EndingGalleryProps> = ({ onBackToTitle }) =
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {galleryEndings.map(ending => {
             const isUnlocked = unlockedList.includes(ending.id);
+            const endingImage = endingImages[ending.id as EndingImageId];
             return (
               <div 
                 key={ending.id}
@@ -266,9 +268,11 @@ export const EndingGallery: React.FC<EndingGalleryProps> = ({ onBackToTitle }) =
                 {isUnlocked ? (
                   /* 해금된 상태 */
                   <div className="flex items-start gap-4">
-                    <span className="text-4xl bg-white border-2 border-black rounded-lg w-12 h-12 flex items-center justify-center shadow-school-press flex-shrink-0">
-                      {ending.icon}
-                    </span>
+                    <img
+                      src={endingImage}
+                      alt={`${ending.title} 일러스트`}
+                      className="w-20 h-20 object-cover bg-white border-2 border-black rounded-lg shadow-school-press flex-shrink-0"
+                    />
                     <div className="space-y-1 flex-1">
                       <h4 className="font-bold text-slate-900 text-base">{ending.title}</h4>
                       <p className="text-xs text-slate-600 leading-relaxed font-light">{ending.desc}</p>
@@ -280,8 +284,17 @@ export const EndingGallery: React.FC<EndingGalleryProps> = ({ onBackToTitle }) =
                 ) : (
                   /* 잠겨있는 상태 */
                   <div className="flex items-start gap-4 select-none">
-                    <span className="text-4xl bg-slate-200 border-2 border-dashed border-slate-400 rounded-lg w-12 h-12 flex items-center justify-center flex-shrink-0 text-slate-400">
-                      <Lock className="w-5 h-5 text-slate-400" />
+                    <span className="relative bg-slate-200 border-2 border-dashed border-slate-400 rounded-lg w-20 h-20 flex items-center justify-center flex-shrink-0 text-slate-400 overflow-hidden">
+                      <img
+                        src={endingImage}
+                        alt=""
+                        className="absolute inset-0 w-full h-full object-cover grayscale opacity-25"
+                      />
+                      <img
+                        src={uiImages.lockEnding}
+                        alt=""
+                        className="relative z-10 w-8 h-8 object-contain opacity-80"
+                      />
                     </span>
                     <div className="space-y-1 flex-1">
                       <h4 className="font-bold text-slate-400 text-base">??? (기밀 서류)</h4>
