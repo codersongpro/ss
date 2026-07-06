@@ -137,6 +137,30 @@ const TypewriterText: React.FC<{ text: string; speed?: number }> = ({ text, spee
 };
 
 // 스탯 키 → 한국어 라벨 (위 STAT_LABELS 중앙 매핑표를 재사용). 누락 시 키 그대로 반환. [NEW]
+// [WO-12] 장소 -> 고유 행동 actionType 매핑. 반복 체감 배지 표시에 사용.
+const LOCATION_ACTION_TYPE: Record<string, string> = {
+  classroom: 'classroom_lead',
+  office: 'office_work',
+  health_room: 'health_rest',
+  playground: 'playground_train',
+  principal_room: 'principal_chat',
+  admin_office: 'admin_cooperate',
+  cafeteria: 'cafeteria_guide',
+  library: 'library_organize',
+  wee_class: 'wee_counsel',
+  science_lab: 'science_safety',
+  school_gate: 'gate_safety',
+  gym_room: 'gym_room_organize',
+  gymnasium: 'gym_safety'
+};
+const getLocationActionType = (loc: string | null): string | undefined => {
+  if (!loc) return undefined;
+  if (loc.startsWith('class_grade')) return 'grade_class_inspect';
+  return LOCATION_ACTION_TYPE[loc];
+};
+const getActionEfficiency = (timesToday: number): number =>
+  timesToday <= 2 ? 100 : timesToday === 3 ? 50 : 25;
+
 const statLabel = (stat: string) => STAT_LABELS[stat]?.label ?? stat;
 
 // 선택지 텍스트에서 본문에 박혀 있던 스탯 표기 괄호를 항상 제거하는 헬퍼.
@@ -415,7 +439,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
     clearDiceRollState,
     inventory,
     discoveryLog,
-    hiddenFlags
+    hiddenFlags,
+    dailyActionCounts
   } = useGameStore();
 
   const toggleVolume = () => {
@@ -1891,6 +1916,19 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-200 pt-4">
                                 <div>
                                   <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">⚡ 장소 고유 행동 (TP 1 소모)</h4>
+                                  {(() => {
+                                    // [WO-12] 오늘 이 행동을 몇 번 반복했는지, 다음 실행 효율은 몇 %인지 표시
+                                    const actionType = getLocationActionType(currentLocation);
+                                    if (!actionType) return null;
+                                    const doneCount = dailyActionCounts[actionType] || 0;
+                                    const nextEfficiency = getActionEfficiency(doneCount + 1);
+                                    if (doneCount === 0) return null;
+                                    return (
+                                      <p className={`text-[11px] font-bold mb-2 ${nextEfficiency < 100 ? 'text-amber-600' : 'text-slate-400'}`}>
+                                        오늘 {doneCount}회 수행함 — 다음 실행 효율 {nextEfficiency}%
+                                      </p>
+                                    );
+                                  })()}
                                   {currentLocation === 'classroom' && (
                                     <button
                                       onClick={() => executeLocationAction('classroom_lead')}

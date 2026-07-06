@@ -94,6 +94,7 @@ interface GameState {
   inventory: string[]; // [NEW] 보유 아이템 id 목록 (어드벤처 요소)
   discoveryLog: DiscoveryLogEntry[]; // [NEW] 단서/관계 일지에 쌓일 발견 기록
   recentEventDays: Record<string, number>; // [WO-08] eventId -> 마지막 발생 day. 로그 문자열 매칭 대신 쓰는 ID 기반 쿨다운
+  dailyActionCounts: Record<string, number>; // [WO-12] 장소 행동 actionType -> 오늘 수행 횟수. 매일 아침 리셋되어 반복 체감(디미니싱 리턴) 판정에 쓰인다
 
   // 현재 진행 중인 이벤트 연출 상태
   currentEvent: GameEvent | null;
@@ -931,6 +932,7 @@ export const useGameStore = create<GameState>()(
       inventory: [],
       discoveryLog: [],
       recentEventDays: {},
+      dailyActionCounts: {},
 
       currentEvent: null,
       selectedChoice: null,
@@ -1006,6 +1008,7 @@ export const useGameStore = create<GameState>()(
           inventory: [],
           discoveryLog: [],
           recentEventDays: {},
+          dailyActionCounts: {},
           phoneAndTextNotifications: [],
           activePhoneAndTextEvent: null,
           currentEvent: null, // 시작 직후 아침에는 지도를 보고 탐색하도록 null 설정
@@ -1048,6 +1051,7 @@ export const useGameStore = create<GameState>()(
           inventory: [],
           discoveryLog: [],
           recentEventDays: {},
+          dailyActionCounts: {},
           phoneAndTextNotifications: [],
           activePhoneAndTextEvent: null,
           recentLogs: [],
@@ -1471,6 +1475,7 @@ export const useGameStore = create<GameState>()(
               eventResultText: null,
               dayEffectsTriggered: penaltyMessages, // 아침 브리핑용 패널티 메시지 저장
               completedNpcDialoguesToday: [],
+              dailyActionCounts: {}, // [WO-12] 장소 행동 반복 체감 카운트를 매일 아침 리셋
               tasks: updatedTasks,
               activePhoneAndTextEvent: null,
               // [WO-07] 벌점 없이 당일 만료 — 미확인 감사 전화를 읽음 처리해 다음 날로 이월되지 않게 한다.
@@ -1931,101 +1936,147 @@ export const useGameStore = create<GameState>()(
         | 'gym_room_organize'
         | 'grade_class_inspect'
       ) => {
-        const { actionPoints, stats, day, recentLogs } = get();
+        const { actionPoints, stats, day, recentLogs, dailyActionCounts } = get();
         if (actionPoints < 1) {
           get().showToast('교사력(TP)이 부족하여 행동을 수행할 수 없습니다.');
           return;
         }
 
-        const newStats = { ...stats };
+        let effects: StatEffect[] = [];
         let msg = '';
 
         if (actionType === 'classroom_lead') {
-          newStats.studentTrust = clamp(newStats.studentTrust + 5);
-          newStats.teachingSatisfaction = clamp(newStats.teachingSatisfaction + 5);
-          newStats.hp = clamp(newStats.hp - 3);
-          newStats.mental = clamp(newStats.mental - 2);
+          effects = [
+            { stat: 'studentTrust', value: 5 },
+            { stat: 'teachingSatisfaction', value: 5 },
+            { stat: 'hp', value: -3 },
+            { stat: 'mental', value: -2 }
+          ];
           msg = '학급 학생들과 눈을 맞추며 아침 조회와 교실 지도를 수행했습니다. 학생 신뢰도와 보람이 증가했습니다.';
         } else if (actionType === 'office_work') {
-          newStats.adminPower = clamp(newStats.adminPower + 5);
-          newStats.hp = clamp(newStats.hp - 5);
-          newStats.mental = clamp(newStats.mental - 3);
-          newStats.burnout = clamp(newStats.burnout + 5);
+          effects = [
+            { stat: 'adminPower', value: 5 },
+            { stat: 'hp', value: -5 },
+            { stat: 'mental', value: -3 },
+            { stat: 'burnout', value: 5 }
+          ];
           msg = '교무실 책상에 앉아 밀려오는 교육청 기안 공문을 신속히 처리했습니다. 행정 역량이 증가했으나 번아웃이 늘었습니다.';
         } else if (actionType === 'health_rest') {
-          newStats.hp = clamp(newStats.hp + 15);
-          newStats.mental = clamp(newStats.mental + 10);
-          newStats.burnout = clamp(newStats.burnout - 10);
+          effects = [
+            { stat: 'hp', value: 15 },
+            { stat: 'mental', value: 10 },
+            { stat: 'burnout', value: -10 }
+          ];
           msg = '보건실 안락의자와 온열 매트 위에서 짧은 낮잠을 자며 피로를 풀었습니다. 건강 지표가 회복됩니다.';
         } else if (actionType === 'playground_train') {
-          newStats.hp = clamp(newStats.hp + 10);
-          newStats.mental = clamp(newStats.mental + 5);
-          newStats.burnout = clamp(newStats.burnout - 5);
+          effects = [
+            { stat: 'hp', value: 10 },
+            { stat: 'mental', value: 5 },
+            { stat: 'burnout', value: -5 }
+          ];
           msg = '넓은 운동장을 가볍게 조깅하며 신선한 바람을 마셨습니다. 기초 체력이 다소 회복됩니다.';
         } else if (actionType === 'principal_chat') {
-          newStats.adminTrust = clamp(newStats.adminTrust + 5);
-          newStats.reputation = clamp(newStats.reputation + 3);
+          effects = [
+            { stat: 'adminTrust', value: 5 },
+            { stat: 'reputation', value: 3 },
+            // [WO-12] 이전에는 비용이 전혀 없어 스팸 가능한 무비용 스탯원이었다 — 아부의 정신적 비용을 추가.
+            { stat: 'mental', value: -3 }
+          ];
           msg = '교장실에서 교장 선생님이 주신 따뜻한 차를 마시며 학교 경영 방침에 대해 깊은 차담을 나눴습니다.';
         } else if (actionType === 'admin_cooperate') {
-          newStats.adminPower = clamp(newStats.adminPower + 5);
-          newStats.colleagueSolidarity = clamp(newStats.colleagueSolidarity + 6);
-          newStats.hp = clamp(newStats.hp - 4);
+          effects = [
+            { stat: 'adminPower', value: 5 },
+            { stat: 'colleagueSolidarity', value: 6 },
+            { stat: 'hp', value: -4 }
+          ];
           msg = '행정실에 들러 현장체험학습 관련 복잡한 세무 품의서 제출 처리를 정중히 협조 요청하고 실무를 도왔습니다.';
         } else if (actionType === 'cafeteria_guide') {
-          newStats.studentTrust = clamp(newStats.studentTrust + 3);
-          newStats.colleagueSolidarity = clamp(newStats.colleagueSolidarity + 4);
-          newStats.hp = clamp(newStats.hp - 5);
+          effects = [
+            { stat: 'studentTrust', value: 3 },
+            { stat: 'colleagueSolidarity', value: 4 },
+            { stat: 'hp', value: -5 }
+          ];
           msg = '급식실에서 아이들의 배식 및 줄서기 지도 업무를 성심껏 돕고 조리사님들께 감사 인사를 건넸습니다.';
         } else if (actionType === 'library_organize') {
-          newStats.expert = clamp(newStats.expert + 5);
-          newStats.teachingSatisfaction = clamp(newStats.teachingSatisfaction + 4);
-          newStats.hp = clamp(newStats.hp - 3);
+          effects = [
+            { stat: 'expert', value: 5 },
+            { stat: 'teachingSatisfaction', value: 4 },
+            { stat: 'hp', value: -3 }
+          ];
           msg = '조용한 도서실에서 신간 도서 분류 작업을 도우며, 최근 학계의 추천 도서 목록을 파악했습니다.';
         } else if (actionType === 'wee_counsel') {
-          newStats.studentTrust = clamp(newStats.studentTrust + 6);
-          newStats.teachingSatisfaction = clamp(newStats.teachingSatisfaction + 6);
-          newStats.hp = clamp(newStats.hp - 2);
+          effects = [
+            { stat: 'studentTrust', value: 6 },
+            { stat: 'teachingSatisfaction', value: 6 },
+            { stat: 'hp', value: -2 }
+          ];
           msg = '상담실(Wee 클래스)에서 정서적 위기를 겪는 학급 학생의 심층 상담 일정을 조율하고 교류를 보조했습니다.';
         } else if (actionType === 'science_safety') {
-          newStats.expert = clamp(newStats.expert + 4);
-          newStats.adminPower = clamp(newStats.adminPower + 3);
-          newStats.hp = clamp(newStats.hp - 3);
+          effects = [
+            { stat: 'expert', value: 4 },
+            { stat: 'adminPower', value: 3 },
+            { stat: 'hp', value: -3 }
+          ];
           msg = '과학실의 실험 도구 보관 상태와 시약 캐비닛 이중 잠금장치의 소독 및 관리 안전 수칙을 면밀히 점검했습니다.';
         } else if (actionType === 'gate_safety') {
-          newStats.reputation = clamp(newStats.reputation + 4);
-          newStats.educationSoshin = clamp(newStats.educationSoshin + 3);
-          newStats.parentComplaint = clamp(newStats.parentComplaint + 2);
-          newStats.hp = clamp(newStats.hp - 4);
+          effects = [
+            { stat: 'reputation', value: 4 },
+            { stat: 'educationSoshin', value: 3 },
+            { stat: 'parentComplaint', value: 2 },
+            { stat: 'hp', value: -4 }
+          ];
           msg = '교문에서 배움터지킴이 보안관님과 함께 등교하는 학생들의 안전 복장 및 교통 안전 수칙 등교 지도를 실시했습니다.';
         } else if (actionType === 'gym_safety') {
-          newStats.hp = clamp(newStats.hp - 4);
-          newStats.studentTrust = clamp(newStats.studentTrust + 4);
-          newStats.teachingSatisfaction = clamp(newStats.teachingSatisfaction + 4);
+          effects = [
+            { stat: 'hp', value: -4 },
+            { stat: 'studentTrust', value: 4 },
+            { stat: 'teachingSatisfaction', value: 4 }
+          ];
           msg = '체육관에서 아이들의 안전을 모니터링하고 체육 강당 매트를 정돈했습니다. 학생 신뢰도와 보람이 증가했습니다.';
         } else if (actionType === 'gym_room_organize') {
-          newStats.hp = clamp(newStats.hp - 5);
-          newStats.colleagueSolidarity = clamp(newStats.colleagueSolidarity + 5);
-          newStats.adminPower = clamp(newStats.adminPower + 3);
+          effects = [
+            { stat: 'hp', value: -5 },
+            { stat: 'colleagueSolidarity', value: 5 },
+            { stat: 'adminPower', value: 3 }
+          ];
           msg = '체육실에서 잃어버린 호루라기와 낡은 구령대 축구공 바구니를 깔끔하게 수납 정리했습니다. 동료 교직원 연대감이 증가했습니다.';
         } else if (actionType === 'grade_class_inspect') {
-          newStats.expert = clamp(newStats.expert + 5);
-          newStats.teachingSatisfaction = clamp(newStats.teachingSatisfaction + 3);
-          newStats.hp = clamp(newStats.hp - 2);
+          effects = [
+            { stat: 'expert', value: 5 },
+            { stat: 'teachingSatisfaction', value: 3 },
+            { stat: 'hp', value: -2 }
+          ];
           msg = '1~6학년 복도 교실을 돌며 동료 교사들의 수업 환경과 교실 게시판 테마를 참관 연구했습니다. 수업 전문성과 보람이 증가했습니다.';
         }
 
+        // [WO-12] 같은 장소 행동을 오늘 몇 번째 반복하는지에 따라 "이득" 효과에만 체감(디미니싱 리턴)을
+        // 적용한다: 1~2회째 100%, 3회째 50%, 4회째부터 25%. 손해(비용) 효과는 배율 없이 그대로 적용해
+        // 반복할수록 순손실이 커지게 함으로써 "같은 행동 반복이 항상 최적"인 상태를 깬다.
+        const timesToday = (dailyActionCounts[actionType] || 0) + 1;
+        const efficiency = timesToday <= 2 ? 1 : timesToday === 3 ? 0.5 : 0.25;
+
+        const newStats = { ...stats };
+        effects.forEach(eff => {
+          const isRisk = RISK_STATS.includes(eff.stat);
+          const isGain = isRisk ? eff.value < 0 : eff.value > 0; // 위험 스탯은 감소가 이득
+          const appliedValue = isGain ? Math.round(eff.value * efficiency) : eff.value;
+          newStats[eff.stat] = clamp(newStats[eff.stat] + appliedValue, 0, 100);
+        });
+
+        const efficiencyNote = efficiency < 1 ? ` (오늘 ${timesToday}번째 반복 — 효율 ${Math.round(efficiency * 100)}%)` : '';
         const updatedLogs = [
-          `[${day}일차] ${msg}`,
+          `[${day}일차] ${msg}${efficiencyNote}`,
           ...recentLogs.slice(0, 19)
         ];
 
         set({
           actionPoints: actionPoints - 1,
           stats: syncNewStats(newStats),
-          recentLogs: updatedLogs
+          recentLogs: updatedLogs,
+          dailyActionCounts: { ...dailyActionCounts, [actionType]: timesToday }
         });
 
-        get().showToast(msg);
+        get().showToast(`${msg}${efficiencyNote}`);
         get().checkFailureConditions();
       },
 
@@ -3450,6 +3501,7 @@ export const useGameStore = create<GameState>()(
               ...penaltyMessages
             ],
             completedNpcDialoguesToday: [],
+            dailyActionCounts: {}, // [WO-12] 장소 행동 반복 체감 카운트를 매일 아침 리셋
             tasks: updatedTasks,
             activePhoneAndTextEvent: null,
             // [WO-07] 벌점 없이 당일 만료 — 미확인 감사 전화를 읽음 처리해 다음 날로 이월되지 않게 한다.
