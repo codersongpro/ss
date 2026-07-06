@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useGameStore } from '@/store/useGameStore';
+import { useGameStore, getEndingCompass, TRUE_MENTOR_STORY_ITEMS } from '@/store/useGameStore';
 import type { TimeOfDay } from '@/store/useGameStore';
 import { 
   Calendar, 
@@ -163,6 +163,32 @@ const getActionEfficiency = (timesToday: number): number =>
   timesToday <= 2 ? 100 : timesToday === 3 ? 50 : 25;
 
 const statLabel = (stat: string) => STAT_LABELS[stat]?.label ?? stat;
+
+// [WO-19] 진로 나침반에 표시할 짧은 엔딩 이름. 판정 로직(ENDING_DEFINITIONS)은 store가 단일
+// 소스이고, 이 라벨은 순수 표시용이라 EndingGallery/EndingScreen의 풀 타이틀과 별개로 관리한다.
+const ENDING_COMPASS_LABELS: Record<string, string> = {
+  ending_legendary_mentor: '🌟 전설의 멘토',
+  ending_labor_union_leader: '✊ 교사노조 의장',
+  ending_innovation_director: '🎯 학교 혁신 장학관',
+  ending_class_master: '🥇 학급 경영의 달인',
+  ending_teaching_scholar: '💡 수업 연구의 대가',
+  ending_family_peacekeeper: '🚲 가정 평화 수호자',
+  ending_myway: '🦅 마이웨이 교사',
+  ending_supervisor: '📚 장학사',
+  ending_administrator: '💼 학교 관리자',
+  ending_best_selling_author: '📖 베스트셀러 작가',
+  ending_expert: '👩‍🏫 원로 교육 전문가',
+  ending_innovator: '💻 에듀테크 혁신가',
+  ending_office_master: '🖨️ 행정의 신',
+  ending_peacekeeper: '🕊️ 평화 조정자',
+  ending_family_first: '🏡 워라밸 수호자',
+  ending_coop_star: '💖 동료애 스타',
+  ending_great_escapist: '🚀 대탈출 창업가',
+  ending_burnout: '🏥 만성 번아웃',
+  ending_family_rupture: '💔 무너진 가정',
+  ending_hobbyist: '🎨 취미 교사',
+  ending_sustainable: '🌱 지속 가능한 평교사'
+};
 
 // 선택지 텍스트에서 본문에 박혀 있던 스탯 표기 괄호를 항상 제거하는 헬퍼.
 // 표기 일관성을 위해 힌트는 본문 텍스트가 아니라 immediateEffects 배열에서 별도 칩으로 렌더링한다.
@@ -928,6 +954,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
 
   const timeStyle = getTimeLabel(timeOfDay);
 
+  // [WO-19] 진로 나침반 — 게임오버 계열은 ENDING_DEFINITIONS에 없어 자연히 제외되고,
+  // ending_true_mentor(히든)는 단서 2개 이상 모았을 때만 별도로 노출한다.
+  const endingCompassTop = getEndingCompass(stats, hiddenFlags).slice(0, 3);
+  const trueMentorClueCount = TRUE_MENTOR_STORY_ITEMS.filter(id => inventory.includes(id)).length;
+
   // 토스트 메시지 자동 해제 (3초 후)
   React.useEffect(() => {
     if (toastMessage) {
@@ -1394,6 +1425,48 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                 <span className="text-slate-600">커리어 가산점</span>
                 <span className="text-amber-600 font-mono">{stats.careerPoint} p</span>
               </div>
+            </div>
+          </div>
+
+          {/* [WO-19] 진로 나침반 — 지금 어느 엔딩에 가장 가까운지, 부족한 스탯이 무엇인지 보여준다 */}
+          <div className={`paper-card bg-white p-4 transition-all duration-300 ${
+            activeTab === 'status' ? 'block' : 'hidden lg:block'
+          } ${
+            isTutorialActive ? 'opacity-30 pointer-events-none' : ''
+          }`}>
+            <h3 className="font-school font-bold text-slate-900 border-b-2 border-slate-900 pb-2 mb-3 text-base">
+              🧭 진로 나침반
+            </h3>
+            <div className="space-y-3 text-xs">
+              {endingCompassTop.length === 0 ? (
+                <p className="text-slate-400 italic">아직 뚜렷한 진로 방향이 보이지 않습니다. 행동을 계속 쌓아보세요.</p>
+              ) : (
+                endingCompassTop.map(entry => (
+                  <div key={entry.id} className="pb-2 border-b border-slate-100 last:border-b-0 last:pb-0">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="font-bold text-slate-800">{ENDING_COMPASS_LABELS[entry.id] ?? entry.id}</span>
+                      {entry.achieved && (
+                        <span className="text-emerald-600 font-extrabold">조건 충족!</span>
+                      )}
+                    </div>
+                    {!entry.achieved && (
+                      <div className="space-y-0.5">
+                        {entry.conditions.filter(c => !c.met).map((c, i) => (
+                          <p key={i} className="text-slate-500">
+                            {statLabel(c.stat)} {c.current}
+                            {c.op === '<' || c.op === '<=' ? ` (${c.threshold} 미만 목표)` : ` / ${c.threshold} 목표`}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+              {trueMentorClueCount >= 2 && (
+                <div className="pt-1 text-amber-600 font-bold">
+                  🕯️ 히든 엔딩 단서 {trueMentorClueCount}/5 확보 중
+                </div>
+              )}
             </div>
           </div>
         </section>

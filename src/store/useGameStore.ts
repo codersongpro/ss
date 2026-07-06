@@ -1235,6 +1235,52 @@ const ENDING_DEFINITIONS: EndingDefinition[] = [
   ]}
 ];
 
+// [WO-19] 엔딩 진행도 나침반 — 플레이 중 "지금 어느 엔딩에 가까운지"를 보여주기 위한 데이터.
+// 라벨/아이콘 등 화면 표시는 UI 쪽 책임이고, 여기서는 ENDING_DEFINITIONS를 기준으로 한
+// 순수 계산만 담당해 엔딩 판정(checkEndingConditions)과 같은 소스를 공유한다.
+export interface EndingCompassCondition {
+  stat: keyof Stats;
+  op: '>=' | '>' | '<=' | '<';
+  current: number;
+  threshold: number;
+  met: boolean;
+}
+export interface EndingCompassEntry {
+  id: string;
+  achieved: boolean;
+  closeness: number; // 조건 평균 충족 비율(1.0 = 딱 충족, 1.25 상한)
+  conditions: EndingCompassCondition[]; // 스탯 조건만 (플래그 조건은 표시하지 않음)
+}
+
+// [WO-19] checkEndingConditions와 나침반 UI가 같은 목록을 참조하도록 단일 소스로 뺐다.
+export const TRUE_MENTOR_STORY_ITEMS = ['jihun_letter', 'class_diary', 'class_council_charter', 'student_sketchbook', 'mystery_note'];
+
+export const getEndingCompass = (stats: Stats, hiddenFlags: string[]): EndingCompassEntry[] => {
+  const byId = new Map<string, EndingCompassEntry>();
+
+  for (const def of ENDING_DEFINITIONS) {
+    const achieved = def.conditions.every(c => conditionSatisfied(c, stats, hiddenFlags));
+    const closeness = def.conditions.reduce((sum, c) => sum + conditionRatio(c, stats), 0) / def.conditions.length;
+    const conditions: EndingCompassCondition[] = def.conditions
+      .filter((c): c is Extract<EndingCondition, { stat: keyof Stats }> => 'stat' in c)
+      .map(c => ({
+        stat: c.stat,
+        op: c.op,
+        current: stats[c.stat],
+        threshold: c.threshold,
+        met: conditionSatisfied(c, stats, hiddenFlags)
+      }));
+
+    // 같은 id가 여러 조건 변형으로 등록된 경우(예: ending_burnout의 OR 분기) 더 가까운 쪽을 채택한다.
+    const prev = byId.get(def.id);
+    if (!prev || closeness > prev.closeness) {
+      byId.set(def.id, { id: def.id, achieved, closeness, conditions });
+    }
+  }
+
+  return Array.from(byId.values()).sort((a, b) => b.closeness - a.closeness);
+};
+
 export const useGameStore = create<GameState>()(
   persist(
     (set, get) => ({
@@ -2061,8 +2107,7 @@ export const useGameStore = create<GameState>()(
         // [NEW · 어드벤처] 0. 비밀 엔딩 '참된 스승' — 한 학기 동안 아이들이 건넨 흔적(서사 단서 아이템)을
         // 충분히 모으고(5종 중 4종 이상) 신뢰까지 쌓아야만 해금되는 최상위 히든 엔딩.
         // 인벤토리 아이템 개수 조건이라 통합 스코어링 축과 성질이 달라 tier 0 최우선으로 별도 처리한다.
-        const storyItems = ['jihun_letter', 'class_diary', 'class_council_charter', 'student_sketchbook', 'mystery_note'];
-        const collectedStoryItems = storyItems.filter(id => inventory.includes(id)).length;
+        const collectedStoryItems = TRUE_MENTOR_STORY_ITEMS.filter(id => inventory.includes(id)).length;
         if (collectedStoryItems >= 4 && stats.studentTrust >= 70) {
           set({ endingId: 'ending_true_mentor' });
           return;
