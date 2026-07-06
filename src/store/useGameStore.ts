@@ -109,6 +109,7 @@ interface GameState {
   discoveryLog: DiscoveryLogEntry[]; // [NEW] 단서/관계 일지에 쌓일 발견 기록
   recentEventDays: Record<string, number>; // [WO-08] eventId -> 마지막 발생 day. 로그 문자열 매칭 대신 쓰는 ID 기반 쿨다운
   dailyActionCounts: Record<string, number>; // [WO-12] 장소 행동 actionType -> 오늘 수행 횟수. 매일 아침 리셋되어 반복 체감(디미니싱 리턴) 판정에 쓰인다
+  scheduledEvents: ScheduledEvent[]; // [WO-17] GameEvent.followUpEvents로 예약된, 며칠 뒤 자동 재등장할 이벤트 큐
 
   // 현재 진행 중인 이벤트 연출 상태
   currentEvent: GameEvent | null;
@@ -466,6 +467,30 @@ const getInitialStats = (difficulty: 'warm' | 'realistic' | 'hard', traits: stri
   return syncNewStats(baseStats);
 };
 
+// ==========================================
+// [WO-17] 후속 이벤트 예약 큐 (GameEvent.followUpEvents 활성화)
+// ==========================================
+// 이전에는 GameEvent.followUpEvents 필드가 타입에만 존재하고 어디서도 읽히지 않아, 모든 이벤트가
+// 단발성으로 끝났다. 선택지를 고르면(selectChoice) 해당 이벤트의 followUpEvents를 이 큐에 예약해두고,
+// 예약일이 된 뒤 첫 이벤트 추첨 기회(저녁 자동 추첨 또는 탐색)에서 장소/카테고리 필터 없이 최우선으로 반환한다.
+interface ScheduledEvent {
+  eventId: string;
+  triggerDay: number;
+}
+
+// 오늘(day) 발동 예정(또는 이미 지난)인 예약 이벤트를 하나 꺼낸다. 여러 개가 밀려 있으면 먼저 예약된 것부터.
+const popDueScheduledEvent = (
+  scheduledEvents: ScheduledEvent[],
+  day: number
+): { event: GameEvent | null; remaining: ScheduledEvent[] } => {
+  const dueIdx = scheduledEvents.findIndex(s => s.triggerDay <= day);
+  if (dueIdx === -1) return { event: null, remaining: scheduledEvents };
+  const due = scheduledEvents[dueIdx];
+  const remaining = [...scheduledEvents.slice(0, dueIdx), ...scheduledEvents.slice(dueIdx + 1)];
+  const event = gameEvents.find(e => e.id === due.eventId) ?? null;
+  return { event, remaining }; // 데이터에서 이벤트를 못 찾으면(id 오기재 등) 조용히 스킵
+};
+
 // [NEW] 주말용 힐링 이벤트 생성 헬퍼 함수 (자녀 유무에 따른 동적 분기)
 const getWeekendHealingEvent = (day: number, familyState?: string): GameEvent => {
   const isSaturday = day % 7 === 6;
@@ -793,11 +818,12 @@ const getEventForTime = (
   stats: Stats,
   students: Student[],
   inventory: string[],
-  familyState?: string
-): GameEvent | null => {
+  familyState: string | undefined,
+  scheduledEvents: ScheduledEvent[]
+): { event: GameEvent | null; remainingScheduled: ScheduledEvent[] } => {
   const effectiveFlags = [...hiddenFlags, ...getTrustDerivedFlags(students)];
   let category: GameEvent['category'][] = [];
-  
+
   if (time === 'morning') {
     category = ['student', 'colleague', 'admin', 'random'];
   } else if (time === 'afternoon') {
@@ -805,7 +831,7 @@ const getEventForTime = (
   } else if (time === 'evening') {
     category = ['parent', 'family', 'career', 'random'];
   } else {
-    return null;
+    return { event: null, remainingScheduled: scheduledEvents };
   }
 
   // 5, 10, 15, 19, 25일차 저녁(evening)에는 기획된 자녀/주말 이벤트를 강제로 반환 [NEW]
@@ -817,9 +843,16 @@ const getEventForTime = (
     const targetEventId = isParent ? `evt_child_event_${targetSuffix}` : `evt_single_weekend_${targetSuffix}`;
     const targetEvt = gameEvents.find(evt => evt.id === targetEventId);
     if (targetEvt) {
-      return targetEvt;
+      return { event: targetEvt, remainingScheduled: scheduledEvents };
     }
   }
+
+  // [WO-17] 마일스톤 다음 순위로, 예약된 후속 이벤트(followUpEvents)가 있으면 최우선 반환한다.
+  const dueFollowUp = popDueScheduledEvent(scheduledEvents, day);
+  if (dueFollowUp.event) {
+    return { event: dueFollowUp.event, remainingScheduled: dueFollowUp.remaining };
+  }
+  const remainingScheduled = dueFollowUp.remaining; // 못 찾은 예약 id는 조용히 소거된 상태로 이어간다
 
   const matchesBase = (evt: GameEvent, applyHistory: boolean): boolean => {
     // 0. 히든 탐험 이벤트는 exploreLocation에서만 낮은 확률로 등장 (시간대 자동 추첨에서는 제외)
@@ -846,10 +879,10 @@ const getEventForTime = (
   if (candidates.length === 0) {
     candidates = gameEvents.filter(evt => matchesBase(evt, false));
   }
-  if (candidates.length === 0) return null;
+  if (candidates.length === 0) return { event: null, remainingScheduled };
 
   // 채널 통일 목표 비율(위기 시 상향, 주차 램프)로 가중 랜덤 추출
-  return pickBalancedEvent(candidates, stats, day);
+  return { event: pickBalancedEvent(candidates, stats, day), remainingScheduled };
 };
 
 // 초기화용 디폴트 업무 리스트 생성 헬퍼
@@ -1104,6 +1137,7 @@ export const useGameStore = create<GameState>()(
       discoveryLog: [],
       recentEventDays: {},
       dailyActionCounts: {},
+      scheduledEvents: [], // [WO-17]
 
       currentEvent: null,
       selectedChoice: null,
@@ -1177,6 +1211,7 @@ export const useGameStore = create<GameState>()(
           discoveryLog: [],
           recentEventDays: {},
           dailyActionCounts: {},
+          scheduledEvents: [], // [WO-17]
           phoneAndTextNotifications: [],
           activePhoneAndTextEvent: null,
           currentEvent: null, // 시작 직후 아침에는 지도를 보고 탐색하도록 null 설정
@@ -1220,6 +1255,7 @@ export const useGameStore = create<GameState>()(
           discoveryLog: [],
           recentEventDays: {},
           dailyActionCounts: {},
+          scheduledEvents: [], // [WO-17]
           phoneAndTextNotifications: [],
           activePhoneAndTextEvent: null,
           recentLogs: [],
@@ -1230,7 +1266,21 @@ export const useGameStore = create<GameState>()(
       // 3. 선택지 선택
       selectChoice: (choice: GameChoice) => {
         const { stats, hiddenFlags, delayedEffects, day, recentLogs, students, recentValenceLog } = get();
-        
+        // [WO-17] 선택 시점의 이벤트를 미리 참조해둔다 — followUpEvents가 있으면 며칠 뒤 재등장을 예약한다.
+        const currentEvent = get().currentEvent;
+        const buildScheduledEvents = (isSuccess: boolean = true): ScheduledEvent[] => {
+          const base = get().scheduledEvents;
+          // 선택지 전용 followUpEvents가 있으면 그것을 우선하고, 없으면 이벤트 레벨 followUpEvents를 쓴다.
+          // 주사위 판정 실패 시에는 failFollowUpEvents가 있으면 그쪽으로 분기한다(나쁜 결말로 갈라지는 아크용).
+          const followUps = (!isSuccess && choice.failFollowUpEvents)
+            ? choice.failFollowUpEvents
+            : (choice.followUpEvents ?? currentEvent?.followUpEvents);
+          if (!followUps || followUps.length === 0) return base;
+          const delay = 2 + Math.floor(Math.random() * 2); // 2~3일 후
+          const triggerDay = Math.min(day + delay, TOTAL_GAME_DAYS);
+          return [...base, ...followUps.map(eventId => ({ eventId, triggerDay }))];
+        };
+
         // 주사위 판정(성공률)이 있는 선택지인 경우
         if (choice.successRate !== undefined) {
           // 주사위 롤링 애니메이션 상태 돌입
@@ -1321,7 +1371,8 @@ export const useGameStore = create<GameState>()(
                 value: rollValue,
                 success: isSuccess,
                 targetChoiceId: choice.id
-              }
+              },
+              scheduledEvents: buildScheduledEvents(isSuccess)
             });
 
             get().checkFailureConditions();
@@ -1386,7 +1437,8 @@ export const useGameStore = create<GameState>()(
             inventory: newInventory,
             discoveryLog: newDiscoveryLog,
             recentValenceLog: pushValence(recentValenceLog, inferValence(choice.immediateEffects)),
-            diceRollState: null // 일반 선택지는 주사위 상태 무시
+            diceRollState: null, // 일반 선택지는 주사위 상태 무시
+            scheduledEvents: buildScheduledEvents()
           });
         }
       },
@@ -1402,7 +1454,8 @@ export const useGameStore = create<GameState>()(
           playerInfo,
           stats,
           students,
-          inventory
+          inventory,
+          scheduledEvents
         } = get();
 
         if (timeOfDay === 'morning') {
@@ -1430,15 +1483,17 @@ export const useGameStore = create<GameState>()(
             });
           }
         } else if (timeOfDay === 'afternoon') {
-          // 오후 -> 저녁 (저녁은 집/개인 활동이므로 기존 방식대로 저녁 이벤트를 자동 추점)
-          const nextEvent = getEventForTime(day, 'evening', hiddenFlags, recentLogs, stats, students, inventory, playerInfo?.familyState);
+          // 오후 -> 저녁 (저녁은 집/개인 활동이므로 기존 방식대로 저녁 이벤트를 자동 추첨)
+          // [WO-17] 예약된 후속 이벤트가 있으면(마일스톤 다음 순위) 최우선으로 반환됨 — getEventForTime 내부 처리.
+          const { event: nextEvent, remainingScheduled } = getEventForTime(day, 'evening', hiddenFlags, recentLogs, stats, students, inventory, playerInfo?.familyState, scheduledEvents);
           set({
             timeOfDay: 'evening',
             currentLocation: null,
             currentEvent: nextEvent,
             selectedChoice: null,
             eventResultText: null,
-            currentNpcDialogue: null
+            currentNpcDialogue: null,
+            scheduledEvents: remainingScheduled
           });
         } else if (timeOfDay === 'evening') {
           // 저녁 -> 정산 화면
@@ -1908,12 +1963,29 @@ export const useGameStore = create<GameState>()(
 
       // 11. RPG 장소 탐색 (사건 트리거, TP 1 소모)
       exploreLocation: () => {
-        const { currentLocation, day, hiddenFlags, actionPoints, stats, students, inventory, recentEventDays } = get();
+        const { currentLocation, day, hiddenFlags, actionPoints, stats, students, inventory, recentEventDays, scheduledEvents } = get();
         const effectiveFlags = [...hiddenFlags, ...getTrustDerivedFlags(students)];
         if (!currentLocation) return;
         if (actionPoints < ACTION_TP_COST) {
           get().showToast('교사력(TP)이 부족하여 탐색할 수 없습니다.');
           return;
+        }
+
+        // [WO-17] 예약된 후속 이벤트(followUpEvents)가 있으면 장소/카테고리 필터 없이 최우선으로 반환한다.
+        const dueFollowUp = popDueScheduledEvent(scheduledEvents, day);
+        if (dueFollowUp.event) {
+          set({
+            actionPoints: actionPoints - ACTION_TP_COST,
+            currentEvent: dueFollowUp.event,
+            selectedChoice: null,
+            eventResultText: null,
+            scheduledEvents: dueFollowUp.remaining
+          });
+          get().showToast(`[사건 발생] ${dueFollowUp.event.title} 상황에 마주쳤습니다!`);
+          return;
+        } else if (dueFollowUp.remaining.length !== scheduledEvents.length) {
+          // 예약된 id에 해당하는 이벤트 데이터를 찾지 못한 경우 — 무한 재시도를 막기 위해 큐에서만 조용히 제거
+          set({ scheduledEvents: dueFollowUp.remaining });
         }
 
         // 장소에 맞는 카테고리 매핑

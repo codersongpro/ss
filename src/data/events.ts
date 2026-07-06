@@ -3597,5 +3597,804 @@ export const gameEvents: GameEvent[] = [
         resultText: '현장감은 덜하지만 가산점도 챙기고 가족 여행도 지킨, 나름 실속 있는 선택이었습니다.'
       }
     ]
+  },
+  // ==================== [WO-17] 서사 아크 4종 (followUpEvents 활성화) ====================
+  // GameEvent.followUpEvents / GameChoice.followUpEvents 필드로 며칠 뒤 다음 단계가 자동 예약된다.
+  // 각 아크는 3~4단계이며, 최소 한 단계는 successRate 주사위 판정으로 실패 시 나쁜 분기로 이어진다.
+
+  // ---------- 아크 A. 학교폭력 의심 아크 (student) ----------
+  {
+    id: 'evt_arc_bully_01',
+    dayRange: [3, 12],
+    title: '쉬는 시간, 낌새가 이상하다',
+    category: 'student',
+    situation: '교실',
+    narratorText: '쉬는 시간마다 몇몇 아이들이 지훈이 자리를 둘러싸고 낮은 목소리로 뭔가를 주고받는 모습이 며칠째 눈에 밟힙니다. 지훈이는 애써 웃고 있지만 표정이 어딘가 굳어 있습니다. 다가가자 아이들은 재빨리 흩어집니다. 어떻게 하시겠습니까?',
+    weight: 90,
+    tags: ['학교폭력 의심', '서사 아크'],
+    followUpEvents: ['evt_arc_bully_02_believed'],
+    choices: [
+      {
+        id: 'choice_arc_bully_01_1',
+        text: '지훈이를 따로 불러 요즘 어떻게 지내는지 넌지시 물어본다.',
+        intent: '조기 개입',
+        immediateEffects: [
+          { stat: 'studentTrust', value: 3 },
+          { stat: 'mental', value: -3 }
+        ],
+        hiddenFlags: ['arc_bully_alert'],
+        followUpEvents: ['evt_arc_bully_02_believed'],
+        resultText: '지훈이는 "아무 일도 아니에요"라며 손사래를 치지만, 눈빛이 흔들리는 것을 놓치지 않았습니다. 조금 더 지켜보기로 합니다.'
+      },
+      {
+        id: 'choice_arc_bully_01_2',
+        text: '아이들 사이의 일이니 스스로 해결하도록 일단 지켜보기로 한다.',
+        intent: '관망',
+        immediateEffects: [
+          { stat: 'hp', value: 2 },
+          { stat: 'burnout', value: -2 }
+        ],
+        hiddenFlags: ['arc_bully_dismissed'],
+        followUpEvents: ['evt_arc_bully_02_dismissed'],
+        resultText: '요즘 워낙 바빠 우선순위에서 밀어두었지만, 마음 한구석이 계속 불편합니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_arc_bully_02_believed',
+    dayRange: [1, 30],
+    title: '지훈이와의 면담',
+    category: 'student',
+    situation: '상담실',
+    narratorText: '방과 후 지훈이를 상담실로 불렀습니다. 한참을 망설이던 지훈이가 결국 눈물을 글썽이며 "사실은... 애들이 자꾸 제 준비물을 숨기고 단체 대화방에서 저만 빼요"라고 털어놓습니다.',
+    weight: 999,
+    tags: ['학교폭력 의심', '서사 아크'],
+    choices: [
+      {
+        id: 'choice_arc_bully_02b_1',
+        text: '이야기를 끝까지 들어주고 "혼자가 아니다"라고 분명히 말해준다.',
+        intent: '신뢰 우선',
+        immediateEffects: [
+          { stat: 'studentTrust', value: 10 },
+          { stat: 'teachingSatisfaction', value: 5 },
+          { stat: 'mental', value: -5 }
+        ],
+        hiddenFlags: ['arc_bully_trusted'],
+        followUpEvents: ['evt_arc_bully_03'],
+        studentEffects: [
+          { studentId: 'student_jihun', changes: { teacherTrust: 10, selfEsteem: 5 } }
+        ],
+        resultText: '지훈이는 처음으로 안도한 표정을 지으며 조금씩 자세한 정황을 이야기하기 시작합니다.'
+      },
+      {
+        id: 'choice_arc_bully_02b_2',
+        text: '섣불리 단정 짓지 않고, 우선 정황과 관련 학생들의 이야기를 차분히 더 들어보기로 한다.',
+        intent: '신중한 사실 확인',
+        immediateEffects: [
+          { stat: 'expert', value: 5 },
+          { stat: 'educationSoshin', value: 5 }
+        ],
+        hiddenFlags: ['arc_bully_evidence'],
+        followUpEvents: ['evt_arc_bully_03'],
+        resultText: '지훈이는 "역시 별일 아니었나 봐요"라며 살짝 실망한 기색을 보이지만, 담임으로서는 정확한 파악이 먼저라고 판단했습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_arc_bully_02_dismissed',
+    dayRange: [1, 30],
+    title: '조금씩 심해지는 낌새',
+    category: 'student',
+    situation: '교실',
+    narratorText: '며칠을 넘겼더니 상황이 더 심해졌습니다. 오늘은 지훈이의 체육복이 화장실 쓰레기통에서 발견되었습니다. 지훈이는 "그냥 제가 잃어버린 거예요"라고 힘없이 둘러댑니다. 더는 미룰 수 없어 보입니다.',
+    weight: 999,
+    tags: ['학교폭력 의심', '서사 아크'],
+    choices: [
+      {
+        id: 'choice_arc_bully_02d_1',
+        text: '늦었지만 지금이라도 지훈이와 관련 학생들을 각각 불러 사실관계를 파악한다.',
+        intent: '뒤늦은 개입',
+        immediateEffects: [
+          { stat: 'studentTrust', value: 4 },
+          { stat: 'mental', value: -8 },
+          { stat: 'hp', value: -3 }
+        ],
+        hiddenFlags: ['arc_bully_late_intervene'],
+        followUpEvents: ['evt_arc_bully_03'],
+        resultText: '지훈이는 "왜 이제야..."라는 표정을 감추지 못했지만, 그래도 이야기를 들어주는 담임에게 조심스레 입을 엽니다.'
+      },
+      {
+        id: 'choice_arc_bully_02d_2',
+        text: '체육복 정도는 흔한 분실이라 여기고, 이번에도 그냥 넘어간다.',
+        intent: '방치',
+        immediateEffects: [
+          { stat: 'hp', value: 2 },
+          { stat: 'burnout', value: -2 },
+          { stat: 'studentTrust', value: -8 }
+        ],
+        hiddenFlags: ['arc_bully_neglected'],
+        followUpEvents: ['evt_arc_bully_04_explode'],
+        resultText: '당장의 불편함은 피했지만, 지훈이의 눈빛에서 마지막 기대가 사라지는 것을 보았습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_arc_bully_03',
+    dayRange: [1, 30],
+    title: '학부모의 항의 전화',
+    category: 'student',
+    situation: '교무실',
+    narratorText: '지훈이 어머니로부터 격앙된 전화가 걸려왔습니다. "우리 애가 몇 주째 괴롭힘을 당하고 있었는데 담임 선생님은 뭘 하고 계셨던 거예요?" 그동안의 정황을 어떻게 전달하고 풀어가야 할지 결정해야 합니다.',
+    weight: 999,
+    tags: ['학교폭력 의심', '서사 아크'],
+    choices: [
+      {
+        id: 'choice_arc_bully_03_1',
+        text: '숨김없이 그동안 파악한 사실과 조치 계획을 상세히 설명하고 학교 차원의 대응을 약속한다.',
+        intent: '투명한 소통 (성패가 갈리는 강수)',
+        successRate: 65,
+        immediateEffects: [
+          { stat: 'parentTrust', value: 10 },
+          { stat: 'mental', value: -8 },
+          { stat: 'educationSoshin', value: 5 }
+        ],
+        successResultText: '어머니는 여전히 속상해하지만, 담임이 문제를 회피하지 않는다는 것에 조금씩 마음을 누그러뜨립니다.',
+        failEffects: [
+          { stat: 'parentComplaint', value: 20 },
+          { stat: 'mental', value: -15 },
+          { stat: 'educationSoshin', value: 5 }
+        ],
+        failResultText: '솔직한 설명에도 불구하고 어머니의 분노는 가라앉지 않습니다. "그동안 몰랐다는 것 자체가 직무유기 아니냐"며 정식으로 문제를 제기하겠다고 합니다.',
+        hiddenFlags: ['arc_bully_transparent'],
+        followUpEvents: ['evt_arc_bully_04_resolved'],
+        failFollowUpEvents: ['evt_arc_bully_04_explode'],
+        resultText: '어머니는 여전히 속상해하지만, 담임이 문제를 회피하지 않는다는 것에 조금씩 마음을 누그러뜨립니다.'
+      },
+      {
+        id: 'choice_arc_bully_03_2',
+        text: '학교 이미지를 고려해 "가벼운 다툼일 뿐"이라며 사안을 축소해 설명한다.',
+        intent: '사안 축소',
+        immediateEffects: [
+          { stat: 'reputation', value: 3 },
+          { stat: 'parentComplaint', value: 15 }
+        ],
+        hiddenFlags: ['arc_bully_covered_up'],
+        followUpEvents: ['evt_arc_bully_04_explode'],
+        resultText: '어머니는 통화 후에도 석연치 않은 기색이 역력했습니다. 임시방편일 뿐이라는 불안감이 남습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_arc_bully_04_resolved',
+    dayRange: [1, 30],
+    title: '지훈이의 편지',
+    category: 'student',
+    situation: '교실',
+    narratorText: '학교폭력 전담기구의 중재로 관련 학생들이 정식으로 사과했고, 지훈이의 표정도 눈에 띄게 밝아졌습니다. 오늘 아침, 지훈이가 수줍게 접은 편지 한 장을 책상 위에 두고 갔습니다.',
+    weight: 999,
+    tags: ['학교폭력 의심', '서사 아크', '비밀이벤트'],
+    choices: [
+      {
+        id: 'choice_arc_bully_04r_1',
+        text: '편지를 소중히 간직하고, 지훈이에게 다가가 고맙다는 말을 전한다.',
+        intent: '관계의 결실',
+        immediateEffects: [
+          { stat: 'studentTrust', value: 12 },
+          { stat: 'teachingSatisfaction', value: 10 },
+          { stat: 'mental', value: 10 }
+        ],
+        hiddenFlags: ['arc_bully_resolved'],
+        studentEffects: [
+          { studentId: 'student_jihun', changes: { teacherTrust: 15, selfEsteem: 10, peerRelation: 10 } }
+        ],
+        resultText: '편지에는 서툰 글씨로 "선생님이 제 편이어서 다행이었어요"라고 적혀 있었습니다. 오래도록 잊지 못할 하루입니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_arc_bully_04_explode',
+    dayRange: [1, 30],
+    title: '터져버린 문제',
+    category: 'student',
+    situation: '교무실',
+    narratorText: '결국 지훈이 어머니가 교육청에 정식 민원을 제기했습니다. "축소, 은폐하려 했다"는 표현까지 등장한 민원서에 교장실 분위기가 무겁게 가라앉았습니다. 지훈이는 최근 며칠째 등교조차 힘겨워하고 있습니다.',
+    weight: 999,
+    tags: ['학교폭력 의심', '서사 아크'],
+    choices: [
+      {
+        id: 'choice_arc_bully_04e_1',
+        text: '지금이라도 모든 사실을 인정하고 재발 방지 대책을 마련해 정면으로 수습한다.',
+        intent: '뒤늦은 수습',
+        immediateEffects: [
+          { stat: 'parentComplaint', value: -10 },
+          { stat: 'mental', value: -15 },
+          { stat: 'educationSoshin', value: 8 },
+          { stat: 'adminTrust', value: -5 }
+        ],
+        hiddenFlags: ['arc_bully_belated_fix'],
+        resultText: '뒤늦은 수습이었지만, 더 이상의 방치는 없다는 진심만은 전달되었습니다. 지훈이와의 관계는 쉽게 회복되지 않을 듯합니다.'
+      }
+    ]
+  },
+
+  // ---------- 아크 B. 동학년 무임승차 동료 아크 (colleague) ----------
+  {
+    id: 'evt_arc_freerider_01',
+    dayRange: [4, 14],
+    title: '또 떠넘겨진 업무',
+    category: 'colleague',
+    situation: '교무실',
+    narratorText: '동학년 박 선생님이 웃으며 서류 뭉치를 책상에 올려놓습니다. "김 선생님이 워낙 꼼꼼하시니까, 이번 학년 공동 평가계획도 좀 맡아줘요~" 벌써 세 번째, 이번 학기 들어 공동 업무는 전부 이런 식이었습니다.',
+    weight: 90,
+    tags: ['무임승차 동료', '서사 아크'],
+    choices: [
+      {
+        id: 'choice_arc_freerider_01_1',
+        text: '이번에도 별말 없이 서류를 받아 든다.',
+        intent: '참기',
+        immediateEffects: [
+          { stat: 'colleagueRelation', value: 3 },
+          { stat: 'burnout', value: 8 },
+          { stat: 'hp', value: -5 }
+        ],
+        hiddenFlags: ['arc_freerider_tolerate'],
+        followUpEvents: ['evt_arc_freerider_02_tolerate'],
+        resultText: '박 선생님은 콧노래를 부르며 자리로 돌아갑니다. 억울함이 조용히 쌓여갑니다.'
+      },
+      {
+        id: 'choice_arc_freerider_01_2',
+        text: '"이번엔 반씩 나눠서 하죠"라고 정중하지만 분명하게 선을 긋는다.',
+        intent: '맞서기',
+        immediateEffects: [
+          { stat: 'educationSoshin', value: 5 },
+          { stat: 'mental', value: -5 },
+          { stat: 'colleagueRelation', value: -5 }
+        ],
+        hiddenFlags: ['arc_freerider_confront'],
+        followUpEvents: ['evt_arc_freerider_02_confront'],
+        resultText: '박 선생님의 표정이 살짝 굳었지만, "어... 그럴까요"라며 마지못해 수긍합니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_arc_freerider_02_tolerate',
+    dayRange: [1, 30],
+    title: '점점 당연해지는 부탁',
+    category: 'colleague',
+    situation: '교무실',
+    narratorText: '이제는 아예 "이건 김 선생님 담당이잖아요"라는 말까지 듣습니다. 동학년 공동 업무의 8할이 어느새 당신 몫이 되어 있었습니다. 오늘도 새로운 서류가 책상에 올라옵니다.',
+    weight: 999,
+    tags: ['무임승차 동료', '서사 아크'],
+    choices: [
+      {
+        id: 'choice_arc_freerider_02t_1',
+        text: '더는 안 되겠다 싶어, 지금이라도 업무 분담을 다시 논의하자고 제안한다.',
+        intent: '뒤늦은 선긋기',
+        immediateEffects: [
+          { stat: 'educationSoshin', value: 4 },
+          { stat: 'mental', value: -5 },
+          { stat: 'colleagueRelation', value: -3 }
+        ],
+        hiddenFlags: ['arc_freerider_late_confront'],
+        followUpEvents: ['evt_arc_freerider_03'],
+        resultText: '박 선생님은 당황한 기색이 역력했지만, "그동안 너무 편하게 생각했네요"라며 일단 대화의 물꼬는 텄습니다.'
+      },
+      {
+        id: 'choice_arc_freerider_02t_2',
+        text: '이미 익숙해진 방식이니 그러려니 하고 계속 떠맡는다.',
+        intent: '체념',
+        immediateEffects: [
+          { stat: 'burnout', value: 10 },
+          { stat: 'hp', value: -8 },
+          { stat: 'teachingSatisfaction', value: -5 }
+        ],
+        hiddenFlags: ['arc_freerider_resigned'],
+        followUpEvents: ['evt_arc_freerider_04_isolated'],
+        resultText: '몸도 마음도 지쳐가지만, 갈등을 만들기는 더 싫어 그냥 넘어갑니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_arc_freerider_02_confront',
+    dayRange: [1, 30],
+    title: '불편해진 교무실 공기',
+    category: 'colleague',
+    situation: '교무실',
+    narratorText: '선을 그은 이후로 박 선생님과의 사이가 어딘가 서먹해졌습니다. 다른 동학년 선생님들도 눈치를 보는 듯 두 사람 사이에 끼어들기를 꺼립니다. 그러던 중 박 선생님이 다시 말을 걸어옵니다.',
+    weight: 999,
+    tags: ['무임승차 동료', '서사 아크'],
+    choices: [
+      {
+        id: 'choice_arc_freerider_02c_1',
+        text: '먼저 다가가 "감정 상하게 하려던 건 아니었다"며 대화를 청한다.',
+        intent: '관계 회복 시도',
+        immediateEffects: [
+          { stat: 'colleagueRelation', value: 6 },
+          { stat: 'mental', value: -3 }
+        ],
+        hiddenFlags: ['arc_freerider_reconcile'],
+        followUpEvents: ['evt_arc_freerider_03'],
+        resultText: '박 선생님도 겸연쩍은 웃음을 지으며 그동안 미안했다고 털어놓습니다.'
+      },
+      {
+        id: 'choice_arc_freerider_02c_2',
+        text: '이미 할 말은 다 했으니, 굳이 먼저 나서지 않고 거리를 유지한다.',
+        intent: '거리 유지',
+        immediateEffects: [
+          { stat: 'mental', value: 3 },
+          { stat: 'colleagueRelation', value: -3 }
+        ],
+        hiddenFlags: ['arc_freerider_distant'],
+        followUpEvents: ['evt_arc_freerider_03'],
+        resultText: '어색한 공기는 여전하지만, 적어도 더 이상 부당한 부탁은 없어졌습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_arc_freerider_03',
+    dayRange: [1, 30],
+    title: '교무실에 도는 소문',
+    category: 'colleague',
+    situation: '교무실',
+    narratorText: '"김 선생님이 박 선생님이랑 업무 때문에 크게 부딪혔다더라"는 소문이 교무실을 돌고 있습니다. 몇몇 동료들이 은근히 어느 편인지 떠보듯 다가옵니다. 이 상황을 어떻게 정리하시겠습니까?',
+    weight: 999,
+    tags: ['무임승차 동료', '서사 아크'],
+    choices: [
+      {
+        id: 'choice_arc_freerider_03_1',
+        text: '동학년 회의 자리에서 감정을 배제하고 업무 분담 기준을 투명하게 공유한다.',
+        intent: '공식화·투명화 (성패가 갈리는 강수)',
+        successRate: 65,
+        immediateEffects: [
+          { stat: 'colleagueSolidarity', value: 10 },
+          { stat: 'adminPower', value: 5 }
+        ],
+        successResultText: '동료들은 "진작 이렇게 정리했으면 좋았을 텐데"라며 오히려 후련해합니다. 박 선생님도 더는 딴청을 부리지 못합니다.',
+        failEffects: [
+          { stat: 'colleagueRelation', value: -10 },
+          { stat: 'mental', value: -10 }
+        ],
+        failResultText: '박 선생님은 공개적으로 지적당했다고 느꼈는지 오히려 더 날을 세웁니다. 회의 분위기만 어색해졌습니다.',
+        hiddenFlags: ['arc_freerider_formalized'],
+        followUpEvents: ['evt_arc_freerider_04_solidarity'],
+        failFollowUpEvents: ['evt_arc_freerider_04_isolated']
+      },
+      {
+        id: 'choice_arc_freerider_03_2',
+        text: '소문에 일일이 대응하지 않고, 묵묵히 내 몫만 정확히 해내는 모습을 보인다.',
+        intent: '침묵으로 대응',
+        immediateEffects: [
+          { stat: 'mental', value: -5 },
+          { stat: 'reputation', value: 3 }
+        ],
+        hiddenFlags: ['arc_freerider_silent'],
+        followUpEvents: ['evt_arc_freerider_04_isolated'],
+        resultText: '소문은 시간이 지나며 잦아들었지만, 근본적인 업무 불균형은 그대로 남았습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_arc_freerider_04_solidarity',
+    dayRange: [1, 30],
+    title: '달라진 동학년 분위기',
+    category: 'colleague',
+    situation: '교무실',
+    narratorText: '투명하게 정리된 업무 분담표 이후, 동학년 분위기가 눈에 띄게 달라졌습니다. 박 선생님도 이번 학년말 행사 준비만큼은 먼저 나서서 몫을 챙기기 시작했습니다. "그동안 미안했어요"라며 커피 한 잔을 건넵니다.',
+    weight: 999,
+    tags: ['무임승차 동료', '서사 아크'],
+    choices: [
+      {
+        id: 'choice_arc_freerider_04s_1',
+        text: '지난 일은 털어버리고, 앞으로 잘해보자며 웃으며 커피를 받는다.',
+        intent: '화해와 연대',
+        immediateEffects: [
+          { stat: 'colleagueSolidarity', value: 8 },
+          { stat: 'colleagueRelation', value: 8 },
+          { stat: 'mental', value: 8 }
+        ],
+        resultText: '오랜만에 동학년 전체가 한 팀이라는 느낌을 받습니다. 억울했던 지난 몇 주가 조금은 보상받는 기분입니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_arc_freerider_04_isolated',
+    dayRange: [1, 30],
+    title: '조용히 소진되는 하루들',
+    category: 'colleague',
+    situation: '교무실',
+    narratorText: '아무에게도 티 내지 않았지만, 쌓인 업무와 억울함이 몸과 마음을 조금씩 갉아먹고 있었습니다. 오늘도 야근하며 홀로 서류를 정리하는데, 문득 옆자리가 텅 비어 있다는 것이 유난히 크게 느껴집니다.',
+    weight: 999,
+    tags: ['무임승차 동료', '서사 아크'],
+    choices: [
+      {
+        id: 'choice_arc_freerider_04i_1',
+        text: '더 늦기 전에 관리자에게 업무 분장의 형평성을 공식적으로 건의한다.',
+        intent: '뒤늦은 공론화',
+        immediateEffects: [
+          { stat: 'adminTrust', value: 5 },
+          { stat: 'burnout', value: -8 },
+          { stat: 'colleagueRelation', value: -5 }
+        ],
+        hiddenFlags: ['arc_freerider_escalated'],
+        resultText: '관리자는 업무 재분배를 약속했지만, 박 선생님과의 관계는 이미 예전 같지 않습니다.'
+      }
+    ]
+  },
+
+  // ---------- 아크 C. 악성 민원 학부모 아크 (parent) ----------
+  {
+    id: 'evt_arc_complaint_01',
+    dayRange: [6, 16],
+    title: '사소한 항의 전화',
+    category: 'parent',
+    situation: '교무실',
+    narratorText: '민서 어머니로부터 전화가 왔습니다. "우리 애 자리를 왜 앞으로 옮겼어요? 시력이 안 좋은 것도 아닌데 혹시 우리 애를 미워하시는 거 아니에요?" 사소해 보이지만 어딘가 날이 서 있는 말투입니다.',
+    weight: 90,
+    tags: ['악성 민원', '서사 아크'],
+    choices: [
+      {
+        id: 'choice_arc_complaint_01_1',
+        text: '자리 배치 기준과 이유를 차분히 설명하고, 추가 우려사항이 있는지 조심스레 여쭤본다.',
+        intent: '차분한 해명',
+        immediateEffects: [
+          { stat: 'parentTrust', value: 5 },
+          { stat: 'mental', value: -5 }
+        ],
+        hiddenFlags: ['arc_complaint_calm'],
+        followUpEvents: ['evt_arc_complaint_02_evidence'],
+        resultText: '어머니는 일단 수긍하는 듯했지만, 통화 말미에 "앞으로 잘 지켜보겠다"는 뉘앙스를 남깁니다.'
+      },
+      {
+        id: 'choice_arc_complaint_01_2',
+        text: '별다른 의도가 없었다는 말만 짧게 전하고 서둘러 통화를 마무리한다.',
+        intent: '신속 종료',
+        immediateEffects: [
+          { stat: 'hp', value: 2 },
+          { stat: 'parentComplaint', value: 5 }
+        ],
+        hiddenFlags: ['arc_complaint_rushed'],
+        followUpEvents: ['evt_arc_complaint_02_noevidence'],
+        resultText: '전화는 끊었지만, 어딘가 찜찜한 여운이 남습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_arc_complaint_02_evidence',
+    dayRange: [1, 30],
+    title: '점점 잦아지는 연락',
+    category: 'parent',
+    situation: '교무실',
+    narratorText: '그 이후로도 민서 어머니의 연락이 부쩍 잦아졌습니다. 사소한 지도 방식 하나하나에 문제를 제기하며, 이번에는 "지도 기록을 전부 남겨달라"는 요구까지 해왔습니다.',
+    weight: 999,
+    tags: ['악성 민원', '서사 아크'],
+    choices: [
+      {
+        id: 'choice_arc_complaint_02e_1',
+        text: '요구대로 지도 상황을 꼼꼼히 기록하고 근거 자료를 정리해둔다.',
+        intent: '증거 축적',
+        immediateEffects: [
+          { stat: 'adminPower', value: 5 },
+          { stat: 'mental', value: -8 },
+          { stat: 'hp', value: -3 }
+        ],
+        hiddenFlags: ['arc_complaint_evidence'],
+        followUpEvents: ['evt_arc_complaint_03'],
+        resultText: '번거롭지만, 이 기록이 나중에 스스로를 지켜줄 근거가 될 것이라 믿기로 합니다.'
+      },
+      {
+        id: 'choice_arc_complaint_02e_2',
+        text: '과도한 요구라 판단해 정중히 거절한다.',
+        intent: '선 긋기',
+        immediateEffects: [
+          { stat: 'educationSoshin', value: 5 },
+          { stat: 'parentComplaint', value: 10 }
+        ],
+        hiddenFlags: ['arc_complaint_refused'],
+        followUpEvents: ['evt_arc_complaint_03'],
+        resultText: '어머니는 "이래서 믿을 수가 없다"며 더욱 격앙된 반응을 보입니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_arc_complaint_02_noevidence',
+    dayRange: [1, 30],
+    title: '커지는 오해',
+    category: 'parent',
+    situation: '교무실',
+    narratorText: '서둘러 통화를 마무리했던 것이 화근이었는지, 민서 어머니는 "제대로 된 설명도 안 해준다"며 학부모 커뮤니티에 불만을 토로하기 시작했다는 이야기가 들려옵니다.',
+    weight: 999,
+    tags: ['악성 민원', '서사 아크'],
+    choices: [
+      {
+        id: 'choice_arc_complaint_02n_1',
+        text: '늦었지만 지금이라도 상세한 설명 자료를 준비해 다시 연락을 취한다.',
+        intent: '뒤늦은 만회',
+        immediateEffects: [
+          { stat: 'mental', value: -8 },
+          { stat: 'parentTrust', value: 3 },
+          { stat: 'hp', value: -3 }
+        ],
+        hiddenFlags: ['arc_complaint_late_recover'],
+        followUpEvents: ['evt_arc_complaint_03'],
+        resultText: '완전히 풀리지는 않았지만, 성의는 어느 정도 전달된 듯합니다.'
+      },
+      {
+        id: 'choice_arc_complaint_02n_2',
+        text: '더 이상 대응하지 않고 시간이 해결해주기를 기다린다.',
+        intent: '무대응',
+        immediateEffects: [
+          { stat: 'burnout', value: 5 },
+          { stat: 'parentComplaint', value: 15 }
+        ],
+        hiddenFlags: ['arc_complaint_ignored'],
+        followUpEvents: ['evt_arc_complaint_03'],
+        resultText: '오해는 풀리지 않은 채 조용히 곪아갑니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_arc_complaint_03',
+    dayRange: [1, 30],
+    title: '교장실 삼자대면',
+    category: 'parent',
+    situation: '교무실',
+    narratorText: '결국 민서 어머니가 교장실 면담을 요청했습니다. 교장, 담임, 학부모가 한자리에 모이는 삼자대면 자리. 그동안의 정황을 어떻게 풀어내느냐에 따라 이 사안의 방향이 결정될 것입니다.',
+    weight: 999,
+    tags: ['악성 민원', '서사 아크'],
+    choices: [
+      {
+        id: 'choice_arc_complaint_03_1',
+        text: '그동안의 기록과 정황을 차분히, 그러나 당당하게 근거를 들어 설명한다.',
+        intent: '근거 기반 정면 대응 (성패가 갈리는 강수)',
+        successRate: 60,
+        immediateEffects: [
+          { stat: 'mental', value: -10 }
+        ],
+        successResultText: '차분한 설명과 명확한 기록 앞에서 교장선생님도 고개를 끄덕이고, 어머니도 한풀 누그러져 오해를 인정합니다.',
+        failEffects: [
+          { stat: 'parentComplaint', value: 20 },
+          { stat: 'mental', value: -10 }
+        ],
+        failResultText: '설명에도 불구하고 어머니는 "그래도 우리 애만 유독 그런 취급을 받는다"며 물러서지 않습니다. 교장선생님은 결국 교육청 이관을 언급합니다.',
+        hiddenFlags: ['arc_complaint_stood_ground'],
+        followUpEvents: ['evt_arc_complaint_04_withdrawn'],
+        failFollowUpEvents: ['evt_arc_complaint_04_escalated']
+      },
+      {
+        id: 'choice_arc_complaint_03_2',
+        text: '갈등을 빨리 끝내기 위해 사실관계와 무관하게 일단 사과부터 하고 넘어간다.',
+        intent: '조기 진화',
+        immediateEffects: [
+          { stat: 'parentComplaint', value: -10 },
+          { stat: 'educationSoshin', value: -8 },
+          { stat: 'mental', value: -5 }
+        ],
+        hiddenFlags: ['arc_complaint_appeased'],
+        followUpEvents: ['evt_arc_complaint_04_withdrawn'],
+        resultText: '자리는 일단 마무리되었지만, 잘못하지 않은 일까지 사과했다는 찜찜함이 오래 남습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_arc_complaint_04_withdrawn',
+    dayRange: [1, 30],
+    title: '민원, 일단락되다',
+    category: 'parent',
+    situation: '교무실',
+    narratorText: '민서 어머니가 정식으로 민원을 취하했다는 연락을 받았습니다. 완전히 풀린 것은 아니지만, 적어도 더 이상 사안이 커지지는 않을 듯합니다.',
+    weight: 999,
+    tags: ['악성 민원', '서사 아크'],
+    choices: [
+      {
+        id: 'choice_arc_complaint_04w_1',
+        text: '안도의 한숨을 내쉬며, 이번 일을 계기로 학급 소통 방식을 점검해본다.',
+        intent: '재발 방지',
+        immediateEffects: [
+          { stat: 'studentTrust', value: 8 },
+          { stat: 'mental', value: 8 }
+        ],
+        resultText: '길고 힘든 과정이었지만, 학급 운영을 한 번 더 돌아보는 계기가 되었습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_arc_complaint_04_escalated',
+    dayRange: [1, 30],
+    title: '교육청으로 넘어간 민원',
+    category: 'parent',
+    situation: '교무실',
+    narratorText: '결국 민서 어머니는 교육청 민원 게시판에 정식으로 사안을 접수했습니다. 교육청 담당 장학사의 사실확인 요청 공문이 학교로 도착했습니다.',
+    weight: 999,
+    tags: ['악성 민원', '서사 아크'],
+    choices: [
+      {
+        id: 'choice_arc_complaint_04e_1',
+        text: '담담히 사실확인서를 작성해 제출하고, 다음 절차를 기다린다.',
+        intent: '절차 대응',
+        immediateEffects: [
+          { stat: 'adminPower', value: 5 },
+          { stat: 'mental', value: -12 },
+          { stat: 'reputation', value: -5 }
+        ],
+        resultText: '지치는 과정이지만, 절차대로 대응하는 수밖에 없다고 스스로를 다독입니다.'
+      }
+    ]
+  },
+
+  // ---------- 아크 D. 공개수업 아크 (career, 19일차 마일스톤과 연동) ----------
+  {
+    id: 'evt_arc_openclass_01',
+    dayRange: [3, 8],
+    title: '공개수업 지명 통보',
+    category: 'career',
+    situation: '교무실',
+    narratorText: '교감선생님이 다가와 어깨를 두드립니다. "김 선생님, 이번 학기 교내 공개수업 지도교사로 지명됐어요. 학부모와 동료 교사들이 참관할 예정이니 준비 잘 부탁해요." 이번 학기의 큰 산이 눈앞에 다가왔습니다.',
+    weight: 90,
+    tags: ['공개수업', '서사 아크'],
+    choices: [
+      {
+        id: 'choice_arc_openclass_01_1',
+        text: '부담스럽지만, 이번 기회에 제대로 된 수업 연구를 해보기로 마음먹는다.',
+        intent: '정공법',
+        immediateEffects: [
+          { stat: 'teachingSatisfaction', value: 3 },
+          { stat: 'mental', value: -3 }
+        ],
+        hiddenFlags: ['arc_openclass_research'],
+        followUpEvents: ['evt_arc_openclass_02_research'],
+        resultText: '부담은 크지만, 오랜만에 수업 하나에 제대로 몰입해볼 기회라는 생각도 듭니다.'
+      },
+      {
+        id: 'choice_arc_openclass_01_2',
+        text: '어차피 한 번 보여주고 끝나는 자리이니, 화려하게 보이는 데 주력하기로 한다.',
+        intent: '보여주기식',
+        immediateEffects: [
+          { stat: 'hp', value: 2 },
+          { stat: 'educationSoshin', value: -3 }
+        ],
+        hiddenFlags: ['arc_openclass_showy'],
+        followUpEvents: ['evt_arc_openclass_02_showy'],
+        resultText: '내실보다 형식에 집중하기로 하니, 마음의 부담은 한결 가벼워집니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_arc_openclass_02_research',
+    dayRange: [1, 30],
+    title: '수업 지도안과의 씨름',
+    category: 'career',
+    situation: '자택',
+    narratorText: '며칠째 퇴근 후에도 수업 지도안을 붙잡고 있습니다. 아이들의 실제 반응을 예상하며 발문 하나하나를 다듬다 보니 시간 가는 줄 모릅니다. 그러던 중 동학년 선생님이 리허설을 도와주겠다고 제안합니다.',
+    weight: 999,
+    tags: ['공개수업', '서사 아크'],
+    choices: [
+      {
+        id: 'choice_arc_openclass_02r_1',
+        text: '제안을 감사히 받아들여 함께 모의 수업을 진행해본다.',
+        intent: '협업 리허설',
+        immediateEffects: [
+          { stat: 'expert', value: 6 },
+          { stat: 'colleagueRelation', value: 5 },
+          { stat: 'hp', value: -5 }
+        ],
+        hiddenFlags: ['arc_openclass_rehearsed_with_help'],
+        followUpEvents: ['evt_arc_openclass_03'],
+        resultText: '동료의 예리한 피드백 덕분에 놓치고 있던 부분들이 하나둘 보이기 시작합니다.'
+      },
+      {
+        id: 'choice_arc_openclass_02r_2',
+        text: '혼자 준비하는 편이 더 편하다며 정중히 사양하고 홀로 다듬는다.',
+        intent: '단독 준비',
+        immediateEffects: [
+          { stat: 'expert', value: 4 },
+          { stat: 'mental', value: -5 }
+        ],
+        hiddenFlags: ['arc_openclass_rehearsed_alone'],
+        followUpEvents: ['evt_arc_openclass_03'],
+        resultText: '외로운 작업이었지만, 스스로의 속도로 차근차근 완성도를 높여갑니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_arc_openclass_02_showy',
+    dayRange: [1, 30],
+    title: '화려한 자료 준비',
+    category: 'career',
+    situation: '자택',
+    narratorText: '멀티미디어 자료와 화려한 활동지 제작에 공을 들이고 있습니다. 내용의 깊이보다는 보이는 인상에 집중하다 보니, 정작 수업의 핵심 발문은 아직 다듬어지지 않았습니다.',
+    weight: 999,
+    tags: ['공개수업', '서사 아크'],
+    choices: [
+      {
+        id: 'choice_arc_openclass_02s_1',
+        text: '뒤늦게라도 발문과 수업 흐름을 점검하며 내실을 보완한다.',
+        intent: '뒤늦은 보완',
+        immediateEffects: [
+          { stat: 'expert', value: 3 },
+          { stat: 'hp', value: -5 },
+          { stat: 'mental', value: -5 }
+        ],
+        hiddenFlags: ['arc_openclass_late_fix'],
+        followUpEvents: ['evt_arc_openclass_03'],
+        resultText: '늦었지만 조금이라도 내실을 채우고 나니 마음이 한결 놓입니다.'
+      },
+      {
+        id: 'choice_arc_openclass_02s_2',
+        text: '이미 준비한 화려한 자료만 믿고 그대로 밀어붙인다.',
+        intent: '형식 밀어붙이기',
+        immediateEffects: [
+          { stat: 'hp', value: 3 },
+          { stat: 'expert', value: -3 }
+        ],
+        hiddenFlags: ['arc_openclass_underprepared'],
+        followUpEvents: ['evt_arc_openclass_03'],
+        resultText: '준비는 끝냈다고 스스로를 다독이지만, 어딘가 불안한 마음은 가시지 않습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_arc_openclass_03',
+    dayRange: [1, 30],
+    title: '전날 밤, 마지막 리허설',
+    category: 'career',
+    situation: '자택',
+    narratorText: '공개수업을 하루 앞둔 밤입니다. 거울 앞에서 마지막으로 발문과 판서 순서를 되짚어봅니다. 그동안의 준비가 내일 얼마나 빛을 발할지, 스스로도 확신이 서지 않습니다.',
+    weight: 999,
+    tags: ['공개수업', '서사 아크'],
+    choices: [
+      {
+        id: 'choice_arc_openclass_03_1',
+        text: '지금까지의 준비를 믿고, 마음을 가다듬으며 충분히 잠을 청한다.',
+        intent: '컨디션 관리 (성패가 갈리는 강수)',
+        successRate: 60,
+        immediateEffects: [
+          { stat: 'mental', value: 5 }
+        ],
+        successResultText: '푹 자고 일어나니 머리가 맑습니다. 어제 다듬은 수업 흐름이 또렷하게 정리되어 있습니다.',
+        failEffects: [
+          { stat: 'hp', value: -5 },
+          { stat: 'mental', value: -5 }
+        ],
+        failResultText: '긴장 탓인지 뒤척이다 겨우 선잠이 들었습니다. 개운치 않은 몸으로 아침을 맞습니다.',
+        hiddenFlags: ['arc_openclass_rested'],
+        followUpEvents: ['evt_arc_openclass_04_ready']
+      },
+      {
+        id: 'choice_arc_openclass_03_2',
+        text: '불안한 마음에 새벽까지 지도안을 몇 번이고 다시 훑어본다.',
+        intent: '벼락치기 점검',
+        immediateEffects: [
+          { stat: 'expert', value: 3 },
+          { stat: 'hp', value: -8 },
+          { stat: 'mental', value: -5 }
+        ],
+        hiddenFlags: ['arc_openclass_overworked'],
+        followUpEvents: ['evt_arc_openclass_04_ready'],
+        resultText: '내용은 한 번 더 다졌지만, 몸은 이미 피로가 쌓일 대로 쌓였습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_arc_openclass_04_ready',
+    dayRange: [1, 30],
+    title: '공개수업 당일 아침',
+    category: 'career',
+    situation: '교실',
+    narratorText: '드디어 공개수업 당일입니다. 참관하러 온 학부모와 동료 교사들이 교실 뒤편에 자리를 잡기 시작합니다. 그동안 쌓아온 준비가 오늘 판가름 날 것입니다.',
+    weight: 999,
+    tags: ['공개수업', '서사 아크'],
+    choices: [
+      {
+        id: 'choice_arc_openclass_04_1',
+        text: '심호흡을 하고, 준비한 대로 차분히 수업을 시작한다.',
+        intent: '실전 돌입',
+        immediateEffects: [
+          { stat: 'teachingSatisfaction', value: 5 },
+          { stat: 'mental', value: -3 }
+        ],
+        hiddenFlags: ['arc_openclass_completed'],
+        resultText: '길었던 준비 과정을 뒤로하고, 이제는 교실 안의 아이들과 오늘의 수업에만 집중할 시간입니다. (이번 주 금요일 저녁의 공개수업 판정에 그동안의 준비가 반영됩니다.)'
+      }
+    ]
   }
 ];

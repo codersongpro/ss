@@ -81,6 +81,13 @@ export interface GameChoice {
 
   // [NEW] 선택 시 인벤토리에 추가될 아이템 id (어드벤처 요소)
   grantsItem?: string;
+
+  // [WO-17] 이 선택지를 골랐을 때만 예약할 후속 이벤트 id 목록. 지정하면 이벤트 레벨의
+  // GameEvent.followUpEvents보다 우선한다 — 같은 이벤트라도 어떤 선택을 했는지에 따라
+  // 다른 후속 전개(예: 신뢰 vs 방치)로 갈라지는 서사 아크를 데이터만으로 표현할 수 있게 한다.
+  followUpEvents?: string[];
+  // [WO-17] successRate 판정에 실패했을 때만 예약할 후속 이벤트. 지정하지 않으면 followUpEvents를 그대로 쓴다.
+  failFollowUpEvents?: string[];
 }
 
 // 소지품/아이템 (어드벤처 요소). 이벤트·선택지의 prerequisites에 'item:아이템id' 형태로
