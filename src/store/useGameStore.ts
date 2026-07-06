@@ -224,8 +224,10 @@ const getEventValence = (evt: GameEvent): EventValence => {
 };
 
 // 채널 통일 목표 긍정 비율. 위기 상태(멘탈 급락/번아웃 급증)에는 완화를 위해 긍정 비중을 추가로 끌어올린다.
+// [WO-13] 완화 개입 조건을 mental<30/burnout>80에서 mental<20/burnout>90으로 좁혔다 — 예전 조건은
+// 너무 일찍 개입해 회복 삼중 안전망(보건실+정시퇴근 보너스)과 겹치며 사실상 죽을 수 없는 게임을 만들었다.
 const getTargetPositiveRatio = (stats: Stats): number => {
-  const inCrisis = stats.mental < 30 || stats.burnout > 80;
+  const inCrisis = stats.mental < 20 || stats.burnout > 90;
   return inCrisis ? 0.55 : 0.35;
 };
 
@@ -1298,13 +1300,31 @@ export const useGameStore = create<GameState>()(
             const penaltyStats = { ...get().stats };
             const penaltyMessages: string[] = [];
 
-            // [NEW] 칼퇴(일반 퇴근) 시 힐링 보너스 (평일인 경우만 적용)
+            // [WO-13] 칼퇴(일반 퇴근) 시 힐링 보너스 (평일 + 당일 미결 업무 0건일 때만 적용)
+            // 과거에는 조건 없이 매일 지급되어 회복 삼중 안전망의 한 축이 되었다 — 업무를 다 처리한 날에만
+            // 주는 보상으로 바꿔, "일을 미뤄도 어차피 매일 회복된다"는 감각을 없앤다.
             const isWeekend = day % 7 === 6 || day % 7 === 0;
-            if (!isWeekend) {
+            const hasIncompleteTasks = tasks.some(t => !t.isCompleted);
+            if (!isWeekend && !hasIncompleteTasks) {
               penaltyStats.hp = clamp(penaltyStats.hp + 5);
               penaltyStats.mental = clamp(penaltyStats.mental + 5);
               penaltyStats.burnout = clamp(penaltyStats.burnout - 5);
-              penaltyMessages.push(`[정시 퇴근 보너스] 야근 없이 정시 퇴근하여 건강 +5, 멘탈 +5 회복 및 번아웃 -5 감소했습니다.`);
+              penaltyMessages.push(`[정시 퇴근 보너스] 오늘 업무를 모두 마치고 정시 퇴근하여 건강 +5, 멘탈 +5 회복 및 번아웃 -5 감소했습니다.`);
+            }
+
+            // [WO-13] 기본 일일 소모 — 회복 수단이 아무리 좋아도 교직은 가만히 있어도 닳는다.
+            // 난이도별 차등: warm(쉬움) 없음, realistic(보통) hp-3/번아웃+2, hard(어려움) hp-5/번아웃+3.
+            if (!isWeekend) {
+              const attrition = playerInfo?.difficulty === 'warm'
+                ? { hp: 0, burnout: 0 }
+                : playerInfo?.difficulty === 'hard'
+                ? { hp: 5, burnout: 3 }
+                : { hp: 3, burnout: 2 };
+              if (attrition.hp > 0 || attrition.burnout > 0) {
+                penaltyStats.hp = clamp(penaltyStats.hp - attrition.hp);
+                penaltyStats.burnout = clamp(penaltyStats.burnout + attrition.burnout);
+                penaltyMessages.push(`[일일 소모] 하루 종일 이어진 수업과 잡무로 건강 -${attrition.hp}, 번아웃 +${attrition.burnout} 누적되었습니다.`);
+              }
             }
 
             // 1) 미결 업무 방치 패널티 정산 [WO-06]
@@ -1942,6 +1962,9 @@ export const useGameStore = create<GameState>()(
           return;
         }
 
+        // [WO-12] 이 행동을 오늘 몇 번째로 실행하는지 미리 계산해둔다 (health_rest의 WO-13 일일 상한 판정에도 재사용).
+        const timesToday = (dailyActionCounts[actionType] || 0) + 1;
+
         let effects: StatEffect[] = [];
         let msg = '';
 
@@ -1962,12 +1985,19 @@ export const useGameStore = create<GameState>()(
           ];
           msg = '교무실 책상에 앉아 밀려오는 교육청 기안 공문을 신속히 처리했습니다. 행정 역량이 증가했으나 번아웃이 늘었습니다.';
         } else if (actionType === 'health_rest') {
-          effects = [
-            { stat: 'hp', value: 15 },
-            { stat: 'mental', value: 10 },
-            { stat: 'burnout', value: -10 }
-          ];
-          msg = '보건실 안락의자와 온열 매트 위에서 짧은 낮잠을 자며 피로를 풀었습니다. 건강 지표가 회복됩니다.';
+          // [WO-13] 보건실은 무한 회복 수단이었다 — 하루 2회까지만 실제로 회복되고,
+          // 3회째부터는 효과 없이 TP만 소모된다(양호 선생님이 꾀병을 의심).
+          if (timesToday > 2) {
+            effects = [];
+            msg = '양호 선생님이 "오늘 벌써 두 번째인데, 혹시 꾀병 아니에요?"라며 눈을 흘깁니다. 더 이상의 휴식은 허락되지 않았습니다.';
+          } else {
+            effects = [
+              { stat: 'hp', value: 15 },
+              { stat: 'mental', value: 10 },
+              { stat: 'burnout', value: -10 }
+            ];
+            msg = '보건실 안락의자와 온열 매트 위에서 짧은 낮잠을 자며 피로를 풀었습니다. 건강 지표가 회복됩니다.';
+          }
         } else if (actionType === 'playground_train') {
           effects = [
             { stat: 'hp', value: 10 },
@@ -2052,7 +2082,6 @@ export const useGameStore = create<GameState>()(
         // [WO-12] 같은 장소 행동을 오늘 몇 번째 반복하는지에 따라 "이득" 효과에만 체감(디미니싱 리턴)을
         // 적용한다: 1~2회째 100%, 3회째 50%, 4회째부터 25%. 손해(비용) 효과는 배율 없이 그대로 적용해
         // 반복할수록 순손실이 커지게 함으로써 "같은 행동 반복이 항상 최적"인 상태를 깬다.
-        const timesToday = (dailyActionCounts[actionType] || 0) + 1;
         const efficiency = timesToday <= 2 ? 1 : timesToday === 3 ? 0.5 : 0.25;
 
         const newStats = { ...stats };
@@ -3310,12 +3339,13 @@ export const useGameStore = create<GameState>()(
 
       // [NEW] 퇴근 대신 야근하기 선택 시 처리
       overtimeWork: () => {
-        const { 
-          day, 
-          timeOfDay, 
+        const {
+          day,
+          timeOfDay,
           maxActionPoints,
           tasks,
-          stats
+          stats,
+          playerInfo
         } = get();
 
         // 정산 시간대(summary)가 아니면 무시
@@ -3344,6 +3374,21 @@ export const useGameStore = create<GameState>()(
           const { messengerNotifications, phoneAndTextNotifications } = get();
           const overdueTasks = tasks.filter(t => !t.isCompleted && t.deadlineDay < nextDay);
           const penaltyMessages: string[] = [];
+
+          // [WO-13] 기본 일일 소모 — progressTime의 정산 로직과 동일하게 야근한 날도 하루의 기본 소모는 적용된다.
+          const isWeekend = day % 7 === 6 || day % 7 === 0;
+          if (!isWeekend) {
+            const attrition = playerInfo?.difficulty === 'warm'
+              ? { hp: 0, burnout: 0 }
+              : playerInfo?.difficulty === 'hard'
+              ? { hp: 5, burnout: 3 }
+              : { hp: 3, burnout: 2 };
+            if (attrition.hp > 0 || attrition.burnout > 0) {
+              overtimeStats.hp = clamp(overtimeStats.hp - attrition.hp);
+              overtimeStats.burnout = clamp(overtimeStats.burnout + attrition.burnout);
+              penaltyMessages.push(`[일일 소모] 하루 종일 이어진 수업과 잡무로 건강 -${attrition.hp}, 번아웃 +${attrition.burnout} 누적되었습니다.`);
+            }
+          }
 
           // 2) 미결 업무 방치 패널티 정산 [WO-06] — progressTime의 정산 로직과 동일하게 감쇠·자동 종결 적용
           const autoResolvedTaskIds: string[] = [];
@@ -3481,7 +3526,6 @@ export const useGameStore = create<GameState>()(
           }
 
           // 다음 날이 주말(토, 일)인지 확인하여 주말 힐링 이벤트 설정
-          const { playerInfo } = get();
           const isNextDayWeekend = nextDay % 7 === 6 || nextDay % 7 === 0;
           const nextEvent = isNextDayWeekend ? getWeekendHealingEvent(nextDay, playerInfo?.familyState) : null;
 
