@@ -7,6 +7,9 @@ interface EndingGalleryProps {
 }
 
 export const EndingGallery: React.FC<EndingGalleryProps> = ({ onBackToTitle }) => {
+  // [WO-20] native confirm() 대신 쓰는 초기화 확인 모달 상태
+  const [showResetConfirm, setShowResetConfirm] = React.useState(false);
+
   // 로컬스토리지에 저장된 해금 엔딩 리스트 로드
   const unlockedStr = localStorage.getItem('teacher-maker-unlocked-endings') || '[]';
   let unlockedList: string[] = [];
@@ -209,12 +212,13 @@ export const EndingGallery: React.FC<EndingGalleryProps> = ({ onBackToTitle }) =
     }
   ];
 
-  // 도감 초기화 헬퍼
+  // 도감 초기화 헬퍼 — [WO-20] native confirm() 대신 확인 모달을 띄우고, 실제 초기화는 모달의 확인 클릭 시 수행
   const handleClearGallery = () => {
-    if (confirm('해금 도감을 모두 초기화하시겠습니까? 클리어 기록이 전부 사라집니다.')) {
-      localStorage.removeItem('teacher-maker-unlocked-endings');
-      window.location.reload();
-    }
+    setShowResetConfirm(true);
+  };
+  const handleConfirmClearGallery = () => {
+    localStorage.removeItem('teacher-maker-unlocked-endings');
+    window.location.reload();
   };
 
   return (
@@ -314,6 +318,31 @@ export const EndingGallery: React.FC<EndingGalleryProps> = ({ onBackToTitle }) =
         </div>
 
       </div>
+
+      {/* [WO-20] native confirm() 대체 초기화 확인 모달 */}
+      {showResetConfirm && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white border-4 border-black rounded-2xl p-6 max-w-sm w-full shadow-school-deep">
+            <p className="text-sm font-semibold text-slate-800 leading-relaxed mb-5">
+              해금 도감을 모두 초기화하시겠습니까? 클리어 기록이 전부 사라집니다.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 rounded-xl border-2 border-black text-sm active:translate-y-0.5 shadow-school-press"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleConfirmClearGallery}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl border-2 border-black text-sm active:translate-y-0.5 shadow-school-press"
+              >
+                초기화
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useGameStore, getEndingCompass, TRUE_MENTOR_STORY_ITEMS } from '@/store/useGameStore';
 import type { TimeOfDay } from '@/store/useGameStore';
 import { 
@@ -119,7 +119,8 @@ const StatChangeBriefing: React.FC<{ prev: any; current: any }> = ({ prev, curre
 // 타이핑 효과를 구현하기 위한 컴포넌트 [NEW]
 const TypewriterText: React.FC<{ text: string; speed?: number }> = ({ text, speed = 15 }) => {
   const [displayedText, setDisplayedText] = useState('');
-  
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   useEffect(() => {
     setDisplayedText('');
     let index = 0;
@@ -128,13 +129,31 @@ const TypewriterText: React.FC<{ text: string; speed?: number }> = ({ text, spee
       index++;
       if (index >= text.length) {
         clearInterval(timer);
+        timerRef.current = null;
       }
     }, speed);
-    
-    return () => clearInterval(timer);
+    timerRef.current = timer;
+
+    return () => {
+      clearInterval(timer);
+      timerRef.current = null;
+    };
   }, [text, speed]);
-  
-  return <span className="whitespace-pre-line">{displayedText}</span>;
+
+  // [WO-20] 첫 클릭에 타자기 연출을 건너뛰고 전체 문장을 즉시 표시한다 (기존에는 스킵 수단이 없었다).
+  const handleSkip = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    setDisplayedText(text);
+  };
+
+  return (
+    <span className="whitespace-pre-line cursor-pointer" onClick={handleSkip} title="클릭하여 즉시 표시">
+      {displayedText}
+    </span>
+  );
 };
 
 // 스탯 키 → 한국어 라벨 (위 STAT_LABELS 중앙 매핑표를 재사용). 누락 시 키 그대로 반환. [NEW]
@@ -500,8 +519,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
   // 모바일용 스탯 설명 팝업 타겟 상태 [NEW]
   const [activeExplainStat, setActiveExplainStat] = useState<string | null>(null);
 
-  // 오늘 하루 번아웃 경고 팝업 가리기 상태 [NEW]
-  const [hideBurnoutWarningToday, setHideBurnoutWarningToday] = useState<boolean>(false);
+  // [WO-20] native confirm() 대신 쓰는 방치 경고 확인 모달 상태 (내용이 있으면 표시)
+  const [pendingNeglectWarning, setPendingNeglectWarning] = useState<string | null>(null);
 
   // 캐러셀 카드 통합 상태 및 핸들러 [NEW]
   const [currentCardIndex, setCurrentCardIndex] = useState<number>(0);
@@ -604,11 +623,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
     setCurrentCardIndex((prev) => (prev < combinedCards.length - 1 ? prev + 1 : 0));
   };
 
-  // 날짜가 변경되면 번아웃 경고 팝업 가리기 설정을 리셋합니다. [NEW]
-  useEffect(() => {
-    setHideBurnoutWarningToday(false);
-  }, [day]);
-
   // 1. 일반 선택지 클릭 래퍼 핸들러
   const handleSelectChoice = (choice: any) => {
     setPrevStats({ ...stats });
@@ -667,10 +681,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
       const unreadPhones = phoneAndTextNotifications.filter(p => !p.isRead);
 
       if (overdueTasks.length > 0 || unreadMessengers.length > 0 || unreadPhones.length > 0) {
-        const confirmMsg = `⚠️ [방치 경고] 아직 확인하지 않은 메신저(${unreadMessengers.length}건), 스마트폰 연락(${unreadPhones.length}건) 혹은 미결된 마감 업무(${overdueTasks.length}건)가 남아있습니다.\n\n이대로 퇴근하여 날을 넘길 시, 다음 날 아침에 핵심 교사 역량 스탯에 심각한 부정적 패널티가 가해질 수 있습니다.\n\n정말로 퇴근을 진행하시겠습니까?`;
-        if (!window.confirm(confirmMsg)) {
-          return;
-        }
+        const confirmMsg = `아직 확인하지 않은 메신저(${unreadMessengers.length}건), 스마트폰 연락(${unreadPhones.length}건) 혹은 미결된 마감 업무(${overdueTasks.length}건)가 남아있습니다.\n\n이대로 퇴근하여 날을 넘길 시, 다음 날 아침에 핵심 교사 역량 스탯에 심각한 부정적 패널티가 가해질 수 있습니다.\n\n정말로 퇴근을 진행하시겠습니까?`;
+        // [WO-20] native confirm() 대신 확인 모달을 띄우고, 실제 진행은 모달의 확인 클릭 시 수행한다.
+        setPendingNeglectWarning(confirmMsg);
+        return;
       }
     }
     progressTime();
@@ -2529,24 +2543,75 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
 
       </main>
 
-      {/* ☀️ 새 아침 브리핑 팝업 모달 (미처리 방치 패널티 결과 보고) */}
-      {timeOfDay === 'morning' && dayEffectsTriggered.length > 0 && (
+      {/* [WO-20] native confirm() 대체 방치 경고 확인 모달 */}
+      {pendingNeglectWarning && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white border-4 border-amber-500 rounded-2xl p-6 max-w-md w-full shadow-school-deep">
+            <h3 className="text-base font-school font-extrabold text-amber-700 flex items-center gap-1.5 mb-3">
+              <AlertTriangle className="w-5 h-5" /> 방치 경고
+            </h3>
+            <p className="text-sm font-semibold text-slate-800 leading-relaxed whitespace-pre-line mb-5">
+              {pendingNeglectWarning}
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPendingNeglectWarning(null)}
+                className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 rounded-xl border-2 border-black text-sm active:translate-y-0.5 shadow-school-press"
+              >
+                취소
+              </button>
+              <button
+                onClick={() => {
+                  setPendingNeglectWarning(null);
+                  progressTime();
+                }}
+                className="flex-1 bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-xl border-2 border-black text-sm active:translate-y-0.5 shadow-school-press"
+              >
+                퇴근 진행
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* [WO-20] ☀️ 아침 브리핑 모달 — 방치 패널티 보고 + 번아웃 경고를 하나로 통합
+          (기존에는 두 모달이 같은 아침에 따로 겹쳐 뜰 수 있어 모달 스팸이었다) */}
+      {timeOfDay === 'morning' && (
+        dayEffectsTriggered.length > 0 ||
+        (stats.burnout >= 100 && (useGameStore.getState().burnout100Days ?? 0) > 0 && !endingId)
+      ) && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-white border-4 border-slate-900 rounded-2xl p-6 max-w-lg w-full shadow-school-deep relative">
             <div className="border-b-2 border-slate-900 pb-3 mb-4">
               <h3 className="text-2xl font-school font-bold text-slate-900 flex items-center gap-2">
-                ☀️ 새 아침 브리핑 (어제 방치된 업무와 연락 결과)
+                ☀️ 새 아침 브리핑
               </h3>
-              <p className="text-sm text-slate-500 mt-1.5">어제 처리하지 않은 메신저, 스마트폰 연락, 마감 업무에 대한 정산 결과 보고입니다.</p>
+              <p className="text-sm text-slate-500 mt-1.5">어제 처리하지 않은 메신저, 스마트폰 연락, 마감 업무에 대한 정산 결과와 현재 상태 경고입니다.</p>
             </div>
 
-            <div className="max-h-65 overflow-y-auto space-y-2.5 mb-6 pr-1">
+            <div className="max-h-96 overflow-y-auto space-y-2.5 mb-6 pr-1">
               {dayEffectsTriggered.map((msg, idx) => (
                 <div key={idx} className="bg-rose-50 border border-rose-300 rounded-xl p-4 text-sm text-rose-900 flex items-start gap-2.5 shadow-sm">
                   <AlertTriangle className="w-5 h-5 flex-shrink-0 text-rose-600 mt-0.5" />
                   <span className="leading-relaxed font-semibold">{msg}</span>
                 </div>
               ))}
+
+              {stats.burnout >= 100 && (useGameStore.getState().burnout100Days ?? 0) > 0 && !endingId && (
+                <div className="bg-red-50 border-2 border-red-400 rounded-xl p-4 text-sm text-red-900 space-y-2">
+                  <div className="flex items-center gap-2 font-extrabold text-red-700">
+                    <AlertTriangle className="w-5 h-5 flex-shrink-0 animate-bounce" />
+                    🚨 번아웃 임계치 도달 경고 🚨
+                  </div>
+                  <p>현재 번아웃 수치가 <strong>100%</strong>에 도달한 상태가 이어지고 있습니다.</p>
+                  <p className="font-bold">
+                    • 100% 지속 일수: <span className="text-red-600">{(useGameStore.getState().burnout100Days ?? 0)}일차</span>
+                    {' · '}남은 유예: <span className="text-red-600">{Math.max(0, 3 - (useGameStore.getState().burnout100Days ?? 0))}일</span>
+                  </p>
+                  <p className="font-extrabold">※ 연속 3일째 밤 정산까지 해소되지 않으면 탈진 퇴직(게임 오버) 처리됩니다!</p>
+                  <p className="text-red-700/80 font-medium">보건실 휴식, 가족과의 시간, 동료에게 업무 위임 등으로 번아웃을 100% 미만으로 낮춰주세요.</p>
+                </div>
+              )}
             </div>
 
             <button
@@ -3070,49 +3135,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
           </div>
         );
       })()}
-
-      {/* 번아웃 임계 도달 연속 경고 팝업 [NEW] */}
-      {stats.burnout >= 100 && (useGameStore.getState().burnout100Days ?? 0) > 0 && !endingId && !hideBurnoutWarningToday && (
-        <div className="fixed inset-0 z-[1140] bg-red-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-white border-4 border-red-650 rounded-2xl p-6 max-w-md w-full shadow-school-deep text-slate-850 relative">
-            <div className="border-b-2 border-red-600 pb-3 mb-4 text-center">
-              <AlertTriangle className="w-12 h-12 text-red-600 mx-auto animate-bounce mb-2" />
-              <h3 className="text-xl font-school font-extrabold text-red-750">
-                🚨 번아웃 임계치 도달 경고 🚨
-              </h3>
-            </div>
-            
-            <div className="text-xs leading-relaxed text-slate-650 space-y-3 font-semibold break-keep text-left">
-              <p className="bg-red-50 text-red-900 p-3 rounded-lg border border-red-200">
-                현재 번아웃 수치가 <strong className="text-red-650 text-sm font-extrabold">100%</strong>에 도달했습니다!
-              </p>
-              <p>
-                체력 충전이나 업무 결재 처리에 집중하지 않아 번아웃이 임계치인 100%에 머무는 기간이 길어지고 있습니다.
-              </p>
-              <p className="bg-amber-50 text-amber-900 p-2 rounded border border-amber-200 font-bold">
-                • 현재 100% 지속 일수: <span className="text-red-600 font-extrabold">{(useGameStore.getState().burnout100Days ?? 0)}일차</span>
-                <br />
-                • 남은 유예 기간: <span className="text-red-650 font-extrabold">{Math.max(0, 3 - (useGameStore.getState().burnout100Days ?? 0))}일</span>
-              </p>
-              <p className="text-red-600 font-extrabold">
-                ※ 번아웃 100% 상태가 연속 3일째 밤 정산에서 해소되지 않으면, 탈진 퇴직(게임 오버) 처리가 됩니다!
-              </p>
-              <p className="text-slate-500 font-medium">
-                오늘 저녁 가족과의 시간을 보내거나, 보건실에서 휴식을 취하거나, 동료에게 업무를 적절히 분배하여 번아웃 수치를 100% 미만으로 낮추어 주십시오.
-              </p>
-            </div>
-
-            <div className="mt-6 flex flex-col gap-2">
-              <button
-                onClick={() => setHideBurnoutWarningToday(true)}
-                className="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-2.5 rounded-xl border-2 border-black text-xs active:translate-y-0.5 shadow-school-press cursor-pointer"
-              >
-                경고 확인 (오늘 하루 이 팝업 닫기)
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* iorad 스타일 첫날 튜토리얼 오버레이 */}
       {isTutorialActive && (

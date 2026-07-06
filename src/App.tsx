@@ -15,6 +15,8 @@ function App() {
   const { gameStarted, endingId, resetGame, startGame, bgmVolume, setBgmVolume } = useGameStore();
   const [viewState, setViewState] = useState<ViewState>('title');
   const [tempPlayerInfo, setTempPlayerInfo] = useState<PlayerInfo | null>(null);
+  // [WO-20] native confirm() 대신 쓰는 타이틀 화면 이탈 확인 모달 상태
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   const toggleVolume = () => {
     const nextVolume = (bgmVolume + 1) % 6;
@@ -119,11 +121,7 @@ function App() {
 
       {viewState === 'playing' && (
         <DashboardLayout
-          onExitGame={() => {
-            if (confirm('현재 진행 상황이 안전하게 저장됩니다. 타이틀 화면으로 나갈까요?')) {
-              setViewState('title');
-            }
-          }}
+          onExitGame={() => setShowExitConfirm(true)}
         />
       )}
 
@@ -137,6 +135,34 @@ function App() {
         <EndingGallery
           onBackToTitle={() => setViewState('title')}
         />
+      )}
+
+      {/* [WO-20] native confirm() 대체 이탈 확인 모달 */}
+      {showExitConfirm && (
+        <div className="fixed inset-0 z-[1200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white border-4 border-black rounded-2xl p-6 max-w-sm w-full shadow-school-deep">
+            <p className="text-sm font-semibold text-slate-800 leading-relaxed mb-5">
+              현재 진행 상황이 안전하게 저장됩니다. 타이틀 화면으로 나갈까요?
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowExitConfirm(false)}
+                className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 rounded-xl border-2 border-black text-sm active:translate-y-0.5 shadow-school-press"
+              >
+                취소
+              </button>
+              <button
+                onClick={() => {
+                  setShowExitConfirm(false);
+                  setViewState('title');
+                }}
+                className="flex-1 btn-school-accent py-2.5 font-bold text-sm"
+              >
+                나가기
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

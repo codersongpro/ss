@@ -15,6 +15,9 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
   onContinueGame,
 }) => {
   const { gameStarted, resetGame } = useGameStore();
+  // [WO-20] native alert()/confirm() 대신 쓰는 안내·확인 모달 상태
+  const [noticeMessage, setNoticeMessage] = React.useState<string | null>(null);
+  const [showNewGameConfirm, setShowNewGameConfirm] = React.useState(false);
 
   // 기존 저장 데이터 여부 확인 (Zustand persist 스토어에서 읽어옴)
   const handleContinue = () => {
@@ -24,7 +27,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
     if (gameStarted) {
       onContinueGame();
     } else {
-      alert('저장된 게임이 없습니다. 새 게임을 시작해 주세요!');
+      setNoticeMessage('저장된 게임이 없습니다. 새 게임을 시작해 주세요!');
     }
   };
 
@@ -88,12 +91,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
 
           {gameStarted && (
             <button
-              onClick={() => {
-                if (confirm('진행 중인 모든 기록이 초기화됩니다. 정말 새 게임을 시작할까요?')) {
-                  resetGame();
-                  handleStartNew();
-                }
-              }}
+              onClick={() => setShowNewGameConfirm(true)}
               className="flex-1 min-w-[160px] btn-school-secondary flex items-center justify-center gap-2 py-3 px-6 text-lg text-slate-700 whitespace-nowrap"
             >
               <RotateCcw className="w-5 h-5" />
@@ -120,6 +118,50 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
           </p>
         </div>
       </div>
+
+      {/* [WO-20] native alert() 대체 안내 모달 */}
+      {noticeMessage && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white border-4 border-black rounded-2xl p-6 max-w-sm w-full shadow-school-deep">
+            <p className="text-sm font-semibold text-slate-800 leading-relaxed mb-5">{noticeMessage}</p>
+            <button
+              onClick={() => setNoticeMessage(null)}
+              className="w-full btn-school-accent py-2.5 font-bold text-sm"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* [WO-20] native confirm() 대체 새 게임 확인 모달 */}
+      {showNewGameConfirm && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white border-4 border-black rounded-2xl p-6 max-w-sm w-full shadow-school-deep">
+            <p className="text-sm font-semibold text-slate-800 leading-relaxed mb-5">
+              진행 중인 모든 기록이 초기화됩니다. 정말 새 게임을 시작할까요?
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowNewGameConfirm(false)}
+                className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 rounded-xl border-2 border-black text-sm active:translate-y-0.5 shadow-school-press"
+              >
+                취소
+              </button>
+              <button
+                onClick={() => {
+                  setShowNewGameConfirm(false);
+                  resetGame();
+                  handleStartNew();
+                }}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl border-2 border-black text-sm active:translate-y-0.5 shadow-school-press"
+              >
+                새 게임 시작
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

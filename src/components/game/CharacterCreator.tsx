@@ -10,6 +10,8 @@ interface CharacterCreatorProps {
 
 export const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onBackToTitle, onComplete }) => {
   const [step, setStep] = useState(1);
+  // [WO-20] 커스텀 UI와 어울리지 않는 native alert() 대신 쓰는 안내 모달 상태
+  const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
 
   // 캐릭터 기본 폼 상태
   const [name, setName] = useState('');
@@ -67,7 +69,7 @@ export const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onBackToTitl
       setSelectedTraits(selectedTraits.filter(t => t !== traitName));
     } else {
       if (selectedTraits.length >= 2) {
-        alert('특성은 최대 2개까지만 선택할 수 있습니다.');
+        setNoticeMessage('특성은 최대 2개까지만 선택할 수 있습니다.');
         return;
       }
       setSelectedTraits([...selectedTraits, traitName]);
@@ -77,11 +79,11 @@ export const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onBackToTitl
   // 다음 단계 가기 검증
   const handleNext = () => {
     if (step === 1 && !name.trim()) {
-      alert('교사 이름 또는 별명을 입력해 주세요.');
+      setNoticeMessage('교사 이름 또는 별명을 입력해 주세요.');
       return;
     }
     if (step === 2 && selectedTraits.length !== 2) {
-      alert('자신을 상징할 초기 특성을 반드시 2개 선택해 주세요.');
+      setNoticeMessage('자신을 상징할 초기 특성을 반드시 2개 선택해 주세요.');
       return;
     }
     setStep(prev => prev + 1);
@@ -323,6 +325,21 @@ export const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onBackToTitl
           )}
         </div>
       </div>
+
+      {/* [WO-20] native alert() 대체 안내 모달 */}
+      {noticeMessage && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white border-4 border-black rounded-2xl p-6 max-w-sm w-full shadow-school-deep">
+            <p className="text-sm font-semibold text-slate-800 leading-relaxed mb-5">{noticeMessage}</p>
+            <button
+              onClick={() => setNoticeMessage(null)}
+              className="w-full btn-school-accent py-2.5 font-bold text-sm"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
