@@ -884,6 +884,151 @@ const getInitialTasks = (): Task[] => [
   }
 ];
 
+// ==========================================
+// [WO-15] 엔딩 판정 점수화
+// ==========================================
+// 기존 if/else 사다리는 우선순위가 고정돼 있어, 예컨대 classManagement>=85 하나만으로
+// 만족되는 학급경영 엔딩이 parentTrust/studentTrust/colleagueSolidarity 세 조건을 요구하는
+// 평화 조정자 엔딩을 구조적으로 가려버렸다(같은 스탯 조합이면 앞쪽이 항상 이김).
+// 조건을 모두 만족한 엔딩들 중 "달성도 점수"가 가장 높은 쪽을 고르는 방식으로 바꿔,
+// 더 구체적이고(조건이 많고) 더 초과 달성한 엔딩이 이기도록 한다.
+type EndingCondition =
+  | { stat: keyof Stats; op: '>=' | '>' | '<=' | '<'; threshold: number }
+  | { flag: string };
+
+interface EndingDefinition {
+  id: string;
+  tier: number; // 낮을수록 희귀/우선 (달성도 점수가 동점일 때만 타이브레이커로 사용)
+  conditions: EndingCondition[];
+}
+
+const conditionSatisfied = (cond: EndingCondition, stats: Stats, hiddenFlags: string[]): boolean => {
+  if ('flag' in cond) return hiddenFlags.includes(cond.flag);
+  const value = stats[cond.stat];
+  if (cond.op === '>=') return value >= cond.threshold;
+  if (cond.op === '>') return value > cond.threshold;
+  if (cond.op === '<=') return value <= cond.threshold;
+  return value < cond.threshold;
+};
+
+// 조건 하나를 얼마나 넉넉하게 만족했는지를 0~1.25 범위로 정규화한다.
+// >=/> 조건은 값이 임계치를 넘을수록, </<= 조건은 값이 임계치 아래로 여유 있을수록 점수가 높다.
+const conditionRatio = (cond: EndingCondition, stats: Stats): number => {
+  if ('flag' in cond) return 1; // 플래그 조건은 이분법이므로 고정 기여도
+  const value = Math.max(stats[cond.stat], 1);
+  const threshold = Math.max(cond.threshold, 1);
+  if (cond.op === '>=' || cond.op === '>') return Math.min(value / threshold, 1.25);
+  return Math.min(threshold / value, 1.25);
+};
+
+const scoreEnding = (def: EndingDefinition, stats: Stats): number => {
+  const n = def.conditions.length;
+  const sumRatio = def.conditions.reduce((sum, c) => sum + conditionRatio(c, stats), 0);
+  // 조건 수가 많을수록(더 구체적인 엔딩일수록) 소폭의 가산점을 준다.
+  return sumRatio / n + n * 0.1;
+};
+
+// 기존 사다리 순서를 tier로 그대로 이관 — 동점 타이브레이커 용도로만 쓰이므로 우선순위 의미는 약화된다.
+const ENDING_DEFINITIONS: EndingDefinition[] = [
+  { id: 'ending_legendary_mentor', tier: 1, conditions: [
+    { stat: 'studentTrust', op: '>=', threshold: 90 },
+    { stat: 'teachingSatisfaction', op: '>=', threshold: 80 }
+  ]},
+  { id: 'ending_labor_union_leader', tier: 2, conditions: [
+    { stat: 'educationSoshin', op: '>=', threshold: 85 },
+    { stat: 'colleagueSolidarity', op: '>=', threshold: 75 }
+  ]},
+  { id: 'ending_innovation_director', tier: 3, conditions: [
+    { stat: 'workCapacity', op: '>=', threshold: 80 },
+    { stat: 'teachingResearch', op: '>=', threshold: 80 }
+  ]},
+  // [WO-15] classManagement 임계치를 85->88로 올리고 parentComplaint<=30 조건을 추가해
+  // parentTrust/studentTrust/colleagueSolidarity 조합인 peacekeeper 엔딩과 구분되게 했다.
+  { id: 'ending_class_master', tier: 4, conditions: [
+    { stat: 'classManagement', op: '>=', threshold: 88 },
+    { stat: 'parentComplaint', op: '<=', threshold: 30 }
+  ]},
+  { id: 'ending_teaching_scholar', tier: 5, conditions: [
+    { stat: 'teachingResearch', op: '>=', threshold: 85 }
+  ]},
+  { id: 'ending_family_peacekeeper', tier: 6, conditions: [
+    { stat: 'familyRelation', op: '>=', threshold: 85 },
+    { stat: 'workCapacity', op: '<', threshold: 60 }
+  ]},
+  { id: 'ending_myway', tier: 7, conditions: [
+    { stat: 'educationSoshin', op: '>=', threshold: 80 },
+    { stat: 'interpersonal', op: '<', threshold: 40 }
+  ]},
+  { id: 'ending_supervisor', tier: 8, conditions: [
+    { stat: 'careerPoint', op: '>=', threshold: 30 },
+    { stat: 'adminPower', op: '>=', threshold: 70 },
+    { stat: 'educationSoshin', op: '>=', threshold: 60 }
+  ]},
+  { id: 'ending_administrator', tier: 9, conditions: [
+    { stat: 'adminTrust', op: '>=', threshold: 75 },
+    { stat: 'reputation', op: '>=', threshold: 70 },
+    { stat: 'colleagueRelation', op: '>=', threshold: 60 }
+  ]},
+  { id: 'ending_best_selling_author', tier: 10, conditions: [
+    { stat: 'expert', op: '>=', threshold: 80 },
+    { stat: 'teachingSatisfaction', op: '>=', threshold: 70 },
+    { stat: 'reputation', op: '>=', threshold: 70 }
+  ]},
+  { id: 'ending_expert', tier: 11, conditions: [
+    { stat: 'studentTrust', op: '>=', threshold: 80 },
+    { stat: 'expert', op: '>=', threshold: 75 },
+    { stat: 'educationSoshin', op: '>=', threshold: 70 }
+  ]},
+  { id: 'ending_innovator', tier: 12, conditions: [
+    { flag: 'innovation_tendency' },
+    { stat: 'expert', op: '>=', threshold: 70 },
+    { stat: 'reputation', op: '>=', threshold: 60 }
+  ]},
+  { id: 'ending_office_master', tier: 13, conditions: [
+    { stat: 'adminPower', op: '>=', threshold: 90 },
+    { stat: 'colleagueSolidarity', op: '>=', threshold: 80 }
+  ]},
+  { id: 'ending_peacekeeper', tier: 14, conditions: [
+    { stat: 'parentTrust', op: '>=', threshold: 80 },
+    { stat: 'studentTrust', op: '>=', threshold: 80 },
+    { stat: 'colleagueSolidarity', op: '>=', threshold: 70 }
+  ]},
+  { id: 'ending_family_first', tier: 15, conditions: [
+    { stat: 'familySatisfaction', op: '>=', threshold: 90 },
+    { stat: 'colleagueSolidarity', op: '>=', threshold: 60 },
+    { stat: 'hp', op: '>=', threshold: 70 }
+  ]},
+  { id: 'ending_coop_star', tier: 16, conditions: [
+    { stat: 'colleagueSolidarity', op: '>=', threshold: 90 },
+    { stat: 'colleagueRelation', op: '>=', threshold: 80 }
+  ]},
+  // [WO-15] burnout 임계치를 70->55로 완화 — 예전 70~89 밴드는 30일차에 정확히 맞추기 어려운 칼끝 조건이었다.
+  { id: 'ending_great_escapist', tier: 17, conditions: [
+    { stat: 'expert', op: '>=', threshold: 70 },
+    { stat: 'burnout', op: '>=', threshold: 55 },
+    { stat: 'educationSoshin', op: '>=', threshold: 75 }
+  ]},
+  // [WO-15] burnout>=90 조건은 번아웃 100 3일 게임오버가 먼저 발동해 사실상 사장된 엔딩이었다 — 75로 완화.
+  // hp<=15도 게임오버(hp<=0)에 앞서 도달하기 어려웠으므로 25로 완화. OR 조건이라 두 정의로 나눠 등록한다.
+  { id: 'ending_burnout', tier: 18, conditions: [
+    { stat: 'burnout', op: '>=', threshold: 75 }
+  ]},
+  { id: 'ending_burnout', tier: 18, conditions: [
+    { stat: 'hp', op: '<=', threshold: 25 }
+  ]},
+  { id: 'ending_family_rupture', tier: 19, conditions: [
+    { stat: 'familySatisfaction', op: '<=', threshold: 30 }
+  ]},
+  { id: 'ending_hobbyist', tier: 20, conditions: [
+    { stat: 'familySatisfaction', op: '>=', threshold: 80 },
+    { stat: 'mental', op: '>=', threshold: 75 },
+    { stat: 'expert', op: '<', threshold: 60 }
+  ]},
+  { id: 'ending_sustainable', tier: 21, conditions: [
+    { stat: 'familySatisfaction', op: '>=', threshold: 80 },
+    { stat: 'studentTrust', op: '>=', threshold: 50 }
+  ]}
+];
 
 export const useGameStore = create<GameState>()(
   persist(
@@ -1678,10 +1823,10 @@ export const useGameStore = create<GameState>()(
         if (currentEnding) return;
 
         const { stats, hiddenFlags, inventory } = get();
-        let finalEnding = 'ending_general'; // 기본 디폴트 평교사 엔딩
 
         // [NEW · 어드벤처] 0. 비밀 엔딩 '참된 스승' — 한 학기 동안 아이들이 건넨 흔적(서사 단서 아이템)을
         // 충분히 모으고(5종 중 4종 이상) 신뢰까지 쌓아야만 해금되는 최상위 히든 엔딩.
+        // 인벤토리 아이템 개수 조건이라 통합 스코어링 축과 성질이 달라 tier 0 최우선으로 별도 처리한다.
         const storyItems = ['jihun_letter', 'class_diary', 'class_council_charter', 'student_sketchbook', 'mystery_note'];
         const collectedStoryItems = storyItems.filter(id => inventory.includes(id)).length;
         if (collectedStoryItems >= 4 && stats.studentTrust >= 70) {
@@ -1689,130 +1834,24 @@ export const useGameStore = create<GameState>()(
           return;
         }
 
-        // 1. 전설의 멘토 엔딩 (학생 신뢰도 극상, 보람 극상)
-        if (stats.studentTrust >= 90 && stats.teachingSatisfaction >= 80) {
-          finalEnding = 'ending_legendary_mentor';
-        }
-        // 2. 교사 권익 수호 노조 의장 엔딩 (교육 소신 극상, 연대감 극상)
-        else if (stats.educationSoshin >= 85 && stats.colleagueSolidarity >= 75) {
-          finalEnding = 'ending_labor_union_leader';
-        }
-        // [신규] 2-1. 학교 혁신 장학관 엔딩 (업무능력 우수, 수업연구 우수)
-        else if (stats.workCapacity >= 80 && stats.teachingResearch >= 80) {
-          finalEnding = 'ending_innovation_director';
-        }
-        // [신규] 2-2. 학급 경영의 달인 엔딩 (학급운영 극상)
-        else if (stats.classManagement >= 85) {
-          finalEnding = 'ending_class_master';
-        }
-        // [신규] 2-3. 수업 연구의 대가 엔딩 (수업연구 극상)
-        else if (stats.teachingResearch >= 85) {
-          finalEnding = 'ending_teaching_scholar';
-        }
-        // [신규] 2-4. 가정 평화 수호자 엔딩 (가족관계 극상, 업무능력 낮음)
-        else if (stats.familyRelation >= 85 && stats.workCapacity < 60) {
-          finalEnding = 'ending_family_peacekeeper';
-        }
-        // [신규] 2-5. 독고다이 마이웨이 교사 엔딩 (교육소신 높음, 인간관계 낮음)
-        else if (stats.educationSoshin >= 80 && stats.interpersonal < 40) {
-          finalEnding = 'ending_myway';
-        }
-        // 3. 장학사 엔딩 (커리어 포인트, 행정력, 소신 우수)
-        // [WO-04] careerPoint 지급 총량 대비 40은 과도해 사실상 도달 불가 → 30으로 완화
-        else if (
-          stats.careerPoint >= 30 &&
-          stats.adminPower >= 70 &&
-          stats.educationSoshin >= 60
-        ) {
-          finalEnding = 'ending_supervisor';
-        }
-        // 4. 학교 관리자 엔딩 (관리자 신뢰도, 평판, 관계 우수)
-        else if (
-          stats.adminTrust >= 75 &&
-          stats.reputation >= 70 &&
-          stats.colleagueRelation >= 60
-        ) {
-          finalEnding = 'ending_administrator';
-        }
-        // 5. 베스트셀러 작가 교사 엔딩 (수업 전문성, 보람, 평판 우수)
-        else if (
-          stats.expert >= 80 &&
-          stats.teachingSatisfaction >= 70 &&
-          stats.reputation >= 70
-        ) {
-          finalEnding = 'ending_best_selling_author';
-        }
-        // 6. 원로 교육 전문가 엔딩 (학생 신뢰도, 전문성, 소신 우수)
-        else if (
-          stats.studentTrust >= 80 &&
-          stats.expert >= 75 &&
-          stats.educationSoshin >= 70
-        ) {
-          finalEnding = 'ending_expert';
-        }
-        // 7. 에듀테크 선도교사 혁신가 엔딩 (혁신 성향 및 전문성, 평판)
-        else if (
-          hiddenFlags.includes('innovation_tendency') &&
-          stats.expert >= 70 &&
-          stats.reputation >= 60
-        ) {
-          finalEnding = 'ending_innovator';
-        }
-        // 8. 공문서 행정의 신 엔딩 (행정역량 극상, 연대감 우수)
-        else if (stats.adminPower >= 90 && stats.colleagueSolidarity >= 80) {
-          finalEnding = 'ending_office_master';
-        }
-        // 9. 학교 갈등 중재 전문가 평화 조정자 엔딩 (학부모/학생 신뢰, 연대감)
-        else if (
-          stats.parentTrust >= 80 &&
-          stats.studentTrust >= 80 &&
-          stats.colleagueSolidarity >= 70
-        ) {
-          finalEnding = 'ending_peacekeeper';
-        }
-        // 10. 워라밸 종결자 가정 수호자 엔딩 (가정 만족 극상, 연대감, 체력 안정)
-        else if (
-          stats.familySatisfaction >= 90 &&
-          stats.colleagueSolidarity >= 60 &&
-          stats.hp >= 70
-        ) {
-          finalEnding = 'ending_family_first';
-        }
-        // 11. 인싸교사 동료애 스타 엔딩 (교직원 연대감 극상, 관계 우수)
-        else if (stats.colleagueSolidarity >= 90 && stats.colleagueRelation >= 80) {
-          finalEnding = 'ending_coop_star';
-        }
-        // 12. 에듀테크 창업가 대탈출 엔딩 (전문성, 번아웃, 소신 높음)
-        else if (
-          stats.expert >= 70 &&
-          stats.burnout >= 70 &&
-          stats.educationSoshin >= 75
-        ) {
-          finalEnding = 'ending_great_escapist';
-        }
-        // 13. 만성 번아웃 병가 엔딩 (번아웃 극상 또는 건강 악화)
-        else if (stats.burnout >= 90 || stats.hp <= 15) {
-          finalEnding = 'ending_burnout';
-        }
-        // 14. 무너진 가정 엔딩 (가정 만족도 극소)
-        else if (stats.familySatisfaction <= 30) {
-          finalEnding = 'ending_family_rupture';
-        }
-        // 15. 교문 밖의 예술가 취미 교사 엔딩 (가정 만족, 멘탈 양호, 수업 평범)
-        else if (
-          stats.familySatisfaction >= 80 &&
-          stats.mental >= 75 &&
-          stats.expert < 60
-        ) {
-          finalEnding = 'ending_hobbyist';
-        }
-        // 16. 지속 가능한 평교사 엔딩 (가정 만족도 양호, 학생 신뢰 양호)
-        else if (stats.familySatisfaction >= 80 && stats.studentTrust >= 50) {
-          finalEnding = 'ending_sustainable';
-        }
-        // 17. 디폴트 평교사로 마감
-        else {
-          finalEnding = 'ending_general';
+        // [WO-15] if/else 사다리(우선순위 고정) 대신, 조건을 모두 만족한 엔딩들 중
+        // 달성도 점수(scoreEnding)가 가장 높은 것을 고른다. 동점이면 tier가 낮은(원래 더 희귀했던) 쪽.
+        const qualifying = ENDING_DEFINITIONS.filter(def =>
+          def.conditions.every(c => conditionSatisfied(c, stats, hiddenFlags))
+        );
+
+        let finalEnding = 'ending_general'; // 어떤 엔딩 조건도 만족 못 하면 디폴트 평교사로 마감
+        if (qualifying.length > 0) {
+          let best = qualifying[0];
+          let bestScore = scoreEnding(best, stats);
+          for (const def of qualifying.slice(1)) {
+            const score = scoreEnding(def, stats);
+            if (score > bestScore || (score === bestScore && def.tier < best.tier)) {
+              best = def;
+              bestScore = score;
+            }
+          }
+          finalEnding = best.id;
         }
 
         set({ endingId: finalEnding });
