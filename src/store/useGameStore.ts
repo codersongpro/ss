@@ -18,6 +18,20 @@ import type {
   EventValence,
   DiscoveryLogEntry
 } from '@/game/types';
+import {
+  TOTAL_GAME_DAYS,
+  DIFFICULTY_TP,
+  TP_TRAIT_BONUS_STRONG_TEACHER,
+  LOW_HP_TP_PENALTY_THRESHOLD,
+  HIGH_BURNOUT_TP_PENALTY_THRESHOLD,
+  MIN_DAILY_TP,
+  OVERTIME_TP_BONUS,
+  ACTION_TP_COST,
+  HEALTH_REST_DAILY_CAP,
+  DAILY_ATTRITION_BY_DIFFICULTY,
+  RAMP_TOTAL_WEEKS,
+  FINAL_WEEK_START_DAY
+} from '@/game/constants';
 import { getItemById } from '@/data/items';
 import { initialStudents, initialParents } from '@/data/students';
 import { gameEvents } from '@/data/events';
@@ -224,7 +238,7 @@ const getEventValence = (evt: GameEvent): EventValence => {
 };
 
 // [WO-14] 30일을 7일 단위 5주차로 나눈 압박 램프의 주차 계수(1~5).
-const getWeekNumber = (day: number): number => Math.min(5, Math.max(1, Math.ceil(day / 7)));
+const getWeekNumber = (day: number): number => Math.min(RAMP_TOTAL_WEEKS, Math.max(1, Math.ceil(day / 7)));
 
 // 채널 통일 목표 긍정 비율. 위기 상태(멘탈 급락/번아웃 급증)에는 완화를 위해 긍정 비중을 추가로 끌어올린다.
 // [WO-13] 완화 개입 조건을 mental<30/burnout>80에서 mental<20/burnout>90으로 좁혔다 — 예전 조건은
@@ -1120,12 +1134,9 @@ export const useGameStore = create<GameState>()(
       startGame: (info: PlayerInfo) => {
         const initialStats = getInitialStats(info.difficulty, info.traits);
         
-        // 난이도에 따른 교사력(TP) 한도 조절
-        // warm(쉬움)=15, realistic(중간)=9, hard(어려움)=7
-        let maxTP = 9; // 기본값 = 중간 난이도
-        if (info.difficulty === 'warm') maxTP = 15;
-        if (info.difficulty === 'hard') maxTP = 7;
-        if (info.traits.includes('교사력왕')) maxTP += 2; // 특성 보너스: +2
+        // [WO-16] 난이도별 TP 한도는 game/constants.ts의 DIFFICULTY_TP가 단일 소스다.
+        let maxTP = DIFFICULTY_TP[info.difficulty];
+        if (info.traits.includes('교사력왕')) maxTP += TP_TRAIT_BONUS_STRONG_TEACHER;
 
         // Fisher-Yates 셔플 알고리즘으로 학생 풀 40명 셔플링
         const shuffledStudents = [...initialStudents];
@@ -1445,7 +1456,7 @@ export const useGameStore = create<GameState>()(
           // 정산 완료 후 -> 다음 날 아침으로 전이
           const nextDay = day + 1;
           
-          if (nextDay > 30) {
+          if (nextDay > TOTAL_GAME_DAYS) {
             // 30일 도달 시 게임 종료 및 엔딩 체크
             get().checkEndingConditions();
           } else {
@@ -1470,11 +1481,7 @@ export const useGameStore = create<GameState>()(
             // [WO-13] 기본 일일 소모 — 회복 수단이 아무리 좋아도 교직은 가만히 있어도 닳는다.
             // 난이도별 차등: warm(쉬움) 없음, realistic(보통) hp-3/번아웃+2, hard(어려움) hp-5/번아웃+3.
             if (!isWeekend) {
-              const attrition = playerInfo?.difficulty === 'warm'
-                ? { hp: 0, burnout: 0 }
-                : playerInfo?.difficulty === 'hard'
-                ? { hp: 5, burnout: 3 }
-                : { hp: 3, burnout: 2 };
+              const attrition = DAILY_ATTRITION_BY_DIFFICULTY[playerInfo?.difficulty ?? 'realistic'];
               if (attrition.hp > 0 || attrition.burnout > 0) {
                 penaltyStats.hp = clamp(penaltyStats.hp - attrition.hp);
                 penaltyStats.burnout = clamp(penaltyStats.burnout + attrition.burnout);
@@ -1555,11 +1562,11 @@ export const useGameStore = create<GameState>()(
               }
             });
 
-            // 매일 아침 교사력(TP) 갱신 (체력이 바닥이거나 번아웃이 극심하면 TP 차감)
+            // [WO-16] 매일 아침 교사력(TP) 갱신 (체력이 바닥이거나 번아웃이 극심하면 TP 차감) — 상수 단일 소스 사용
             let dailyTP = maxActionPoints;
-            if (penaltyStats.hp < 30) dailyTP -= 1;
-            if (penaltyStats.burnout > 80) dailyTP -= 1;
-            dailyTP = Math.max(1, dailyTP);
+            if (penaltyStats.hp < LOW_HP_TP_PENALTY_THRESHOLD) dailyTP -= 1;
+            if (penaltyStats.burnout > HIGH_BURNOUT_TP_PENALTY_THRESHOLD) dailyTP -= 1;
+            dailyTP = Math.max(MIN_DAILY_TP, dailyTP);
 
             // 5대 핵심 스탯 동기화 및 즉시 게임오버 검사
             const syncedStats = syncNewStats(penaltyStats);
@@ -1643,8 +1650,8 @@ export const useGameStore = create<GameState>()(
             const nextEvent = isNextDayWeekend ? getWeekendHealingEvent(nextDay, playerInfo?.familyState) : null;
 
             // [WO-14] 마지막 주(26~30일)에는 학기말 정산이 다가온다는 것을 서사적으로 알려 압박을 체감시킨다.
-            if (nextDay >= 26) {
-              penaltyMessages.push(`[학기말 정산 D-${30 - nextDay}] 한 학기의 끝이 다가오고 있습니다. 남은 기록과 평가가 마무리될 시간입니다.`);
+            if (nextDay >= FINAL_WEEK_START_DAY) {
+              penaltyMessages.push(`[학기말 정산 D-${TOTAL_GAME_DAYS - nextDay}] 한 학기의 끝이 다가오고 있습니다. 남은 기록과 평가가 마무리될 시간입니다.`);
             }
 
             set({
@@ -1765,7 +1772,7 @@ export const useGameStore = create<GameState>()(
         }
         // [WO-05] 위임도 부탁하러 다니는 실제 시간이 든다 — completeTask와 동일하게 TP를 소모시켜
         // "위임이 완료보다 항상 공짜로 저렴한" 경제 구멍을 막는다.
-        if (actionPoints < 1) {
+        if (actionPoints < ACTION_TP_COST) {
           get().showToast('교사력(TP)이 부족하여 업무를 위임할 수 없습니다.');
           return;
         }
@@ -1776,7 +1783,7 @@ export const useGameStore = create<GameState>()(
 
         set({
           tasks: tasks.map(t => t.id === taskId ? { ...t, isCompleted: true } : t),
-          actionPoints: actionPoints - 1,
+          actionPoints: actionPoints - ACTION_TP_COST,
           stats: syncNewStats(newStats)
         });
 
@@ -1904,7 +1911,7 @@ export const useGameStore = create<GameState>()(
         const { currentLocation, day, hiddenFlags, actionPoints, stats, students, inventory, recentEventDays } = get();
         const effectiveFlags = [...hiddenFlags, ...getTrustDerivedFlags(students)];
         if (!currentLocation) return;
-        if (actionPoints < 1) {
+        if (actionPoints < ACTION_TP_COST) {
           get().showToast('교사력(TP)이 부족하여 탐색할 수 없습니다.');
           return;
         }
@@ -1989,7 +1996,7 @@ export const useGameStore = create<GameState>()(
           : get().discoveryLog;
 
         set({
-          actionPoints: actionPoints - 1,
+          actionPoints: actionPoints - ACTION_TP_COST,
           currentEvent: selectedEvt,
           selectedChoice: null,
           eventResultText: null,
@@ -2016,7 +2023,7 @@ export const useGameStore = create<GameState>()(
         | 'grade_class_inspect'
       ) => {
         const { actionPoints, stats, day, recentLogs, dailyActionCounts } = get();
-        if (actionPoints < 1) {
+        if (actionPoints < ACTION_TP_COST) {
           get().showToast('교사력(TP)이 부족하여 행동을 수행할 수 없습니다.');
           return;
         }
@@ -2046,7 +2053,7 @@ export const useGameStore = create<GameState>()(
         } else if (actionType === 'health_rest') {
           // [WO-13] 보건실은 무한 회복 수단이었다 — 하루 2회까지만 실제로 회복되고,
           // 3회째부터는 효과 없이 TP만 소모된다(양호 선생님이 꾀병을 의심).
-          if (timesToday > 2) {
+          if (timesToday > HEALTH_REST_DAILY_CAP) {
             effects = [];
             msg = '양호 선생님이 "오늘 벌써 두 번째인데, 혹시 꾀병 아니에요?"라며 눈을 흘깁니다. 더 이상의 휴식은 허락되지 않았습니다.';
           } else {
@@ -2158,7 +2165,7 @@ export const useGameStore = create<GameState>()(
         ];
 
         set({
-          actionPoints: actionPoints - 1,
+          actionPoints: actionPoints - ACTION_TP_COST,
           stats: syncNewStats(newStats),
           recentLogs: updatedLogs,
           dailyActionCounts: { ...dailyActionCounts, [actionType]: timesToday }
@@ -2180,7 +2187,7 @@ export const useGameStore = create<GameState>()(
         }
 
         // 대화 시 체력 1 소모 체크
-        if (actionPoints < 1) {
+        if (actionPoints < ACTION_TP_COST) {
           get().showToast('교사력(TP)이 부족하여 NPC와 대화할 수 없습니다. 퇴근 후 다음 날로 진행하세요.');
           return;
         }
@@ -2279,7 +2286,7 @@ export const useGameStore = create<GameState>()(
         set({
           completedNpcDialoguesToday: nextCompletedToday,
           completedNpcEvents: updatedCompletedNpcEvents,
-          actionPoints: actionPoints - 1, // 체력 1 소모
+          actionPoints: actionPoints - ACTION_TP_COST, // 체력 1 소모
           npcDialogueSession: {
             npcId,
             npcName,
@@ -2397,7 +2404,7 @@ export const useGameStore = create<GameState>()(
         const { actionPoints, students, stats, day, recentLogs } = get();
 
         // 1. 교사력(TP) 체크
-        if (actionPoints < 1) {
+        if (actionPoints < ACTION_TP_COST) {
           get().showToast('교사력(TP)이 부족하여 학생을 지도할 수 없습니다.');
           return null;
         }
@@ -2596,7 +2603,7 @@ export const useGameStore = create<GameState>()(
         set({
           students: updatedStudents,
           stats: syncedStats,
-          actionPoints: actionPoints - 1,
+          actionPoints: actionPoints - ACTION_TP_COST,
           recentLogs: updatedLogs
         });
 
@@ -2796,7 +2803,7 @@ export const useGameStore = create<GameState>()(
         if (!target) return;
 
         // 메신저 이벤트 처리를 시작하려면 교사력이 최소 1이 필요합니다.
-        if (actionPoints < 1) {
+        if (actionPoints < ACTION_TP_COST) {
           get().showToast('교사력(TP)이 부족하여 메신저 요청을 처리할 수 없습니다. 다음 날로 넘어가 교사력을 회복하세요.');
           return;
         }
@@ -2894,7 +2901,7 @@ export const useGameStore = create<GameState>()(
         const { stats, recentLogs, day, actionPoints, completedParentEvents, activeMessengerEvent } = get();
         
         // 교사력 1TP 소모 체크
-        if (actionPoints < 1) {
+        if (actionPoints < ACTION_TP_COST) {
           get().showToast('교사력(TP)이 부족하여 메신저 사건을 완료할 수 없습니다.');
           return;
         }
@@ -2928,7 +2935,7 @@ export const useGameStore = create<GameState>()(
           set({
             stats: syncNewStats(newStats),
             recentLogs: updatedLogs,
-            actionPoints: actionPoints - 1, // 교사력 1TP 소모
+            actionPoints: actionPoints - ACTION_TP_COST, // 교사력 1TP 소모
             completedParentEvents: updatedCompletedParentEvents,
             activeMessengerEvent: {
               ...activeMessengerEvent,
@@ -3219,7 +3226,7 @@ export const useGameStore = create<GameState>()(
 
         // 부정 딜레마 알림(parent 또는 colleague) 처리를 시작하려면 교사력이 최소 1이 필요합니다.
         const isPositive = target.targetId.startsWith('positive_phone_text_');
-        if (!isPositive && actionPoints < 1) {
+        if (!isPositive && actionPoints < ACTION_TP_COST) {
           get().showToast('교사력(TP)이 부족하여 스마트폰 민원을 처리할 수 없습니다. 다음 날로 넘어가 교사력을 회복하세요.');
           return;
         }
@@ -3303,7 +3310,7 @@ export const useGameStore = create<GameState>()(
                            activePhoneAndTextEvent.id.startsWith('positive_student_');
 
         // 부정 딜레마인데 교사력이 없으면 진행 불가
-        if (!isPositive && actionPoints < 1) {
+        if (!isPositive && actionPoints < ACTION_TP_COST) {
           get().showToast('교사력(TP)이 부족하여 완료할 수 없습니다.');
           return;
         }
@@ -3424,7 +3431,7 @@ export const useGameStore = create<GameState>()(
 
         const nextDay = day + 1;
 
-        if (nextDay > 30) {
+        if (nextDay > TOTAL_GAME_DAYS) {
           // 30일 도달로 게임 종료 시, 야근 스탯 업데이트 및 엔딩 조건 판정
           set({ stats: syncNewStats(overtimeStats) });
           get().checkEndingConditions();
@@ -3437,11 +3444,7 @@ export const useGameStore = create<GameState>()(
           // [WO-13] 기본 일일 소모 — progressTime의 정산 로직과 동일하게 야근한 날도 하루의 기본 소모는 적용된다.
           const isWeekend = day % 7 === 6 || day % 7 === 0;
           if (!isWeekend) {
-            const attrition = playerInfo?.difficulty === 'warm'
-              ? { hp: 0, burnout: 0 }
-              : playerInfo?.difficulty === 'hard'
-              ? { hp: 5, burnout: 3 }
-              : { hp: 3, burnout: 2 };
+            const attrition = DAILY_ATTRITION_BY_DIFFICULTY[playerInfo?.difficulty ?? 'realistic'];
             if (attrition.hp > 0 || attrition.burnout > 0) {
               overtimeStats.hp = clamp(overtimeStats.hp - attrition.hp);
               overtimeStats.burnout = clamp(overtimeStats.burnout + attrition.burnout);
@@ -3514,11 +3517,11 @@ export const useGameStore = create<GameState>()(
             }
           });
 
-          // 5) 매일 아침 교사력(TP) 갱신 (야근 시 기본 TP에 +1 추가 보너스)
-          let dailyTP = maxActionPoints + 1;
-          if (overtimeStats.hp < 30) dailyTP -= 1;
-          if (overtimeStats.burnout > 80) dailyTP -= 1;
-          dailyTP = Math.max(1, dailyTP);
+          // [WO-16] 매일 아침 교사력(TP) 갱신 (야근 시 기본 TP에 보너스) — 상수 단일 소스 사용
+          let dailyTP = maxActionPoints + OVERTIME_TP_BONUS;
+          if (overtimeStats.hp < LOW_HP_TP_PENALTY_THRESHOLD) dailyTP -= 1;
+          if (overtimeStats.burnout > HIGH_BURNOUT_TP_PENALTY_THRESHOLD) dailyTP -= 1;
+          dailyTP = Math.max(MIN_DAILY_TP, dailyTP);
 
           // 6) 5대 핵심 스탯 동기화
           const syncedStats = syncNewStats(overtimeStats);
@@ -3592,8 +3595,8 @@ export const useGameStore = create<GameState>()(
           const nextEvent = isNextDayWeekend ? getWeekendHealingEvent(nextDay, playerInfo?.familyState) : null;
 
           // [WO-14] 마지막 주(26~30일)에는 학기말 정산이 다가온다는 것을 서사적으로 알려 압박을 체감시킨다.
-          if (nextDay >= 26) {
-            penaltyMessages.push(`[학기말 정산 D-${30 - nextDay}] 한 학기의 끝이 다가오고 있습니다. 남은 기록과 평가가 마무리될 시간입니다.`);
+          if (nextDay >= FINAL_WEEK_START_DAY) {
+            penaltyMessages.push(`[학기말 정산 D-${TOTAL_GAME_DAYS - nextDay}] 한 학기의 끝이 다가오고 있습니다. 남은 기록과 평가가 마무리될 시간입니다.`);
           }
 
           // 상태 커밋

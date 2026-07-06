@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { PlayerInfo } from '@/game/types';
+import { TP_TRAIT_BONUS_STRONG_TEACHER } from '@/game/constants';
 import { User, Award, ShieldAlert, ArrowLeft, ArrowRight, Check } from 'lucide-react';
 
 interface CharacterCreatorProps {
@@ -45,7 +46,7 @@ export const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onBackToTitl
     { name: '행정 해결사', desc: '기본 행정 역량 보너스, 공문 처리 효율 향상', penalty: '추가 행정 기안 빈도 약간 증가' },
     { name: '칼퇴 수호자', desc: '정시 퇴근 시 체력 및 가정 만족도 대폭 회복', penalty: '야근 기피로 인한 관리자 신뢰 획득 패널티' },
     { name: '원칙주의자', desc: '공정성 플래그 및 교장/교감 신뢰 보너스', penalty: '유연한 관계 해결 시 난이도 상승' },
-    { name: '교사력왕', desc: '하루 최대 교사력(TP) +1 보너스', penalty: '초기 수업 전문성 보너스 전무' },
+    { name: '교사력왕', desc: `하루 최대 교사력(TP) +${TP_TRAIT_BONUS_STRONG_TEACHER} 보너스`, penalty: '초기 수업 전문성 보너스 전무' },
     // 아래 4개 특성 신규 추가
     { name: '강철 멘탈', desc: '정신력(멘탈) 최대치 +15 증가, 사건 피해 경감', penalty: '가끔 지나치게 쿨해서 학생들의 서운함 유발' },
     { name: '인싸 교사', desc: '동료 교직원 신뢰도 및 친밀도 상승률 증가', penalty: '경조사 및 교류 비용으로 주간 지출 소폭 발생' },

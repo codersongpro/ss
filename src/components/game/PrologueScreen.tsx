@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { PlayerInfo } from '@/game/types';
+import { DIFFICULTY_TP } from '@/game/constants';
 import { Film, ArrowRight } from 'lucide-react';
 import { prologueImages } from '@/assets/gameImageAssets';
 
@@ -109,7 +110,7 @@ export const PrologueScreen: React.FC<PrologueScreenProps> = ({ playerInfo, onFi
             {/* 💡 교사력(TP) 규칙 안내 */}
             <div className="bg-slate-950/80 border border-slate-800 p-5 rounded-xl max-w-md mx-auto text-sm text-amber-300 font-sans leading-relaxed text-left space-y-2 my-3 shadow-inner break-keep">
               <span className="font-bold text-amber-400 flex items-center gap-1 text-base">💡 교사력(TP) 규칙 안내:</span>
-              <p>• 매일 아침 교사에게는 난이도에 따라 7~15의 교사력(TP)이 기본으로 주어집니다.</p>
+              <p>• 매일 아침 교사에게는 난이도에 따라 {DIFFICULTY_TP.hard}~{DIFFICULTY_TP.warm}의 교사력(TP)이 기본으로 주어집니다.</p>
               <p>• 장소 이동은 자유롭게 할 수 있고, 대화·업무·학생 개별 지도 등 실제 행동을 할 때마다 교사력(TP)이 1 소모됩니다.</p>
             </div>
             <div className="pt-4">
