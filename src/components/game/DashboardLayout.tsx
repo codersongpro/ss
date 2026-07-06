@@ -118,19 +118,13 @@ const StatChangeBriefing: React.FC<{ prev: any; current: any }> = ({ prev, curre
 
 // 타이핑 효과를 구현하기 위한 컴포넌트 [NEW]
 const TypewriterText: React.FC<{ text: string; speed?: number }> = ({ text, speed = 15 }) => {
-  const [displayedText, setDisplayedText] = useState('');
+  const [revealedCount, setRevealedCount] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    setDisplayedText('');
-    let index = 0;
+    setRevealedCount(0);
     const timer = setInterval(() => {
-      setDisplayedText((prev) => prev + text.charAt(index));
-      index++;
-      if (index >= text.length) {
-        clearInterval(timer);
-        timerRef.current = null;
-      }
+      setRevealedCount((prev) => (prev >= text.length ? prev : prev + 1));
     }, speed);
     timerRef.current = timer;
 
@@ -140,18 +134,29 @@ const TypewriterText: React.FC<{ text: string; speed?: number }> = ({ text, spee
     };
   }, [text, speed]);
 
+  useEffect(() => {
+    if (revealedCount >= text.length && timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  }, [revealedCount, text.length]);
+
   // [WO-20] 첫 클릭에 타자기 연출을 건너뛰고 전체 문장을 즉시 표시한다 (기존에는 스킵 수단이 없었다).
   const handleSkip = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-    setDisplayedText(text);
+    setRevealedCount(text.length);
   };
 
   return (
-    <span className="whitespace-pre-line cursor-pointer" onClick={handleSkip} title="클릭하여 즉시 표시">
-      {displayedText}
+    // [FIX] 이전에는 문자열을 setDisplayedText(prev => prev + ch)로 누적했는데, StrictMode의 effect
+    // 이중 실행/빠른 재렌더링과 맞물리면 특정 tick의 갱신이 유실되어 글자(특히 공백)가 영구히 빠지는
+    // 경합이 있었다. text.slice(0, revealedCount)로 항상 원본 문자열에서 다시 파생시키면 카운터가
+    // 몇 번 씹혀도 텍스트가 살짝 늦게 나올 뿐 글자가 사라지는 일은 구조적으로 불가능하다.
+    <span className="whitespace-pre-wrap cursor-pointer" onClick={handleSkip} title="클릭하여 즉시 표시">
+      {text.slice(0, revealedCount)}
     </span>
   );
 };
