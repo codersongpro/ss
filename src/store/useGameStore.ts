@@ -223,12 +223,19 @@ const getEventValence = (evt: GameEvent): EventValence => {
   return inferValence(allEffects);
 };
 
+// [WO-14] 30일을 7일 단위 5주차로 나눈 압박 램프의 주차 계수(1~5).
+const getWeekNumber = (day: number): number => Math.min(5, Math.max(1, Math.ceil(day / 7)));
+
 // 채널 통일 목표 긍정 비율. 위기 상태(멘탈 급락/번아웃 급증)에는 완화를 위해 긍정 비중을 추가로 끌어올린다.
 // [WO-13] 완화 개입 조건을 mental<30/burnout>80에서 mental<20/burnout>90으로 좁혔다 — 예전 조건은
 // 너무 일찍 개입해 회복 삼중 안전망(보건실+정시퇴근 보너스)과 겹치며 사실상 죽을 수 없는 게임을 만들었다.
-const getTargetPositiveRatio = (stats: Stats): number => {
+// [WO-14] 평시 비율도 주차가 지날수록 낮아지게 해(1주 35% -> 5주 20%) 후반부로 갈수록 긍정 이벤트가
+// 줄고 압박이 쌓이는 난이도 곡선을 만든다. 위기 완화(0.55)는 주차와 무관하게 그대로 유지.
+const getTargetPositiveRatio = (stats: Stats, day: number): number => {
   const inCrisis = stats.mental < 20 || stats.burnout > 90;
-  return inCrisis ? 0.55 : 0.35;
+  if (inCrisis) return 0.55;
+  const week = getWeekNumber(day);
+  return Math.max(0.20, 0.40 - week * 0.05);
 };
 
 // 긍정 후보 전체의 가중치 합이 정확히 ratio(기본 20%)가 되도록 그룹별로 재배분한다.
@@ -271,15 +278,16 @@ const pickWeighted = <T,>(weighted: { item: T; w: number }[]): T | null => {
   return weighted[weighted.length - 1].item;
 };
 
-// 긍정 요소 등장 확률을 채널 통일 목표 비율(위기 시 상향)로 고정해 후보를 고른다.
+// 긍정 요소 등장 확률을 채널 통일 목표 비율(위기 시 상향, 주차가 지날수록 낮아짐)로 고정해 후보를 고른다.
 const pickBalancedEvent = (
   candidates: GameEvent[],
-  stats: Stats
+  stats: Stats,
+  day: number
 ): GameEvent | null => {
   if (candidates.length === 0) return null;
   const weighted = applyFixedPositiveRatio(
     candidates.map(evt => ({ item: evt, valence: getEventValence(evt), baseWeight: evt.weight })),
-    getTargetPositiveRatio(stats)
+    getTargetPositiveRatio(stats, day)
   );
   return pickWeighted(weighted);
 };
@@ -288,16 +296,17 @@ const pickBalancedEvent = (
 const pushValence = (log: EventValence[], v: EventValence): EventValence[] =>
   [v, ...log].slice(0, 12);
 
-// NPC 대화 후보 인덱스 중 긍정 요소 등장 확률을 채널 통일 목표 비율(위기 시 상향)로 고정해 하나를 고른다.
+// NPC 대화 후보 인덱스 중 긍정 요소 등장 확률을 채널 통일 목표 비율(위기 시 상향, 주차 램프)로 고정해 하나를 고른다.
 const pickBalancedDialogueIndex = (
   candidateIdxs: number[],
   events: { valence: EventValence }[],
-  stats: Stats
+  stats: Stats,
+  day: number
 ): number => {
   if (candidateIdxs.length === 0) return 0;
   const weighted = applyFixedPositiveRatio(
     candidateIdxs.map(i => ({ item: i, valence: events[i]?.valence ?? 'neutral', baseWeight: 10 })),
-    getTargetPositiveRatio(stats)
+    getTargetPositiveRatio(stats, day)
   );
   const picked = pickWeighted(weighted);
   return picked !== null ? picked : candidateIdxs[candidateIdxs.length - 1];
@@ -305,7 +314,8 @@ const pickBalancedDialogueIndex = (
 
 // 업무 풀 추첨에도 동일 목표 비율을 적용한다. stressCost<=6(보람/경부담 업무)을 긍정 신호로 재사용.
 const pickBalancedTaskTemplate = (
-  stats: Stats
+  stats: Stats,
+  day: number
 ): typeof taskTemplates[number] => {
   const weighted = applyFixedPositiveRatio(
     taskTemplates.map(t => ({
@@ -313,7 +323,7 @@ const pickBalancedTaskTemplate = (
       valence: (t.stressCost <= 6 ? 'positive' : 'negative') as EventValence,
       baseWeight: 1
     })),
-    getTargetPositiveRatio(stats)
+    getTargetPositiveRatio(stats, day)
   );
   return pickWeighted(weighted) ?? taskTemplates[0];
 };
@@ -824,8 +834,8 @@ const getEventForTime = (
   }
   if (candidates.length === 0) return null;
 
-  // 채널 통일 목표 비율(위기 시 상향)로 가중 랜덤 추출
-  return pickBalancedEvent(candidates, stats);
+  // 채널 통일 목표 비율(위기 시 상향, 주차 램프)로 가중 랜덤 추출
+  return pickBalancedEvent(candidates, stats, day);
 };
 
 // 초기화용 디폴트 업무 리스트 생성 헬퍼
@@ -1417,14 +1427,19 @@ export const useGameStore = create<GameState>()(
               nextBurnout100Days = 0;
             }
 
-            // 업무 기한 리셋/업데이트 (일정 날짜에 새 업무 할당 + 45% 확률로 랜덤 행정 업무 1~2개 추가)
-            // [WO-06] 3일째 자동 종결된 업무는 완료 처리해 다음 날부터 연체 목록에서 빠지게 한다.
+            // 업무 기한 리셋/업데이트 (일정 날짜에 새 업무 할당 + 주차별 램프 확률로 랜덤 행정 업무 추가) [WO-06][WO-14]
+            // 3일째 자동 종결된 업무는 완료 처리해 다음 날부터 연체 목록에서 빠지게 한다.
             let updatedTasks = tasks.map(t => autoResolvedTaskIds.includes(t.id) ? { ...t, isCompleted: true } : t);
 
-            if (Math.random() < 0.45) {
-              const taskCount = Math.floor(Math.random() * 2) + 1; // 1~2개
+            // [WO-14] 주차별 압박 램프: 1주 38% -> 5주 70%로 업무 스폰 확률이 오르고,
+            // 4주차부터는 한 번에 최대 3개까지 몰아친다.
+            const spawnWeek = getWeekNumber(nextDay);
+            const taskSpawnChance = 0.30 + spawnWeek * 0.08;
+            const taskSpawnMax = spawnWeek >= 4 ? 3 : 2;
+            if (Math.random() < taskSpawnChance) {
+              const taskCount = Math.floor(Math.random() * taskSpawnMax) + 1;
               for (let c = 0; c < taskCount; c++) {
-                const randomTemplate = pickBalancedTaskTemplate(syncedStats);
+                const randomTemplate = pickBalancedTaskTemplate(syncedStats, nextDay);
                 // 중복 가드
                 if (!updatedTasks.some(t => !t.isCompleted && t.title === randomTemplate.title)) {
                   updatedTasks.push({
@@ -1481,6 +1496,11 @@ export const useGameStore = create<GameState>()(
             // 다음 날이 주말(토, 일)인지 확인하여 주말 힐링 이벤트 설정
             const isNextDayWeekend = nextDay % 7 === 6 || nextDay % 7 === 0;
             const nextEvent = isNextDayWeekend ? getWeekendHealingEvent(nextDay, playerInfo?.familyState) : null;
+
+            // [WO-14] 마지막 주(26~30일)에는 학기말 정산이 다가온다는 것을 서사적으로 알려 압박을 체감시킨다.
+            if (nextDay >= 26) {
+              penaltyMessages.push(`[학기말 정산 D-${30 - nextDay}] 한 학기의 끝이 다가오고 있습니다. 남은 기록과 평가가 마무리될 시간입니다.`);
+            }
 
             set({
               day: nextDay,
@@ -1921,7 +1941,7 @@ export const useGameStore = create<GameState>()(
         }
 
         // 채널 통일 목표 비율(위기 시 상향)로 가중 랜덤 선택
-        const selectedEvt = pickBalancedEvent(candidates, stats) ?? candidates[0];
+        const selectedEvt = pickBalancedEvent(candidates, stats, day) ?? candidates[0];
 
         // 비밀/히든 탐험 이벤트와 마주친 경우 단서/관계 일지에 발견 기록을 남긴다.
         const isDiscoveryWorthy = selectedEvt.tags.includes(HIDDEN_EXPLORATION_TAG) || selectedEvt.tags.includes('비밀이벤트');
@@ -2140,7 +2160,7 @@ export const useGameStore = create<GameState>()(
             completedNpcEvents[npcId] = [];
           }
 
-          eventIdx = pickBalancedDialogueIndex(candidates, studentDialogueEvents, stats);
+          eventIdx = pickBalancedDialogueIndex(candidates, studentDialogueEvents, stats, day);
           const evt = studentDialogueEvents[eventIdx];
 
           const student = get().students.find(s => s.id === npcId);
@@ -2177,7 +2197,7 @@ export const useGameStore = create<GameState>()(
             completedNpcEvents[npcId] = [];
           }
 
-          eventIdx = pickBalancedDialogueIndex(candidates, colleagueDialogueEvents, stats);
+          eventIdx = pickBalancedDialogueIndex(candidates, colleagueDialogueEvents, stats, day);
           const evt = colleagueDialogueEvents[eventIdx];
 
           // 역할 매핑
@@ -3070,7 +3090,7 @@ export const useGameStore = create<GameState>()(
         // 매일 아침 75% 확률로 스마트폰 피드 알림 생성
         if (Math.random() < 0.75) {
           // 긍정 힐링 vs 부정 딜레마 결정. 채널 통일 목표 비율(위기 시 상향) 적용.
-          const isPositive = Math.random() < getTargetPositiveRatio(stats);
+          const isPositive = Math.random() < getTargetPositiveRatio(stats, day);
 
           if (isPositive) {
             // [긍정 힐링 150선 생성]
@@ -3464,14 +3484,17 @@ export const useGameStore = create<GameState>()(
           // 6) 5대 핵심 스탯 동기화
           const syncedStats = syncNewStats(overtimeStats);
 
-          // 7) 신규 업무 업데이트 (일정 날짜 고정 업무 + 45% 확률로 랜덤 행정 업무 1~2개 추가)
-          // [WO-06] 3일째 자동 종결된 업무는 완료 처리해 다음 날부터 연체 목록에서 빠지게 한다.
+          // 7) 신규 업무 업데이트 (일정 날짜 고정 업무 + 주차별 램프 확률로 랜덤 행정 업무 추가) [WO-06][WO-14]
+          // 3일째 자동 종결된 업무는 완료 처리해 다음 날부터 연체 목록에서 빠지게 한다.
           let updatedTasks = tasks.map(t => autoResolvedTaskIds.includes(t.id) ? { ...t, isCompleted: true } : t);
-          
-          if (Math.random() < 0.45) {
-            const taskCount = Math.floor(Math.random() * 2) + 1; // 1~2개
+
+          const spawnWeek = getWeekNumber(nextDay);
+          const taskSpawnChance = 0.30 + spawnWeek * 0.08;
+          const taskSpawnMax = spawnWeek >= 4 ? 3 : 2;
+          if (Math.random() < taskSpawnChance) {
+            const taskCount = Math.floor(Math.random() * taskSpawnMax) + 1;
             for (let c = 0; c < taskCount; c++) {
-              const randomTemplate = pickBalancedTaskTemplate(syncedStats);
+              const randomTemplate = pickBalancedTaskTemplate(syncedStats, nextDay);
               // 중복 가드
               if (!updatedTasks.some(t => !t.isCompleted && t.title === randomTemplate.title)) {
                 updatedTasks.push({
@@ -3528,6 +3551,11 @@ export const useGameStore = create<GameState>()(
           // 다음 날이 주말(토, 일)인지 확인하여 주말 힐링 이벤트 설정
           const isNextDayWeekend = nextDay % 7 === 6 || nextDay % 7 === 0;
           const nextEvent = isNextDayWeekend ? getWeekendHealingEvent(nextDay, playerInfo?.familyState) : null;
+
+          // [WO-14] 마지막 주(26~30일)에는 학기말 정산이 다가온다는 것을 서사적으로 알려 압박을 체감시킨다.
+          if (nextDay >= 26) {
+            penaltyMessages.push(`[학기말 정산 D-${30 - nextDay}] 한 학기의 끝이 다가오고 있습니다. 남은 기록과 평가가 마무리될 시간입니다.`);
+          }
 
           // 상태 커밋
           set({
