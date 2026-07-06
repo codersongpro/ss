@@ -17,7 +17,7 @@ export const funnyParentEvents: GameEvent[] = [
         text: '정중하고 상세하게 해명 문자를 작성해 보내고 앞으론 텍스트 위주로 정성껏 쓰겠다고 다짐한다.',
         intent: '공식적 해명 및 사과',
         immediateEffects: [
-          { stat: 'parentTrust', value: 10 },
+          { stat: 'parentTrust', value: 15 },
           { stat: 'hp', value: -5 },
           { stat: 'burnout', value: 5 }
         ],
@@ -29,9 +29,10 @@ export const funnyParentEvents: GameEvent[] = [
         intent: '유머러스한 넉살 돌파',
         successRate: 70,
         immediateEffects: [
-          { stat: 'parentTrust', value: 15 },
-          { stat: 'mental', value: 10 },
-          { stat: 'parentComplaint', value: -10 }
+          { stat: 'parentTrust', value: 3 },
+          { stat: 'mental', value: 3 },
+          { stat: 'parentComplaint', value: -3 },
+          { stat: 'mental', value: -3 }
         ],
         successResultText: '학부모님은 쾌활한 해명에 빵 터지시며 "선생님의 큰 뜻을 몰라봤다"며 아주 흡족하게 통화를 마쳤습니다.',
         failEffects: [
@@ -69,9 +70,9 @@ export const funnyParentEvents: GameEvent[] = [
         text: '"과연 눈빛이 남다르더군요! 하지만 훌륭한 군주가 되기 위해선 서당에서 혹독한 민초의 삶과 공정함을 먼저 배워야 합니다"라며 맞장구를 쳐준다.',
         intent: '학부모 눈높이 퓨전 상담',
         immediateEffects: [
-          { stat: 'parentTrust', value: 15 },
-          { stat: 'mental', value: 15 },
-          { stat: 'studentTrust', value: 10 },
+          { stat: 'parentTrust', value: 10 },
+          { stat: 'mental', value: 11 },
+          { stat: 'studentTrust', value: 8 },
           { stat: 'burnout', value: 5 }
         ],
         resultText: '학부모님은 무릎을 탁 치며 "역시 훌륭한 은사님!"이라며 감탄하셨고, 지우는 학교에서 가장 모범적인 서민(?)의 모습으로 헌신하기 시작했습니다.'
@@ -140,9 +141,9 @@ export const funnyParentEvents: GameEvent[] = [
         text: '"민석이가 손재주와 응용력이 뛰어나긴 하죠! 교실에서도 양손 다목적 그리기 놀이로 두뇌를 자극해보겠습니다"라며 기분 좋게 응대한다.',
         intent: '기분 좋은 수용과 대안',
         immediateEffects: [
-          { stat: 'parentTrust', value: 15 },
-          { stat: 'studentTrust', value: 10 },
-          { stat: 'mental', value: 10 },
+          { stat: 'parentTrust', value: 10 },
+          { stat: 'studentTrust', value: 6 },
+          { stat: 'mental', value: 6 },
           { stat: 'burnout', value: 4 }
         ],
         resultText: '민석이는 교실에서 자유롭게 그림을 그리며 즐거워했고, 학부모님은 선생님의 영재 맞춤형 케어(?)에 큰 신뢰를 보내왔습니다.'
@@ -175,8 +176,9 @@ export const funnyParentEvents: GameEvent[] = [
         text: '학부모님께 의학적 소견서나 진단서 제출 규정을 넌지시 설명하고 절차대로 유도한다.',
         intent: '절차 지향 해결',
         immediateEffects: [
-          { stat: 'studentTrust', value: 12 },
-          { stat: 'parentComplaint', value: -10 }
+          { stat: 'studentTrust', value: 8 },
+          { stat: 'parentComplaint', value: -6 },
+          { stat: 'mental', value: -3 }
         ],
         resultText: '학부모님은 사실 의사 진단서는 없고 단순 편식 성향이라고 이실직고하셨고, 오이를 골라내고 먹는 지도로 타협했습니다.'
       }
@@ -231,9 +233,10 @@ export const funnyParentEvents: GameEvent[] = [
         text: '개인정보 보호법 및 다른 학생들의 사생활 침해 규정을 들어 법적 불허 기준을 정중하고 단호히 고지한다.',
         intent: '법령 기준 단호 대처',
         immediateEffects: [
-          { stat: 'expert', value: 15 },
-          { stat: 'studentTrust', value: 12 },
-          { stat: 'parentComplaint', value: -10 }
+          { stat: 'expert', value: 3 },
+          { stat: 'studentTrust', value: 3 },
+          { stat: 'parentComplaint', value: -3 },
+          { stat: 'mental', value: -3 }
         ],
         resultText: '법적 침해 문제가 부각되자 어머님은 꼬리를 내리셨습니다. 교실 내 학생 사생활 안전지대를 굳건히 수호했습니다.'
       },
@@ -242,7 +245,7 @@ export const funnyParentEvents: GameEvent[] = [
         text: '매주 금요일에 사물함 사진을 찍어 학급 밴드에 올리는 타협안을 제시하며 어머님의 불안을 다독인다.',
         intent: '불안 해소형 대안 타협',
         immediateEffects: [
-          { stat: 'parentTrust', value: 12 },
+          { stat: 'parentTrust', value: 23 },
           { stat: 'hp', value: -10 },
           { stat: 'burnout', value: 8 }
         ],
@@ -267,7 +270,8 @@ export const funnyParentEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'expert', value: 12 },
           { stat: 'studentTrust', value: 12 },
-          { stat: 'parentComplaint', value: -5 }
+          { stat: 'parentComplaint', value: -5 },
+          { stat: 'mental', value: -3 }
         ],
         resultText: '학부모님은 머쓱해하며 어쩔 수 없이 수긍하셨습니다. 철저히 시스템에 근거해 오차 없이 처리했습니다.'
       },
@@ -276,8 +280,8 @@ export const funnyParentEvents: GameEvent[] = [
         text: '"사실 저도 제 사주에 올해 지용이 같은 복덩이 귀인을 만나 크게 성공한다고 들었습니다! 지용이가 바로 제 인생의 보물입니다"라고 긍정적 사주 프레임으로 대처한다.',
         intent: '재치 있는 긍정 프레임 전환',
         immediateEffects: [
-          { stat: 'parentTrust', value: 15 },
-          { stat: 'mental', value: 15 },
+          { stat: 'parentTrust', value: 14 },
+          { stat: 'mental', value: 11 },
           { stat: 'studentTrust', value: 10 },
           { stat: 'burnout', value: 5 }
         ],
@@ -311,9 +315,9 @@ export const funnyParentEvents: GameEvent[] = [
         text: '"동우의 안전을 위해 교실 자리에 푹신한 매트를 깔아주고, 4번은 행운의 사(四)잎 클로버의 번호라고 동우에게 설명해 격려해 주겠다"고 한다.',
         intent: '유연하고 긍정적인 대응',
         immediateEffects: [
-          { stat: 'parentTrust', value: 15 },
-          { stat: 'studentTrust', value: 12 },
-          { stat: 'mental', value: 10 },
+          { stat: 'parentTrust', value: 11 },
+          { stat: 'studentTrust', value: 9 },
+          { stat: 'mental', value: 8 },
           { stat: 'burnout', value: 5 }
         ],
         resultText: '아버님은 긍정적인 해명과 교실 배려에 흡족해하시며 민원을 취하하셨고 동우도 4번을 좋아하게 되었습니다.'
@@ -346,8 +350,8 @@ export const funnyParentEvents: GameEvent[] = [
         text: '어머님의 우려를 존중하되, 감기 시 보건실로 보내기 전 부모님께 무조건 먼저 전화를 걸어 약 수급 여부를 사전 승인받는 폰 알림 규칙을 만든다.',
         intent: '사전 전화 확인 대책 수립',
         immediateEffects: [
-          { stat: 'parentTrust', value: 15 },
-          { stat: 'mental', value: 10 },
+          { stat: 'parentTrust', value: 14 },
+          { stat: 'mental', value: 9 },
           { stat: 'hp', value: -5 }
         ],
         resultText: '어머님은 선생님의 맞춤형 위생 컨설팅에 큰 위안을 얻으셨고, 교탁 밑 양파 배치 주장은 깔끔히 잊어주셨습니다.'
@@ -380,8 +384,8 @@ export const funnyParentEvents: GameEvent[] = [
         text: '"제가 지금은 온통 우리 하준이와 반 아이들을 가르치는 매력에 깊이 빠져 있어서 연애할 틈이 전혀 없답니다!"라며 위트 넘치게 방어한다.',
         intent: '위트 있는 교육자형 방어',
         immediateEffects: [
-          { stat: 'parentTrust', value: 15 },
-          { stat: 'mental', value: 12 },
+          { stat: 'parentTrust', value: 14 },
+          { stat: 'mental', value: 11 },
           { stat: 'hp', value: 5 },
           { stat: 'burnout', value: 4 }
         ],
@@ -404,9 +408,9 @@ export const funnyParentEvents: GameEvent[] = [
         text: '모르는 척 넘어가는 한편 준우에게 일기에는 가족들의 싸움 대신 준우가 느낀 생각 위주로 쓰는 법을 조용히 코칭한다.',
         intent: '아동 개인 코칭 및 기밀 유지',
         immediateEffects: [
-          { stat: 'studentTrust', value: 12 },
-          { stat: 'expert', value: 10 },
-          { stat: 'parentTrust', value: 10 },
+          { stat: 'studentTrust', value: 10 },
+          { stat: 'expert', value: 9 },
+          { stat: 'parentTrust', value: 9 },
           { stat: 'burnout', value: 4 }
         ],
         resultText: '준우는 다음부터 부부싸움 대신 자신이 좋아하는 만화에 대해 썼고, 어머님은 마음을 깊이 놓으셨습니다.'
@@ -450,9 +454,9 @@ export const funnyParentEvents: GameEvent[] = [
         text: '아이들에게 "소풍의 진짜 재미는 반 친구들끼리 서로 다양한 반찬을 골고루 나누어 먹는 기쁨"임을 교육하고 학부모를 격려한다.',
         intent: '나눔과 나눔 가치 교육',
         immediateEffects: [
-          { stat: 'studentTrust', value: 15 },
-          { stat: 'parentTrust', value: 12 },
-          { stat: 'mental', value: 10 },
+          { stat: 'studentTrust', value: 9 },
+          { stat: 'parentTrust', value: 8 },
+          { stat: 'mental', value: 6 },
           { stat: 'burnout', value: 5 }
         ],
         resultText: '실제로 소풍날 아이들은 서로 도시락을 바꾸어 먹으며 우정이 깊어졌고, 도시락 경쟁 심리도 말끔히 사라졌습니다.'
@@ -485,8 +489,8 @@ export const funnyParentEvents: GameEvent[] = [
         text: '"오늘 하늘이 어머님 덕분에 교실이 한층 더 환하고 우아하게 빛이 나네요!"라며 센스 있게 환영 멘트를 던진다.',
         intent: '센스 넘치는 패션 칭찬 및 환영',
         immediateEffects: [
-          { stat: 'parentTrust', value: 15 },
-          { stat: 'mental', value: 12 },
+          { stat: 'parentTrust', value: 13 },
+          { stat: 'mental', value: 11 },
           { stat: 'hp', value: 5 },
           { stat: 'burnout', value: 4 }
         ],
@@ -509,8 +513,8 @@ export const funnyParentEvents: GameEvent[] = [
         text: '동우 아버님을 정중히 일으켜 세워 교무실 상담실로 신속히 격리 인도하여 주변 시선을 차단하고 이성을 다독인다.',
         intent: '신속한 시선 차단 및 설득',
         immediateEffects: [
-          { stat: 'studentTrust', value: 15 },
-          { stat: 'expert', value: 12 },
+          { stat: 'studentTrust', value: 13 },
+          { stat: 'expert', value: 11 },
           { stat: 'hp', value: -5 }
         ],
         resultText: '아버님을 따뜻한 차로 진정시켰습니다. 동우의 성적은 일시적일 뿐이며 동우의 성격과 재능을 차분히 설명하여 안심시켜 드렸습니다.'
@@ -554,9 +558,9 @@ export const funnyParentEvents: GameEvent[] = [
         text: '태민이에게 "우주의 기운이 담긴 멋진 팔찌구나! 단, 친구들이 만져서 기운이 흩어지지 않게 옷 소매로 꼭 덮어서 숨겨두자"고 약속한다.',
         intent: '감성적 타협 가리기',
         immediateEffects: [
-          { stat: 'studentTrust', value: 15 },
-          { stat: 'parentTrust', value: 15 },
-          { stat: 'mental', value: 10 },
+          { stat: 'studentTrust', value: 11 },
+          { stat: 'parentTrust', value: 10 },
+          { stat: 'mental', value: 7 },
           { stat: 'burnout', value: 5 }
         ],
         resultText: '태민이는 팔찌를 옷 소매로 꽁꽁 감싸며 뿌듯해했고, 친구들의 호기심도 자연스럽게 시들해져 성공적으로 집중하게 되었습니다.'
@@ -589,9 +593,9 @@ export const funnyParentEvents: GameEvent[] = [
         text: '반 아이들 모두에게 각자의 장점(완주, 유머, 배려 등)을 하나씩 골라 수여하는 \'학급 전원 시상 칭찬 엽서식 배지\'를 다 함께 나눠준다.',
         intent: '전원 포용적 격려 시상',
         immediateEffects: [
-          { stat: 'studentTrust', value: 15 },
-          { stat: 'parentTrust', value: 12 },
-          { stat: 'mental', value: 10 },
+          { stat: 'studentTrust', value: 12 },
+          { stat: 'parentTrust', value: 10 },
+          { stat: 'mental', value: 8 },
           { stat: 'burnout', value: 5 }
         ],
         resultText: '반 전체 학생들이 엽서 배지를 받고 기뻐서 자랑했습니다. 학급에 긍정적인 자부심 에너지가 풍성하게 채워졌습니다.'
@@ -613,9 +617,10 @@ export const funnyParentEvents: GameEvent[] = [
         text: '연간 체험학습 인정 최대 일수 제한 규정과 학업 결손이 생기면 학년급 진급 및 아동 정서 발달에 미칠 부작용을 명확히 안내한다.',
         intent: '규정 한도 엄격 준수 및 조율',
         immediateEffects: [
-          { stat: 'expert', value: 15 },
-          { stat: 'studentTrust', value: 12 },
-          { stat: 'parentComplaint', value: -10 }
+          { stat: 'expert', value: 14 },
+          { stat: 'studentTrust', value: 11 },
+          { stat: 'parentComplaint', value: -10 },
+          { stat: 'mental', value: -4 }
         ],
         resultText: '어머님은 규정된 체험학습 일수 내에서만 미팅 일정을 조율하겠다며 한 걸음 물러서셨습니다. 수업 출석 질서를 튼튼히 사수했습니다.'
       },
@@ -659,9 +664,9 @@ export const funnyParentEvents: GameEvent[] = [
         text: '"지성이의 예쁜 다리를 위해 친환경 모기 퇴치 팔찌를 학급 전체에 선물로 배부하고 교실 창틀 물구멍 물막이 스티커를 다 함께 붙이겠다"고 대처한다.',
         intent: '친환경 및 아동 중심 해결책',
         immediateEffects: [
-          { stat: 'studentTrust', value: 15 },
-          { stat: 'parentTrust', value: 15 },
-          { stat: 'mental', value: 10 },
+          { stat: 'studentTrust', value: 9 },
+          { stat: 'parentTrust', value: 8 },
+          { stat: 'mental', value: 6 },
           { stat: 'burnout', value: 5 }
         ],
         resultText: '아이들은 모기 스티커 붙이기 놀이에 신이 났고, 지성이 아버님은 교실 모기 차단 스티커 아이디어에 감동하여 엄지척을 보내셨습니다.'
@@ -694,9 +699,9 @@ export const funnyParentEvents: GameEvent[] = [
         text: '"안 그래도 피로가 극에 달했는데 한의학 명의 아버님을 뵙게 되어 천군만마를 얻은 것 같습니다!"라며 아버님의 조언을 경청한다.',
         intent: '학부모 전문성 전폭 존중',
         immediateEffects: [
-          { stat: 'parentTrust', value: 15 },
-          { stat: 'mental', value: 15 },
-          { stat: 'hp', value: 10 },
+          { stat: 'parentTrust', value: 11 },
+          { stat: 'mental', value: 12 },
+          { stat: 'hp', value: 8 },
           { stat: 'burnout', value: 5 }
         ],
         resultText: '아버님은 한의원으로 초대하여 아주 저렴한 학부모 할인가로 특급 총명 공진단을 한 갑 지어 주셨습니다. 덕분에 기력을 크게 회복했습니다.'
@@ -729,9 +734,9 @@ export const funnyParentEvents: GameEvent[] = [
         text: '어머님과 소통하여 떡을 반 전체에 돌리는 대신, 반 아이들이 직접 그린 축하 손편지 롤링페이퍼로 당선 행사를 갈음하게 설득한다.',
         intent: '돈 대신 마음 나누기 대안책',
         immediateEffects: [
-          { stat: 'studentTrust', value: 15 },
-          { stat: 'parentTrust', value: 15 },
-          { stat: 'mental', value: 10 },
+          { stat: 'studentTrust', value: 10 },
+          { stat: 'parentTrust', value: 11 },
+          { stat: 'mental', value: 8 },
           { stat: 'burnout', value: 5 }
         ],
         resultText: '하준이는 반 친구들의 진심 어린 손편지 선물을 받고 눈물을 흘리며 기뻐했고, 학부모님은 떡보다 뜻깊은 교실 행사에 감복하셨습니다.'
@@ -764,9 +769,9 @@ export const funnyParentEvents: GameEvent[] = [
         text: '어머님께 유쾌하게 답장하며 "웅이가 조는 날에는 교실 앞자리로 불러 귀엽게 박수를 쳐 주며 솔톤으로 깨워 보겠다"고 약속한다.',
         intent: '귀엽고 유쾌한 교실 밀착 케어',
         immediateEffects: [
-          { stat: 'studentTrust', value: 15 },
-          { stat: 'parentTrust', value: 15 },
-          { stat: 'mental', value: 12 },
+          { stat: 'studentTrust', value: 10 },
+          { stat: 'parentTrust', value: 11 },
+          { stat: 'mental', value: 9 },
           { stat: 'burnout', value: 5 }
         ],
         resultText: '실제로 웅이는 선생님의 전담 마크 박수 덕분에 잠이 확 깼고, 어머님은 웅이가 학교 수업이 너무 재미있다고 집에서 난리라며 대만족하셨습니다.'
@@ -799,9 +804,9 @@ export const funnyParentEvents: GameEvent[] = [
         text: '아버님께 가볍게 인사하며 "동우가 힙합 그루브를 닮아 리듬감이 우수하다"고 농담을 건네며 안전 구역 이동 주차를 넉살 좋게 권한다.',
         intent: '그루브형 넉살 주차 권고',
         immediateEffects: [
-          { stat: 'parentTrust', value: 15 },
-          { stat: 'studentTrust', value: 12 },
-          { stat: 'mental', value: 10 },
+          { stat: 'parentTrust', value: 13 },
+          { stat: 'studentTrust', value: 10 },
+          { stat: 'mental', value: 8 },
           { stat: 'burnout', value: 5 }
         ],
         resultText: '아버님은 신이 나 동우를 안고 멀리 안전한 하차 구역으로 가 주차하셨습니다. 동우 아버님은 담임 선생님의 힙함(?)을 극찬하셨습니다.'
@@ -834,9 +839,9 @@ export const funnyParentEvents: GameEvent[] = [
         text: '"할아버님의 심오한 명필 사상을 담아 민우가 먹향의 정신을 배우도록 교실 일기장 붓펜 글씨 쓰기 특별 지도를 약속하겠다"고 깎듯이 말씀드린다.',
         intent: '전통 존중형 깎듯한 응대',
         immediateEffects: [
-          { stat: 'parentTrust', value: 15 },
-          { stat: 'studentTrust', value: 12 },
-          { stat: 'mental', value: 10 },
+          { stat: 'parentTrust', value: 9 },
+          { stat: 'studentTrust', value: 8 },
+          { stat: 'mental', value: 6 },
           { stat: 'burnout', value: 5 }
         ],
         resultText: '할아버님은 "아직 예의범절이 살아있는 젊은 은사로고!"라며 감격하셨고, 학교로 손수 쓴 명필 가훈 족자를 선물로 보내오셨습니다.'
@@ -858,9 +863,10 @@ export const funnyParentEvents: GameEvent[] = [
         text: '공동체 생활 속 교실 청소 활동은 자기 책임을 배우는 공교육 교육과정의 핵심 생활 지도 영역임을 단호히 밝힌다.',
         intent: '생활 지도 가치 및 공교육 고수',
         immediateEffects: [
-          { stat: 'studentTrust', value: 15 },
+          { stat: 'studentTrust', value: 14 },
           { stat: 'expert', value: 12 },
-          { stat: 'parentComplaint', value: -10 }
+          { stat: 'parentComplaint', value: -10 },
+          { stat: 'mental', value: -4 }
         ],
         resultText: '학부모님들은 청소의 교육적 취지에 공감하며 용역 고용 건의를 전면 철회하셨고, 예나는 교실 먼지 털기 반장으로 성실히 복무했습니다.'
       },
@@ -905,10 +911,10 @@ export const funnyParentEvents: GameEvent[] = [
         text: '"캠핑의 미덕은 나눔이죠!"라며 고기를 맛있게 먹고 답례로 윤하에게 힐링 마시멜로 구이 세트를 함께 구워 선물하며 주말 우정을 다진다.',
         intent: '주말 한정 힐링 나눔',
         immediateEffects: [
-          { stat: 'parentTrust', value: 15 },
-          { stat: 'studentTrust', value: 15 },
-          { stat: 'hp', value: 10 },
-          { stat: 'mental', value: 12 },
+          { stat: 'parentTrust', value: 11 },
+          { stat: 'studentTrust', value: 12 },
+          { stat: 'hp', value: 8 },
+          { stat: 'mental', value: 10 },
           { stat: 'burnout', value: 6 }
         ],
         resultText: '살치살은 입에서 살살 녹았고, 마시멜로 캠핑 파티를 즐긴 윤하는 월요일에 교실에서 담임 선생님 말이라면 자다가도 깨는 우등생이 되었습니다.'
@@ -941,9 +947,9 @@ export const funnyParentEvents: GameEvent[] = [
         text: '"아버님의 우수한 철봉 체력 유전자가 민우에게 발현되도록, 점수 대신 운동장에서 아빠와 민우가 함께 턱걸이 훈련을 하는 힐링 브이로그 과제를 추천하겠다"고 타협한다.',
         intent: '아빠와 함께하는 힐링 과제 권유',
         immediateEffects: [
-          { stat: 'parentTrust', value: 15 },
-          { stat: 'studentTrust', value: 12 },
-          { stat: 'mental', value: 10 },
+          { stat: 'parentTrust', value: 13 },
+          { stat: 'studentTrust', value: 11 },
+          { stat: 'mental', value: 9 },
           { stat: 'burnout', value: 5 }
         ],
         resultText: '아버님은 아들과 주말 철봉 훈련 홈비디오를 찍어 보내며 크게 만족하셨고 민우의 턱걸이 근력도 실제로 소폭 향상되었습니다.'
@@ -976,9 +982,9 @@ export const funnyParentEvents: GameEvent[] = [
         text: '예나에게 "매주 금요일은 엘사 여왕님의 왕실 드레스 데이"로 1주일에 단 하루만 가방에 담아와 쉬는 시간에만 입도록 타협 칭찬을 가동한다.',
         intent: '여왕님 주 1회 가동 타협',
         immediateEffects: [
-          { stat: 'studentTrust', value: 15 },
-          { stat: 'parentTrust', value: 12 },
-          { stat: 'mental', value: 10 },
+          { stat: 'studentTrust', value: 12 },
+          { stat: 'parentTrust', value: 10 },
+          { stat: 'mental', value: 8 },
           { stat: 'burnout', value: 5 }
         ],
         resultText: '예나는 금요일만 오매불망 기다리며 평일에는 평상복을 성실하게 입어주어, 가정 내 실랑이가 깨끗하게 해소되었습니다.'
@@ -1000,9 +1006,10 @@ export const funnyParentEvents: GameEvent[] = [
         text: '사적인 메신저 프로필은 개인 사생활 영역이며 학교 업무용 폰 번호로 멀티프로필을 따로 설정하여 물리적으로 학부모 연락 채널을 차단한다.',
         intent: '멀티프로필 가동 사생활 차단',
         immediateEffects: [
-          { stat: 'expert', value: 15 },
-          { stat: 'studentTrust', value: 12 },
-          { stat: 'parentComplaint', value: -10 }
+          { stat: 'expert', value: 12 },
+          { stat: 'studentTrust', value: 9 },
+          { stat: 'parentComplaint', value: -8 },
+          { stat: 'mental', value: -3 }
         ],
         resultText: '학부모 전용 멀티프로필에는 단정한 칠판 그림만 보이게 설정하여, 귀찮은 훈수 민원을 완벽하게 예방 차단했습니다.'
       },
@@ -1046,9 +1053,9 @@ export const funnyParentEvents: GameEvent[] = [
         text: '"교실 수업과 대화 내용은 매일 알림장에 요약해 드리니 안심하시고, 웅이의 불안을 덜기 위해 보건 상담을 매일 5분씩 진행하겠다"고 정서적으로 타협한다.',
         intent: '불안 다독임 보건 상담 연계',
         immediateEffects: [
-          { stat: 'studentTrust', value: 15 },
-          { stat: 'parentTrust', value: 15 },
-          { stat: 'mental', value: 10 },
+          { stat: 'studentTrust', value: 10 },
+          { stat: 'parentTrust', value: 11 },
+          { stat: 'mental', value: 8 },
           { stat: 'hp', value: -5 }
         ],
         resultText: '선생님의 세심한 밀착 상담에 어머님은 마음을 푹 놓으시고 녹음기를 즉각 회수하셨습니다. 지극한 교사애로 위기를 넘겼습니다.'

@@ -63,8 +63,8 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '교무실 보건 선생님을 찾아가 "양말 정전기 방지용 임시 흰색 붕대를 발목에 감아 달라"고 보건 대책을 요청한다.',
         intent: '보건 붕대 위장술',
         immediateEffects: [
-          { stat: 'colleagueRelation', value: 15 },
-          { stat: 'mental', value: 12 },
+          { stat: 'colleagueRelation', value: 13 },
+          { stat: 'mental', value: 11 },
           { stat: 'burnout', value: 3 }
         ],
         resultText: '보건 선생님은 박장대소하시며 반짝이는 붕대를 감아주셨고, 오히려 구호 양말 한 켤레를 기증해 주셔서 쾌적한 양말 패션으로 복귀했습니다.'
@@ -88,7 +88,7 @@ export const funnyRandomEvents: GameEvent[] = [
         immediateEffects: [
           { stat: 'parentTrust', value: 10 },
           { stat: 'mental', value: 8 },
-          { stat: 'hp', value: 3 },
+          { stat: 'expert', value: 3 },
           { stat: 'burnout', value: 3 }
         ],
         resultText: '고춧가루가 흔적도 없이 목구멍으로 소멸했습니다. 학부모님은 깔끔하고 유창한 담임의 진로 상담 태도에 깊은 인상을 받으셨습니다.'
@@ -98,9 +98,9 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '"어머나! 급식 김치볶음밥이 너무 맛있어서 훈장 뱃지가 앞니에 남아있었군요!"라며 털털하고 유쾌하게 고춧가루를 물티슈로 닦아내 웃어넘긴다.',
         intent: '털털 유쾌 자백 해결',
         immediateEffects: [
-          { stat: 'parentTrust', value: 15 },
-          { stat: 'mental', value: 12 },
-          { stat: 'hp', value: 5 },
+          { stat: 'parentTrust', value: 12 },
+          { stat: 'mental', value: 10 },
+          { stat: 'hp', value: 4 },
           { stat: 'burnout', value: 4 }
         ],
         resultText: '학부모님은 선생님의 인간적이고 유머러스한 털털함에 빵 터지시며 딱딱했던 상담 분위기가 단숨에 아주 훈훈하게 풀렸습니다.'
@@ -123,7 +123,7 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '전력 질주 버스 세이프',
         immediateEffects: [
           { stat: 'hp', value: -15 },
-          { stat: 'mental', value: 10 },
+          { stat: 'mental', value: 19 },
           { stat: 'burnout', value: 5 }
         ],
         resultText: '숨이 턱밑까지 차올랐으나 지각 위기를 아슬아슬하게 넘기고 교실 조회 정각 안착에 성공했습니다. 성실한 출근도가 유지되었습니다.'
@@ -133,8 +133,8 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '택시 호출 앱을 가동해 7,500원 프리미엄 택시 수급 딜을 시전하여 우아하고 단정하게 조수석에서 내린다.',
         intent: '자본 활용 우아 출근',
         immediateEffects: [
-          { stat: 'mental', value: 15 },
-          { stat: 'hp', value: 10 },
+          { stat: 'reputation', value: 3 },
+          { stat: 'hp', value: 3 },
           { stat: 'burnout', value: 3 }
         ],
         resultText: '지갑 사정은 조금 얇아졌으나 체력을 완벽히 비축한 상태로 단정한 구두 소리를 내며 교문에 입성해 교사의 품위를 사수했습니다.'
@@ -167,9 +167,9 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '보건실로 뛰어가 보건 선생님의 특급 아동용 글리세린 보습 오일을 처방받아 입술 분리 및 케어를 완수한다.',
         intent: '보건실 긴급 처방 구호',
         immediateEffects: [
-          { stat: 'colleagueRelation', value: 15 },
-          { stat: 'hp', value: 10 },
-          { stat: 'mental', value: 12 },
+          { stat: 'colleagueRelation', value: 7 },
+          { stat: 'hp', value: 6 },
+          { stat: 'mental', value: 6 },
           { stat: 'burnout', value: 5 }
         ],
         resultText: '보건 선생님은 "어머 김 선생님, 딱풀의 맛은 어때요?"라며 크게 웃으시며 립 케어 전용 에센스를 선물해 주셨습니다. 탕비실 다과 유대감이 한층 올랐습니다.'
@@ -191,9 +191,9 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '이쑤시개를 든 채 "어머님! 마트 한우 신선도가 학급 단백질 급식 기준에 매우 적합한지 담임이 주말 검수 중이었습니다!"라고 넉살 좋게 받아친다.',
         intent: '넉살 좋게 급식 검수 개그',
         immediateEffects: [
-          { stat: 'parentTrust', value: 15 },
-          { stat: 'mental', value: 12 },
-          { stat: 'hp', value: 5 },
+          { stat: 'parentTrust', value: 12 },
+          { stat: 'mental', value: 9 },
+          { stat: 'hp', value: 4 },
           { stat: 'burnout', value: 4 }
         ],
         resultText: '어머님은 선생님의 호쾌한 유머에 빵 터지시며 한우 한 팩을 사서 내 카트에 선물로 턱 얹어 주셨습니다. 주말 고기 도파민이 폭발했습니다.'
@@ -237,8 +237,8 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '필터 조립을 그대로 덮어두고 로봇청소기 전원 버튼만 원클릭 가동한 뒤 침대에 누워 모바일 서핑을 즐긴다.',
         intent: '로봇청소기 우회 휴식',
         immediateEffects: [
-          { stat: 'mental', value: 15 },
-          { stat: 'hp', value: 10 },
+          { stat: 'mental', value: 10 },
+          { stat: 'hp', value: 7 },
           { stat: 'burnout', value: 3 }
         ],
         resultText: '로봇 청소기가 덜덜거리며 먼지를 쓸고 다니는 소리를 자장가 삼아 달콤한 토요일 꿀잠을 한껏 즐겼습니다.'
@@ -260,9 +260,9 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '당당하게 미소를 지으며 온탕 속 악수를 나누고 "아버님과 뜨거운 교육열의(?) 온도를 함께 나누어 주말의 보람이 뜨겁습니다!"라고 호탕하게 넉살 딜한다.',
         intent: '목욕탕 호탕 맞장구 악수',
         immediateEffects: [
-          { stat: 'parentTrust', value: 20 },
-          { stat: 'mental', value: 12 },
-          { stat: 'hp', value: 10 },
+          { stat: 'parentTrust', value: 11 },
+          { stat: 'mental', value: 8 },
+          { stat: 'hp', value: 7 },
           { stat: 'burnout', value: 5 }
         ],
         resultText: '아버님은 선생님의 꾸밈없는 소탈함에 감동하셨고 목욕탕 요금을 직접 대신 계산해 주셨습니다. 잊지 못할 탕내 상담이 끝났습니다.'
@@ -295,8 +295,8 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '지우의 볼을 살짝 꼬집으며 "사실 선생님도 매일 삼겹살을 먹어서 너희들보다 2배는 더 화장실에 간다"고 인간적인 팩트로 털털하게 밝힌다.',
         intent: '인간적 생리 팩트 고백',
         immediateEffects: [
-          { stat: 'studentTrust', value: 15 },
-          { stat: 'mental', value: 12 },
+          { stat: 'studentTrust', value: 14 },
+          { stat: 'mental', value: 11 },
           { stat: 'hp', value: 5 },
           { stat: 'burnout', value: 4 }
         ],
@@ -330,9 +330,10 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '기필코 침대를 차고 일어나 샤워를 마친 후, 가벼운 면바지를 입고 동네 공원 잔디밭으로 30분 산책을 다녀와 태양광 에너지를 받는다.',
         intent: '광합성 산책 활력 충전',
         immediateEffects: [
-          { stat: 'hp', value: 15 },
-          { stat: 'mental', value: 12 },
-          { stat: 'burnout', value: -10 }
+          { stat: 'hp', value: 14 },
+          { stat: 'mental', value: 11 },
+          { stat: 'burnout', value: -10 },
+          { stat: 'adminPower', value: -3 }
         ],
         resultText: '맑은 바깥바람과 햇빛 덕분에 뇌 세포가 살아나고 월요병 걱정을 날릴 건강한 체력을 대폭 보충해 냈습니다.'
       },
@@ -376,9 +377,9 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '뒤따라오던 남학생 유민이에게 "유민아, 과학 시간에 배운 정전기 전도 현상을 확인하기 위해 문을 먼저 열어보겠니?"라며 교육용 기지를 유도한다.',
         intent: '아동 전도 실험 유도',
         immediateEffects: [
-          { stat: 'studentTrust', value: 12 },
-          { stat: 'expert', value: 10 },
-          { stat: 'mental', value: 10 },
+          { stat: 'studentTrust', value: 8 },
+          { stat: 'expert', value: 6 },
+          { stat: 'mental', value: 6 },
           { stat: 'burnout', value: 4 }
         ],
         resultText: '유민이가 씩씩하게 문을 열어 주었습니다! 유민이는 정전기를 느끼지 않고 쿨하게 통과했고, 훌륭한 물리 생태 교육이 완수되었습니다.'
@@ -400,9 +401,10 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '그 즉시 내 턱을 뒤로 바짝 당기고 어깨를 활짝 펴서 기립근과 척추 뼈를 대나무처럼 일렬로 곧게 세우는 웰빙 스트레칭을 감행한다.',
         intent: '즉각 척추 기립 스트레칭',
         immediateEffects: [
-          { stat: 'hp', value: 15 },
-          { stat: 'mental', value: 10 },
-          { stat: 'burnout', value: -5 }
+          { stat: 'hp', value: 10 },
+          { stat: 'mental', value: 7 },
+          { stat: 'burnout', value: -4 },
+          { stat: 'adminPower', value: -3 }
         ],
         resultText: '목 뒤가 뻐근해지며 시원한 혈액순환이 느껴졌습니다. 지하철 거북목 밈 조우 덕분에 디스크 예방 자세 사수에 성공했습니다.'
       },
@@ -434,9 +436,9 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '당황하지 않고 한 다리로 서서 지휘봉을 가볍게 휘두르며 "혜원아, 공부를 잘하려면 뇌에 피가 돌아야 하니 한 다리 서기 스트레칭 3초를 같이 해볼까?"라며 가동한다.',
         intent: '학다리 스트레칭 즉석 연출',
         immediateEffects: [
-          { stat: 'studentTrust', value: 15 },
-          { stat: 'mental', value: 12 },
-          { stat: 'expert', value: 5 },
+          { stat: 'studentTrust', value: 10 },
+          { stat: 'mental', value: 8 },
+          { stat: 'expert', value: 4 },
           { stat: 'burnout', value: 4 }
         ],
         resultText: '혜원이도 교탁 옆에서 신이 나 한 다리로 서며 장난을 쳤고, 교실 내 가벼운 요가 체조 분위기가 펼쳐져 활기가 가득 찼습니다.'
@@ -469,9 +471,9 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '"교무실의 열악한 척추 환경을 위해 제가 사비로 기부한 공용 척추 힐링 안마존 매트입니다! 교감 선생님부터 누워 보세요!"라며 넉살 좋게 기부한다.',
         intent: '교무실 공용 안마존 기부 플렉스',
         immediateEffects: [
-          { stat: 'colleagueRelation', value: 20 },
-          { stat: 'adminTrust', value: 15 },
-          { stat: 'mental', value: 10 },
+          { stat: 'colleagueRelation', value: 12 },
+          { stat: 'adminTrust', value: 9 },
+          { stat: 'mental', value: 6 },
           { stat: 'burnout', value: 6 }
         ],
         resultText: '교감 선생님이 매트 위에 누워 "어우 등뼈가 펴지는구만! 김 선생은 학교 복지의 락스타야!"라며 대찬사를 보냈고 교무실 내 꿀복지 명당이 완성되었습니다.'
@@ -504,9 +506,10 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '웨이팅 예약을 걸어두고, 바로 옆 골목의 한산한 고전 만화카페방에 입장해 시원한 에어컨 바람과 함께 짜장 라면을 먹으며 느긋하게 2시간을 보낸다.',
         intent: '만화방 짜장라면 우회 대기',
         immediateEffects: [
-          { stat: 'hp', value: 15 },
-          { stat: 'mental', value: 12 },
-          { stat: 'burnout', value: -10 }
+          { stat: 'hp', value: 11 },
+          { stat: 'mental', value: 8 },
+          { stat: 'burnout', value: -7 },
+          { stat: 'adminPower', value: -3 }
         ],
         resultText: '만화책을 보며 먹은 짜장 라면도 꿀맛이었고, 2시간 뒤 무사히 입장해 먹은 치즈 돈가스도 극도로 맛있어서 주말 미식 성공 도파민을 가득 채웠습니다.'
       },
@@ -538,9 +541,9 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '보건실에서 신소독용 붕대 밴드를 빌려 양말을 벗고 발가락에 알코올 소독 후 붕대 감싸기 셋팅으로 보송함을 사수한다.',
         intent: '보건실 소독 붕대 발가락 수호',
         immediateEffects: [
-          { stat: 'colleagueRelation', value: 15 },
-          { stat: 'hp', value: 10 },
-          { stat: 'mental', value: 10 },
+          { stat: 'colleagueRelation', value: 5 },
+          { stat: 'hp', value: 5 },
+          { stat: 'mental', value: 5 },
           { stat: 'burnout', value: 4 }
         ],
         resultText: '보건 선생님의 친절한 보습 케어로 양말 없이도 쾌적하게 보송한 발을 유지하여 하루 일과를 건강하게 마쳤습니다.'
@@ -572,9 +575,9 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '교문 당번 동료에게 "아랫배에 화재가 나 3분 긴급 탕비실 대피 승인을 구한다"고 외치고 신속하게 비상 화장실로 스프린트한다.',
         intent: '동료 양해 비상 화장실 대피',
         immediateEffects: [
-          { stat: 'colleagueRelation', value: 12 },
-          { stat: 'hp', value: 10 },
-          { stat: 'mental', value: 10 },
+          { stat: 'colleagueRelation', value: 3 },
+          { stat: 'hp', value: 3 },
+          { stat: 'mental', value: 3 },
           { stat: 'burnout', value: 4 }
         ],
         resultText: '동료 쌤이 흔쾌히 교문을 교대해주어 안전하게 뱃속 화산을 진화했습니다. 서로의 의리가 한층 단단해졌습니다.'
@@ -584,7 +587,7 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '이빨을 꽉 깨물고 전신 케겔 운동 요법을 발동해 30분간 교문에 말뚝처럼 서서 고통을 참아내며 완수한다.',
         intent: '인내의 말뚝 교문 수호',
         immediateEffects: [
-          { stat: 'expert', value: 15 },
+          { stat: 'expert', value: 26 },
           { stat: 'hp', value: -15 },
           { stat: 'burnout', value: 10 }
         ],
@@ -607,9 +610,9 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '덮개를 붙인 채 손을 번쩍 흔들며 "교감 선생님! 주말 헤어 살롱 스타일 셋팅 매칭이 환상적입니다! 서로의 이마 덮개가 아주 앙증맞네요!"라며 호쾌히 인사한다.',
         intent: '이마 덮개 씌움 쾌활 조우',
         immediateEffects: [
-          { stat: 'adminTrust', value: 20 },
-          { stat: 'colleagueRelation', value: 15 },
-          { stat: 'mental', value: 10 },
+          { stat: 'adminTrust', value: 12 },
+          { stat: 'colleagueRelation', value: 9 },
+          { stat: 'mental', value: 6 },
           { stat: 'burnout', value: 6 }
         ],
         resultText: '교감 선생님은 빵 터지시며 "하하! 김 선생도 파마하는구만!"이라며 디자이너에게 내 커트 비용을 본인 카드 플렉스로 대신 결제해 주셨습니다.'
@@ -642,9 +645,10 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '즉시 가방 속에 힐링 향수 라벤더 오일을 귀 밑에 바르고 따뜻한 우유를 끓여 마신 후 10시 정각 취침 모드로 침대에 누워 건강을 수호한다.',
         intent: '라벤더 오일 온수 취침',
         immediateEffects: [
-          { stat: 'hp', value: 15 },
-          { stat: 'mental', value: 12 },
-          { stat: 'burnout', value: -10 }
+          { stat: 'hp', value: 9 },
+          { stat: 'mental', value: 8 },
+          { stat: 'burnout', value: -7 },
+          { stat: 'adminPower', value: -3 }
         ],
         resultText: '월요일 아침 눈을 떴을 때 안구 건조가 싹 사라지고 꿀잠 활력 상태로 씩씩하게 출근 정문에 골인했습니다.'
       },
@@ -687,9 +691,9 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '쉬는 시간 5분 동안만 비둘기 생태 성장 관찰 타임을 공식 허용하고, 수업 중에는 창문을 커튼으로 가려 통제한다.',
         intent: '생태관찰 쉬는시간 한정 허용',
         immediateEffects: [
-          { stat: 'studentTrust', value: 15 },
           { stat: 'studentTrust', value: 12 },
-          { stat: 'mental', value: 10 },
+          { stat: 'studentTrust', value: 9 },
+          { stat: 'mental', value: 8 },
           { stat: 'burnout', value: 5 }
         ],
         resultText: '아이들은 쉬는 시간에만 관찰기를 적으며 약속을 칼같이 지켰고, 수업 시간에는 칠판 필기에 고도의 집중도를 보였습니다.'
@@ -712,8 +716,8 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '제자리 유산소 만보 사수',
         immediateEffects: [
           { stat: 'hp', value: 12 },
-          { stat: 'familySatisfaction', value: 10 },
-          { stat: 'mental', value: 10 },
+          { stat: 'familySatisfaction', value: 9 },
+          { stat: 'mental', value: 9 },
           { stat: 'burnout', value: 4 }
         ],
         resultText: '만 보가 완성되자 시계화면에 불꽃 축제 그래픽이 터졌습니다. 소소한 건강 성취감 도파민을 한껏 쥐고 기쁘게 수면에 들었습니다.'
@@ -746,9 +750,10 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '즉시 커튼을 쳐 방을 암실로 셋팅하고 힐링 귀마개를 착용한 채 토요일 오후 4시까지 긴급 숙면 좀비 회복실을 가동한다.',
         intent: '암실 긴급 수면 회복',
         immediateEffects: [
-          { stat: 'hp', value: 15 },
-          { stat: 'mental', value: 10 },
-          { stat: 'burnout', value: -5 }
+          { stat: 'hp', value: 4 },
+          { stat: 'mental', value: 4 },
+          { stat: 'burnout', value: -3 },
+          { stat: 'adminPower', value: -2 }
         ],
         resultText: '토요일 늦은 오후 개운하게 눈을 떴습니다. 드라마 대박 수급의 만족감을 품에 안고 건강한 저녁밥을 지어 먹었습니다.'
       },
@@ -780,8 +785,8 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '보안 필름을 즉시 떼어내고, 대신 교무실 뒤쪽 보행자 시선을 차단하도록 등 뒤 파티션 높낮이 연장 설비를 행정실에 기부 요청한다.',
         intent: '파티션 연장 및 필름 해제',
         immediateEffects: [
-          { stat: 'expert', value: 15 },
-          { stat: 'adminPower', value: 10 },
+          { stat: 'expert', value: 13 },
+          { stat: 'adminPower', value: 9 },
           { stat: 'hp', value: 5 },
           { stat: 'burnout', value: 4 }
         ],
@@ -849,9 +854,10 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '추위 속에 장갑을 벗고 모바일 뱅킹 앱을 켜서 이모님이 벽에 써붙인 긴 농협 계좌번호 14자리를 덜덜 떨며 입력해 3,000원 이체를 완료하고 뜨끈한 붕어빵 봉지를 쟁취한다.',
         intent: '이체 뱅킹 붕어빵 획득',
         immediateEffects: [
-          { stat: 'hp', value: 10 },
-          { stat: 'mental', value: 15 },
-          { stat: 'burnout', value: -5 }
+          { stat: 'hp', value: 8 },
+          { stat: 'mental', value: 11 },
+          { stat: 'burnout', value: -4 },
+          { stat: 'adminPower', value: -3 }
         ],
         resultText: '품에 안은 붕어빵이 난로처럼 손을 녹여주었습니다. 자취방에 도착해 우유와 함께 먹은 팥 붕어빵은 인생 최고의 도파민 힐링이었습니다.'
       },
@@ -883,9 +889,9 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '"역시 나도 비글단 출신이었구나!"라며 크게 웃고, 내일 교실에서 장난치는 아이들의 눈빛 장난을 역지사지의 마음으로 깊이 포용하기로 결심한다.',
         intent: '비글 동지애 정서적 수용',
         immediateEffects: [
-          { stat: 'studentTrust', value: 18 },
-          { stat: 'mental', value: 15 },
-          { stat: 'hp', value: 5 },
+          { stat: 'studentTrust', value: 12 },
+          { stat: 'mental', value: 10 },
+          { stat: 'hp', value: 4 },
           { stat: 'burnout', value: 5 }
         ],
         resultText: '교정에서 비글 장난을 치는 동우에게 화내는 대신 윙크를 던지며 넉살 좋게 다독였습니다. 아이들이 담임 선생님의 넓은 우주적 포용력에 감복했습니다.'
@@ -918,9 +924,9 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '보건실로 엉덩이를 가린 채 게걸음 대피하여 보건 선생님께 보조용 체육 교사 파란색 트레이닝 바지를 빌려 입고 하루를 보낸다.',
         intent: '보건실 파란 체육복 수급',
         immediateEffects: [
-          { stat: 'colleagueRelation', value: 15 },
-          { stat: 'hp', value: 5 },
-          { stat: 'mental', value: 10 },
+          { stat: 'colleagueRelation', value: 6 },
+          { stat: 'hp', value: 4 },
+          { stat: 'mental', value: 5 },
           { stat: 'burnout', value: 4 }
         ],
         resultText: '파란색 체육복 바지가 아주 편안하여 하루 종일 에너지가 솟구쳤습니다. 보건 선생님과의 끈끈한 구호 연대가 확립되었습니다.'
@@ -952,9 +958,10 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '매대의 8개 병을 양팔 한가득 안고 계산대로 가 1+1 포상을 다 받아 자취방 냉장고 홈바에 반짝이게 도열해 채워둔다.',
         intent: '1+1 음료 8병 싹쓸이 도파민',
         immediateEffects: [
-          { stat: 'hp', value: 15 },
-          { stat: 'familySatisfaction', value: 15 },
-          { stat: 'burnout', value: -10 }
+          { stat: 'hp', value: 7 },
+          { stat: 'familySatisfaction', value: 8 },
+          { stat: 'burnout', value: -6 },
+          { stat: 'adminPower', value: -3 }
         ],
         resultText: '초코 단백질 병이 냉장고에 꽉 차자 엄청난 시각적 행복 도파민이 터졌습니다. 다음 일주일간 운동 후 영양 걱정은 완벽히 삭제되었습니다.'
       },
@@ -997,8 +1004,8 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '동료 신규 교사에게 쪽지로 "오늘 교실 순회 지도할 때 바지 결속 상태 체크 팁"을 유머 쪽지로 공유해 서로의 비밀을 지키는 룰을 세운다.',
         intent: '유머러스한 지퍼 경보 전파',
         immediateEffects: [
-          { stat: 'colleagueRelation', value: 15 },
-          { stat: 'colleagueSolidarity', value: 15 },
+          { stat: 'colleagueRelation', value: 12 },
+          { stat: 'colleagueSolidarity', value: 13 },
           { stat: 'burnout', value: 4 }
         ],
         resultText: '신규 교사들끼리 "어머 저도 그런 적 있어요!"라며 엄청난 웃음꽃 공감 단톡방 수다가 터져 위로를 얻었습니다.'
@@ -1020,9 +1027,9 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '"미안해 친구들아! 학부모 긴급 아동 야간 상담 전화를 대기 대조 중이라 강남역까지 전파가 안 잡힌다 ㅠㅠ 다음엔 내가 쏜다!"라고 공적인 핑계로 정중히 방어한다.',
         intent: '업무 핑계 정중 이불 수호',
         immediateEffects: [
-          { stat: 'mental', value: 18 },
-          { stat: 'hp', value: 10 },
-          { stat: 'familySatisfaction', value: 10 },
+          { stat: 'mental', value: 12 },
+          { stat: 'hp', value: 8 },
+          { stat: 'familySatisfaction', value: 8 },
           { stat: 'burnout', value: 5 }
         ],
         resultText: '친구들은 "오 역시 참된 은사님 바쁘시군!"이라며 꿀 응원을 보내왔고 따뜻한 꿀물과 함께 이불 속에서 주말 평화를 완벽하게 사수했습니다.'
