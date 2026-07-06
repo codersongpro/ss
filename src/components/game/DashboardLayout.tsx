@@ -312,13 +312,13 @@ const TUTORIAL_STEPS: TutorialStepData[] = [
   },
   {
     title: "⚡ 우주 최강의 에너지: 교사력 (TP - Teacher Power)",
-    desc: "가장 중요한 '교사력' 표시등입니다. 매일 아침 7TP의 교사력이 기본으로 주어집니다.\n\n여기서 TP(Teacher Power)란 교사로서 하루 동안 발휘할 수 있는 에너지의 총량입니다. 위치 이동, 대화, 업무, 학생 개별 지도 등 하나의 이벤트가 실행될 때마다 1TP가 소모됩니다.",
+    desc: "가장 중요한 '교사력' 표시등입니다. 매일 아침 난이도에 따라 7~15TP의 교사력이 기본으로 주어집니다.\n\n여기서 TP(Teacher Power)란 교사로서 하루 동안 발휘할 수 있는 에너지의 총량입니다. 지도 위 이동은 자유롭게 할 수 있고, 대화·업무·학생 개별 지도 등 실제 행동을 실행할 때마다 1TP가 소모됩니다.",
     targetId: "tutorial-hp-bar",
     positionClass: "bottom-6 left-1/2 -translate-x-1/2 lg:top-28 lg:right-6 lg:left-auto lg:translate-x-0"
   },
   {
     title: "📊 8대 핵심 교직 스탯 (생존 및 역량)",
-    desc: "교사로서 지닌 8가지 핵심 상태 지표(건강, 멘탈, 번아웃 및 5대 업무 역량)입니다. 각 게이지에 마우스를 올리거나 터치하면 어떠한 행동에 의해 상승/하락하는지 공식과 근거를 볼 수 있습니다. 이 스탯 중 건강/멘탈이 0이 되거나 번아웃이 100%가 되면 즉시 게임오버가 되니 늘 집중관리해야 합니다!",
+    desc: "교사로서 지닌 8가지 핵심 상태 지표(건강, 멘탈, 번아웃 및 5대 업무 역량)입니다. 각 게이지에 마우스를 올리거나 터치하면 어떠한 행동에 의해 상승/하락하는지 공식과 근거를 볼 수 있습니다. 이 스탯 중 건강/멘탈이 0이 되면 즉시, 번아웃이 100% 상태로 3일간 지속되면 게임오버가 되니 늘 집중관리해야 합니다!",
     targetId: "tutorial-stats-panel",
     forcedTab: "left",
     positionClass: "bottom-6 left-1/2 -translate-x-1/2 lg:top-[30%] lg:left-[28%] lg:translate-x-0"
@@ -962,8 +962,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
               {/* 마우스오버 규칙 설명 툴팁 */}
               <div className="absolute top-full right-0 mt-2 w-72 bg-slate-900 text-white text-xs p-3.5 rounded-xl border border-slate-700 shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 z-[1050] leading-relaxed font-semibold break-keep text-left">
                 <span className="font-extrabold text-yellow-400 flex items-center gap-1 mb-1">⚡ 교사력 (Teacher Power) 관리 규칙:</span>
-                <p>• 매일 아침 교사에게는 7TP의 교사력이 기본으로 주어집니다.</p>
-                <p className="mt-1">• 위치 이동, 대화, 업무, 학생 개별 지도 등 하나의 이벤트가 발생할 때마다 교사력 1TP가 소모됩니다.</p>
+                <p>• 매일 아침 교사에게는 난이도에 따라 7~15TP의 교사력이 기본으로 주어집니다.</p>
+                <p className="mt-1">• 지도 위 이동은 자유롭게 할 수 있고, 대화·업무·학생 개별 지도 등 실제 행동을 실행할 때마다 교사력 1TP가 소모됩니다.</p>
               </div>
             </div>
             
@@ -1851,7 +1851,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                             <div className="space-y-6">
                               {/* 1. 상주 NPC 구역 */}
                               <div>
-                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5">👥 상주하는 인물과 대화 (교사력 소모 없음)</h4>
+                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5">👥 상주하는 인물과 대화 (교사력 1 소모)</h4>
                                 <div className="flex flex-wrap gap-2.5">
                                   {(() => {
                                     const npcs = dailyNpcPlacement[currentLocation || ''] || [];
@@ -2088,7 +2088,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
                         { id: 'd', text: '교육청 가이드라인을 먼저 확인한 후 정확한 규정에 따라 작성', effects: [{ stat: 'expert', value: 7 }, { stat: 'adminTrust', value: 5 }, { stat: 'burnout', value: 6 }], resultText: '공식 지침에 따라 완벽하게 대응했습니다.' }
                       ];
                     }
-                    if (titleLower.includes('수업') || titleLower.includes('교욕과정') || titleLower.includes('연구수업') || titleLower.includes('학습')) {
+                    if (titleLower.includes('수업') || titleLower.includes('교육과정') || titleLower.includes('연구수업') || titleLower.includes('학습')) {
                       return [
                         { id: 'a', text: '스스로 새로운 교수법을 연구하여 개성 있는 수업안 설계', effects: [{ stat: 'teachingResearch', value: 8 }, { stat: 'expert', value: 6 }, { stat: 'burnout', value: 8 }, { stat: 'educationSoshin', value: 5 }], resultText: '독창적인 수업 연구로 연수에만 의존하지 않는 수업력을 키웠습니다.' },
                         { id: 'b', text: '학습 콘텐츠를 동학년과 공유하여 평준화된 형태로 만들어 진행', effects: [{ stat: 'colleagueSolidarity', value: 8 }, { stat: 'expert', value: 4 }, { stat: 'burnout', value: 3 }], resultText: '동학년 협력으로 더 탄탄한 수업을 완성했습니다.' },
