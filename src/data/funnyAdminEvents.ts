@@ -313,7 +313,7 @@ export const funnyAdminEvents: GameEvent[] = [
         intent: '수신호 활용 학생 질서 유지',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
-          { stat: 'classManagement', value: 15 },
+          { stat: 'studentTrust', value: 15 },
           { stat: 'burnout', value: 4 }
         ],
         resultText: '아이들은 선생님의 퀴즈 힌트를 받으며 얌전하게 훈화를 경청했고 방학식은 큰 소동 없이 질서 정연하게 종료되었습니다.'
@@ -651,7 +651,7 @@ export const funnyAdminEvents: GameEvent[] = [
         intent: '초고속 물티슈 광내기',
         immediateEffects: [
           { stat: 'adminTrust', value: 15 },
-          { stat: 'classManagement', value: 10 },
+          { stat: 'studentTrust', value: 10 },
           { stat: 'hp', value: -5 }
         ],
         resultText: '교장 선생님은 번쩍이는 내 책상을 만져보시고 하얀 장갑이 깨끗하자 "음! 김 선생은 자기 주변 정리가 아주 칼같군!"이라며 대만족을 남기셨습니다.'
@@ -870,7 +870,7 @@ export const funnyAdminEvents: GameEvent[] = [
         text: '교실 구석 그늘진 책장 위에 두고 자연 가습기 효과 대용으로 얌전하고 깨끗하게 배치 보존만 해둔다.',
         intent: '미니멀 가습 배치',
         immediateEffects: [
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'hp', value: 5 },
           { stat: 'burnout', value: 3 }
         ],

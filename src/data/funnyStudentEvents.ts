@@ -52,7 +52,7 @@ export const funnyStudentEvents: GameEvent[] = [
         text: '거래 중인 "흑요석"을 전량 압수하고, 교실 청소 시간에 지우개 가루 청소 봉사를 시킨다.',
         intent: '시장 경제 통제',
         immediateEffects: [
-          { stat: 'classManagement', value: 10 },
+          { stat: 'studentTrust', value: 10 },
           { stat: 'hp', value: -5 },
           { stat: 'burnout', value: 5 }
         ],
@@ -99,7 +99,7 @@ export const funnyStudentEvents: GameEvent[] = [
         text: '준서에게 지우개를 주며 "수업 1분 전이니 미술학원은 방과 후에 열어라"며 칠판을 지우게 한다.',
         intent: '공적 시간 경계 구분',
         immediateEffects: [
-          { stat: 'classManagement', value: 10 },
+          { stat: 'studentTrust', value: 10 },
           { stat: 'expert', value: 5 },
           { stat: 'burnout', value: 3 }
         ],
@@ -122,7 +122,7 @@ export const funnyStudentEvents: GameEvent[] = [
         text: '교탁 옆 빗자루를 길게 뻗어 안전하게 실내화를 떼어내고, 둘에게 실내화 닦기 숙제를 준다.',
         intent: '안전 수거 및 훈육',
         immediateEffects: [
-          { stat: 'classManagement', value: 10 },
+          { stat: 'studentTrust', value: 10 },
           { stat: 'hp', value: -5 }
         ],
         resultText: '실내화는 흙먼지를 뿜으며 바닥으로 떨어졌고, 아이들은 조용히 실내화를 닦으며 다음부터는 신발을 던지지 않기로 약속했습니다.'
@@ -156,7 +156,7 @@ export const funnyStudentEvents: GameEvent[] = [
         intent: '안전사고 재발 방지',
         immediateEffects: [
           { stat: 'expert', value: 10 },
-          { stat: 'classManagement', value: 10 },
+          { stat: 'studentTrust', value: 10 },
           { stat: 'mental', value: -5 }
         ],
         resultText: '엄격한 훈계 덕에 과학실 내의 장난이 싹 사라졌습니다. 웅이의 바지는 다행히 구멍만 살짝 뚫렸고 다치지는 않았습니다.'
@@ -223,7 +223,7 @@ export const funnyStudentEvents: GameEvent[] = [
         text: '복도에 모여 조롱하는 학생들을 즉각 교실로 들여보내고, 타인의 생리 현상을 존중하라고 훈육한다.',
         intent: '엄격한 인권/예절 훈육',
         immediateEffects: [
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'expert', value: 5 },
           { stat: 'burnout', value: 3 }
         ],
@@ -258,7 +258,7 @@ export const funnyStudentEvents: GameEvent[] = [
         text: '학교 내 물건 거래 금지 규칙에 근거해 거래를 무효화하고 각자 물건을 돌려주게 한다.',
         intent: '원칙 중심 거래 철회',
         immediateEffects: [
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'expert', value: 5 },
           { stat: 'burnout', value: 3 }
         ],
@@ -328,7 +328,7 @@ export const funnyStudentEvents: GameEvent[] = [
         text: '교사용 교실 빗자루와 쓰레받기를 사용해 사마귀를 신속하게 포획하여 화단 밖으로 방생한다.',
         intent: '신속한 물리적 포획 및 구출',
         immediateEffects: [
-          { stat: 'classManagement', value: 15 },
+          { stat: 'studentTrust', value: 15 },
           { stat: 'hp', value: -5 },
           { stat: 'mental', value: 5 }
         ],
@@ -374,7 +374,7 @@ export const funnyStudentEvents: GameEvent[] = [
         text: '조용히 다가가 식사 도중 장난을 치면 체할 수 있음을 엄중하고 정중하게 고지한다.',
         intent: '단호한 기본 생활 지도',
         immediateEffects: [
-          { stat: 'classManagement', value: 10 },
+          { stat: 'studentTrust', value: 10 },
           { stat: 'hp', value: 5 },
           { stat: 'burnout', value: 3 }
         ],
@@ -433,7 +433,7 @@ export const funnyStudentEvents: GameEvent[] = [
         text: '즉시 리코더 연주를 중단시키고, 물비누와 소독용 알코올을 주어 화장실에서 직접 세척 소독하도록 명령한다.',
         intent: '엄격한 위생 훈육',
         immediateEffects: [
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'hp', value: 5 },
           { stat: 'burnout', value: 5 }
         ],
@@ -480,7 +480,7 @@ export const funnyStudentEvents: GameEvent[] = [
         text: '규정대로 지각 처리 대장에 이름을 기록하고 교문 앞에서는 뛰지 않도록 벌점을 고지한다.',
         intent: '규정 중심 통제',
         immediateEffects: [
-          { stat: 'classManagement', value: 10 },
+          { stat: 'studentTrust', value: 10 },
           { stat: 'expert', value: 5 },
           { stat: 'burnout', value: 3 }
         ],
@@ -515,7 +515,7 @@ export const funnyStudentEvents: GameEvent[] = [
         text: '교과서 훼손 및 수업 태도 불량으로 낙서된 모서리를 지우개로 깨끗이 지우게 한다.',
         intent: '엄격한 교무 원칙',
         immediateEffects: [
-          { stat: 'classManagement', value: 10 },
+          { stat: 'studentTrust', value: 10 },
           { stat: 'hp', value: -5 }
         ],
         resultText: '민혁이는 시무룩하게 고생해 그린 플립북 애니메이션을 지우개로 문질렀습니다. 수업 분위기는 단호하게 조율되었습니다.'
@@ -537,7 +537,7 @@ export const funnyStudentEvents: GameEvent[] = [
         text: '즉시 교실 창문을 전면 개방하고 선풍기를 강풍으로 틀게 한 후, 양말을 반드시 착용하도록 지시한다.',
         intent: '물리적 위생 환경 개선',
         immediateEffects: [
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'hp', value: -5 },
           { stat: 'burnout', value: 5 }
         ],
@@ -584,7 +584,7 @@ export const funnyStudentEvents: GameEvent[] = [
         text: '일기는 타인이 알아볼 수 있는 한글 원칙으로 작성해야 함을 주지시키고 다음엔 한글로 쓰도록 타이른다.',
         intent: '한글 쓰기 원칙 교정',
         immediateEffects: [
-          { stat: 'classManagement', value: 10 },
+          { stat: 'studentTrust', value: 10 },
           { stat: 'expert', value: 5 },
           { stat: 'burnout', value: 3 }
         ],
@@ -676,7 +676,7 @@ export const funnyStudentEvents: GameEvent[] = [
         text: '윤수에게 대걸레와 사다리를 주어 천장 우유 얼룩과 교실 바닥을 깨끗이 닦게 하고 반성문을 쓰게 한다.',
         intent: '인과응보적 청소 지도',
         immediateEffects: [
-          { stat: 'classManagement', value: 15 },
+          { stat: 'studentTrust', value: 15 },
           { stat: 'hp', value: -5 },
           { stat: 'burnout', value: 5 }
         ],
@@ -712,7 +712,7 @@ export const funnyStudentEvents: GameEvent[] = [
         intent: '실무적 역할 재배분',
         immediateEffects: [
           { stat: 'expert', value: 12 },
-          { stat: 'classManagement', value: 10 },
+          { stat: 'studentTrust', value: 10 },
           { stat: 'hp', value: -5 }
         ],
         resultText: '모둠 내 공평한 역할 배분이 정립되었습니다. 준우도 대본 작성 실무를 일부 맡으며 갈등이 깨끗하게 봉합되었습니다.'
@@ -746,7 +746,7 @@ export const funnyStudentEvents: GameEvent[] = [
         text: '즉시 경기를 중단시키고 "피구는 친구를 다치게 하는 전쟁이 아니라 패스로 조율하는 협동 게임"임을 단호하게 교육한다.',
         intent: '단호한 안전/우정 규칙 정비',
         immediateEffects: [
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'expert', value: 5 },
           { stat: 'burnout', value: 3 }
         ],
@@ -780,7 +780,7 @@ export const funnyStudentEvents: GameEvent[] = [
         text: '하늘이의 부모님께 연락하여 사물함 힌지 수리 비용에 대해 조율하고, 하늘이에게 반성문 작성을 지시한다.',
         intent: '원칙적 손해 배상 및 훈육',
         immediateEffects: [
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'parentTrust', value: -5 },
           { stat: 'burnout', value: 5 }
         ],
@@ -815,7 +815,7 @@ export const funnyStudentEvents: GameEvent[] = [
         text: '현우의 폰을 즉시 압수하여 종례 시간까지 보관하고, 수업 중 전자기기 무단 사용 규칙에 맞춰 부모님께 통지한다.',
         intent: '교칙에 따른 즉각 제재',
         immediateEffects: [
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'hp', value: 5 },
           { stat: 'parentTrust', value: 5 },
           { stat: 'burnout', value: 3 }
@@ -897,7 +897,7 @@ export const funnyStudentEvents: GameEvent[] = [
         text: '교실 뒷거울로 가서 단정하게 머리를 빗고, 단정한 용모의 중요성에 대해 짧게 훈화한다.',
         intent: '용모 단정 생활지도',
         immediateEffects: [
-          { stat: 'classManagement', value: 10 },
+          { stat: 'studentTrust', value: 10 },
           { stat: 'expert', value: 5 },
           { stat: 'burnout', value: 3 }
         ],
@@ -921,7 +921,7 @@ export const funnyStudentEvents: GameEvent[] = [
         intent: '신속한 차단 및 수업 복귀',
         immediateEffects: [
           { stat: 'expert', value: 10 },
-          { stat: 'classManagement', value: 10 },
+          { stat: 'studentTrust', value: 10 },
           { stat: 'hp', value: -5 }
         ],
         resultText: '모기가 격퇴되었고 수업 진도를 지체 없이 무사히 마무리했습니다. 교사로서의 수업 제어력이 발휘되었습니다.'
@@ -966,7 +966,7 @@ export const funnyStudentEvents: GameEvent[] = [
         text: '남은 돈가스를 공평하게 3등분하여 사이좋게 나눠서 배분해 준다.',
         intent: '균등 분배',
         immediateEffects: [
-          { stat: 'classManagement', value: 10 },
+          { stat: 'studentTrust', value: 10 },
           { stat: 'expert', value: 5 },
           { stat: 'burnout', value: 3 }
         ],
@@ -1001,7 +1001,7 @@ export const funnyStudentEvents: GameEvent[] = [
         text: '허무맹랑한 핑계는 생활 기록 대장에 지각으로 기록됨을 상기시키고 단호히 경고한다.',
         intent: '사실 중심 규율 확립',
         immediateEffects: [
-          { stat: 'classManagement', value: 10 },
+          { stat: 'studentTrust', value: 10 },
           { stat: 'expert', value: 5 },
           { stat: 'burnout', value: 3 }
         ],
@@ -1024,7 +1024,7 @@ export const funnyStudentEvents: GameEvent[] = [
         text: '자 대고 직접 정밀하게 중간 선을 확인해 주고, 서로 배려하는 짝꿍 조율 계약을 맺게 한다.',
         intent: '공평한 규칙 설정 및 화해',
         immediateEffects: [
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'expert', value: 5 },
           { stat: 'mental', value: 5 },
           { stat: 'burnout', value: 3 }
@@ -1036,7 +1036,7 @@ export const funnyStudentEvents: GameEvent[] = [
         text: '선을 그은 부분을 지우게 하고, 계속 싸우면 다음 주 짝꿍을 전격 격리 조치하겠다고 선언한다.',
         intent: '단호한 격리 경고',
         immediateEffects: [
-          { stat: 'classManagement', value: 10 },
+          { stat: 'studentTrust', value: 10 },
           { stat: 'hp', value: 5 },
           { stat: 'burnout', value: 3 }
         ],

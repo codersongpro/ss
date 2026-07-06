@@ -93,6 +93,7 @@ interface GameState {
   completedPositiveEvents: number[]; // 완료된 긍정 격려/감사 인덱스 목록
   inventory: string[]; // [NEW] 보유 아이템 id 목록 (어드벤처 요소)
   discoveryLog: DiscoveryLogEntry[]; // [NEW] 단서/관계 일지에 쌓일 발견 기록
+  recentEventDays: Record<string, number>; // [WO-08] eventId -> 마지막 발생 day. 로그 문자열 매칭 대신 쓰는 ID 기반 쿨다운
 
   // 현재 진행 중인 이벤트 연출 상태
   currentEvent: GameEvent | null;
@@ -751,6 +752,11 @@ const getWeekendHealingEvent = (day: number, familyState?: string): GameEvent =>
   };
 };
 
+// 기획된 마일스톤 자녀/주말 이벤트가 강제 배정되는 날짜 -> 접미사 매핑.
+// day 20 대신 19일차를 쓰는 이유: 20일차(토요일, day % 7 === 6)는 저녁 페이즈가 없어
+// 그 자리에 두면 이벤트가 영구히 발동하지 못한다.
+const MILESTONE_DAYS: Record<number, string> = { 5: '01', 10: '02', 15: '03', 19: '04', 25: '05' };
+
 // 특정 날짜 범위 및 조건에 맞는 이벤트 추첨 헬퍼
 const getEventForTime = (
   day: number,
@@ -775,9 +781,11 @@ const getEventForTime = (
     return null;
   }
 
-  // 5, 10, 15, 20, 25일차 저녁(evening)에는 기획된 자녀/주말 이벤트를 강제로 반환 [NEW]
-  if (time === 'evening' && [5, 10, 15, 20, 25].includes(day)) {
-    const targetSuffix = String(day / 5).padStart(2, '0'); // 5->01, 10->02, 15->03, 20->04, 25->05
+  // 5, 10, 15, 19, 25일차 저녁(evening)에는 기획된 자녀/주말 이벤트를 강제로 반환 [NEW]
+  // 주의: 20일차는 토요일(day % 7 === 6)이라 저녁 페이즈 자체가 없으므로(progressTime의 주말 스킵),
+  // 4번째 마일스톤은 19일차(평일)로 당겨서 배정한다.
+  if (time === 'evening' && MILESTONE_DAYS[day]) {
+    const targetSuffix = MILESTONE_DAYS[day];
     const isParent = familyState === 'parent';
     const targetEventId = isParent ? `evt_child_event_${targetSuffix}` : `evt_single_weekend_${targetSuffix}`;
     const targetEvt = gameEvents.find(evt => evt.id === targetEventId);
@@ -956,6 +964,7 @@ export const useGameStore = create<GameState>()(
       completedPositiveEvents: [],
       inventory: [],
       discoveryLog: [],
+      recentEventDays: {},
 
       currentEvent: null,
       selectedChoice: null,
@@ -1028,6 +1037,7 @@ export const useGameStore = create<GameState>()(
           completedPositiveEvents: [],
           inventory: [],
           discoveryLog: [],
+          recentEventDays: {},
           phoneAndTextNotifications: [],
           activePhoneAndTextEvent: null,
           currentEvent: null, // 시작 직후 아침에는 지도를 보고 탐색하도록 null 설정
@@ -1069,6 +1079,7 @@ export const useGameStore = create<GameState>()(
           completedPositiveEvents: [],
           inventory: [],
           discoveryLog: [],
+          recentEventDays: {},
           phoneAndTextNotifications: [],
           activePhoneAndTextEvent: null,
           recentLogs: [],
@@ -1110,7 +1121,7 @@ export const useGameStore = create<GameState>()(
             appliedEffects.forEach((eff: StatEffect) => {
               newStats[eff.stat] = clamp(
                 newStats[eff.stat] + eff.value, 
-                eff.stat === 'burnout' ? 0 : 0, 
+                0,
                 100
               );
             });
@@ -1182,7 +1193,7 @@ export const useGameStore = create<GameState>()(
           choice.immediateEffects.forEach((eff: StatEffect) => {
             newStats[eff.stat] = clamp(
               newStats[eff.stat] + eff.value, 
-              eff.stat === 'burnout' ? 0 : 0, 
+              0,
               100
             );
           });
@@ -1324,18 +1335,37 @@ export const useGameStore = create<GameState>()(
               penaltyMessages.push(`[정시 퇴근 보너스] 야근 없이 정시 퇴근하여 건강 +5, 멘탈 +5 회복 및 번아웃 -5 감소했습니다.`);
             }
 
-            // 1) 미결 업무 방치 패널티 정산
+            // 1) 미결 업무 방치 패널티 정산 [WO-06]
+            // 과거에는 연체 업무 1건당 매일 밤 전액 패널티가 무한 반복되어(2건 방치 시 하룻밤 행정력 -40)
+            // 회복 불가능한 나선이 됐다. 연체 1일째만 전액, 2일째부터는 25%로 감쇠시키고,
+            // 3일째 밤에는 업무를 강제 종결(자동 소멸)해 1회성 청산 패널티로 끝낸다.
+            const autoResolvedTaskIds: string[] = [];
             overdueTasks.forEach(t => {
-              // 행정역량 -20, 전문성 -15, 관리자신뢰 -10 차감 -> 이에 따라 업무능력 및 수업연구능력 하락 연동
-              penaltyStats.adminPower = clamp(penaltyStats.adminPower - 20);
-              penaltyStats.expert = clamp(penaltyStats.expert - 15);
-              penaltyStats.adminTrust = clamp(penaltyStats.adminTrust - 10);
-              penaltyStats.reputation = clamp(penaltyStats.reputation - 8);
-              penaltyStats.burnout = clamp(penaltyStats.burnout + 10);
+              const daysOverdue = nextDay - t.deadlineDay;
+              if (daysOverdue >= 3) {
+                penaltyStats.adminTrust = clamp(penaltyStats.adminTrust - 10);
+                penaltyStats.reputation = clamp(penaltyStats.reputation - 5);
+                autoResolvedTaskIds.push(t.id);
+                penaltyMessages.push(
+                  `[업무 강제 종결] "${t.title}" 업무를 3일째 방치해 교감선생님이 대신 처리했습니다. 관리자신뢰 -10, 평판 -5 (사유: 반복된 업무 방치로 인한 신뢰 실추)`
+                );
+              } else {
+                const scale = daysOverdue >= 2 ? 0.25 : 1;
+                const dAdminPower = Math.round(20 * scale);
+                const dExpert = Math.round(15 * scale);
+                const dAdminTrust = Math.round(10 * scale);
+                const dReputation = Math.round(8 * scale);
+                const dBurnout = Math.round(10 * scale);
+                penaltyStats.adminPower = clamp(penaltyStats.adminPower - dAdminPower);
+                penaltyStats.expert = clamp(penaltyStats.expert - dExpert);
+                penaltyStats.adminTrust = clamp(penaltyStats.adminTrust - dAdminTrust);
+                penaltyStats.reputation = clamp(penaltyStats.reputation - dReputation);
+                penaltyStats.burnout = clamp(penaltyStats.burnout + dBurnout);
 
-              penaltyMessages.push(
-                `[업무 미결 패널티] "${t.title}" 업무 마감 기한 초과 방치로 인해 행정역량 -20, 전문성 -15, 관리자신뢰 -10 하락 (사유: 주요 공무 연체에 따른 실무 태만)`
-              );
+                penaltyMessages.push(
+                  `[업무 미결 패널티] "${t.title}" 업무 마감 기한 초과 방치로 인해 행정역량 -${dAdminPower}, 전문성 -${dExpert}, 관리자신뢰 -${dAdminTrust} 하락 (사유: 주요 공무 연체에 따른 실무 태만)`
+                );
+              }
             });
 
             // 2) 미확인 학교 메신저 방치 패널티 정산
@@ -1355,14 +1385,9 @@ export const useGameStore = create<GameState>()(
             const unreadPhones = phoneAndTextNotifications.filter(p => !p.isRead);
             unreadPhones.forEach(p => {
               if (p.id.startsWith('phone_positive_')) {
-                // 긍정적 감사 연락 무응답 -> 동료관계 -5, 가정만족 -5, 학생신뢰 -5 차감
-                penaltyStats.colleagueRelation = clamp(penaltyStats.colleagueRelation - 5);
-                penaltyStats.familySatisfaction = clamp(penaltyStats.familySatisfaction - 5);
-                penaltyStats.studentTrust = clamp(penaltyStats.studentTrust - 5);
-
-                penaltyMessages.push(
-                  `[감사 무응답 패널티] 제자/학부모의 격려 연락 무응답으로 동료관계 -5, 가정만족 -5, 학생신뢰 -5 하락 (사유: 긍정 힐링 소통 기회 방치)`
-                );
+                // [WO-07] 감사·격려 전화는 힐링 콘텐츠인데, 안 읽었다고 벌점을 주면 힐링이 빚으로
+                // 둔갑한다. 패널티 없이 당일 만료(읽음 처리)만 시켜 다음 날로 넘어가지 않게 한다.
+                // (실제 만료 처리는 아래 최종 set()에서 phoneAndTextNotifications를 갱신한다.)
               } else if (p.id.startsWith('phone_parent_')) {
                 // 학부모 민원 무시 -> 학부모신뢰 -10, 학생신뢰 -5 차감, 민원수치 +12 상승 -> 이에 따라 인간관계, 학급운영 하락 연동
                 penaltyStats.parentTrust = clamp(penaltyStats.parentTrust - 10);
@@ -1401,8 +1426,9 @@ export const useGameStore = create<GameState>()(
             }
 
             // 업무 기한 리셋/업데이트 (일정 날짜에 새 업무 할당 + 45% 확률로 랜덤 행정 업무 1~2개 추가)
-            let updatedTasks = [...tasks];
-            
+            // [WO-06] 3일째 자동 종결된 업무는 완료 처리해 다음 날부터 연체 목록에서 빠지게 한다.
+            let updatedTasks = tasks.map(t => autoResolvedTaskIds.includes(t.id) ? { ...t, isCompleted: true } : t);
+
             if (Math.random() < 0.45) {
               const taskCount = Math.floor(Math.random() * 2) + 1; // 1~2개
               for (let c = 0; c < taskCount; c++) {
@@ -1478,7 +1504,11 @@ export const useGameStore = create<GameState>()(
               dayEffectsTriggered: penaltyMessages, // 아침 브리핑용 패널티 메시지 저장
               completedNpcDialoguesToday: [],
               tasks: updatedTasks,
-              activePhoneAndTextEvent: null
+              activePhoneAndTextEvent: null,
+              // [WO-07] 벌점 없이 당일 만료 — 미확인 감사 전화를 읽음 처리해 다음 날로 이월되지 않게 한다.
+              phoneAndTextNotifications: phoneAndTextNotifications.map(p =>
+                p.id.startsWith('phone_positive_') && !p.isRead ? { ...p, isRead: true } : p
+              )
             });
 
             // [NEW] 캐릭터 배치 셔플 및 메신저 생성
@@ -1567,22 +1597,29 @@ export const useGameStore = create<GameState>()(
 
       // 6. 업무 동료에게 위임
       delegateTask: (taskId: string) => {
-        const { tasks, stats } = get();
+        const { tasks, stats, actionPoints } = get();
         const target = tasks.find(t => t.id === taskId);
-        
+
         if (!target || target.isCompleted || !target.canDelegate) return;
         if (stats.colleagueRelation < 60) {
           get().showToast('동료 교사와의 관계 점수(60 이상 필요)가 낮아 업무 협조를 위임할 수 없습니다.');
+          return;
+        }
+        // [WO-05] 위임도 부탁하러 다니는 실제 시간이 든다 — completeTask와 동일하게 TP를 소모시켜
+        // "위임이 완료보다 항상 공짜로 저렴한" 경제 구멍을 막는다.
+        if (actionPoints < 1) {
+          get().showToast('교사력(TP)이 부족하여 업무를 위임할 수 없습니다.');
           return;
         }
 
         const newStats = { ...stats };
         newStats.colleagueRelation = clamp(newStats.colleagueRelation - 15); // 관계 점수 일부 소모
         newStats.burnout = clamp(newStats.burnout + 2); // 대신 스트레스는 거의 없음
-        
+
         set({
           tasks: tasks.map(t => t.id === taskId ? { ...t, isCompleted: true } : t),
-          stats: newStats
+          actionPoints: actionPoints - 1,
+          stats: syncNewStats(newStats)
         });
 
         get().showToast(`[업무위임] 동료에게 도움을 요청해 "${target.title}" 업무를 처리했습니다.`);
@@ -1603,7 +1640,7 @@ export const useGameStore = create<GameState>()(
           delayed.effects.forEach((eff: StatEffect) => {
             newStats[eff.stat] = clamp(
               newStats[eff.stat] + eff.value, 
-              eff.stat === 'burnout' ? 0 : 0, 
+              0,
               100
             );
           });
@@ -1668,8 +1705,9 @@ export const useGameStore = create<GameState>()(
           finalEnding = 'ending_myway';
         }
         // 3. 장학사 엔딩 (커리어 포인트, 행정력, 소신 우수)
+        // [WO-04] careerPoint 지급 총량 대비 40은 과도해 사실상 도달 불가 → 30으로 완화
         else if (
-          stats.careerPoint >= 40 &&
+          stats.careerPoint >= 30 &&
           stats.adminPower >= 70 &&
           stats.educationSoshin >= 60
         ) {
@@ -1811,7 +1849,7 @@ export const useGameStore = create<GameState>()(
 
       // 11. RPG 장소 탐색 (사건 트리거, TP 1 소모)
       exploreLocation: () => {
-        const { currentLocation, day, hiddenFlags, recentLogs, actionPoints, stats, students, inventory } = get();
+        const { currentLocation, day, hiddenFlags, actionPoints, stats, students, inventory, recentEventDays } = get();
         const effectiveFlags = [...hiddenFlags, ...getTrustDerivedFlags(students)];
         if (!currentLocation) return;
         if (actionPoints < 1) {
@@ -1866,7 +1904,9 @@ export const useGameStore = create<GameState>()(
           if (evt.location && evt.location !== currentLocation) return false;
           const [start, end] = evt.dayRange;
           if (day < start || day > end) return false;
-          if (recentLogs.some(log => log.includes(evt.title))) return false;
+          // [WO-08] 로그 문자열 매칭(최근 20건 스크롤 아웃 시 재등장) 대신 ID 기반 쿨다운으로 판정한다.
+          const lastSeenDay = recentEventDays[evt.id];
+          if (lastSeenDay !== undefined && day - lastSeenDay < (evt.cooldown ?? 5)) return false;
           if (evt.prerequisites && evt.prerequisites.length > 0) {
             const hasAll = evt.prerequisites.every(flag => hasPrerequisite(flag, effectiveFlags, inventory));
             if (!hasAll) return false;
@@ -1901,7 +1941,8 @@ export const useGameStore = create<GameState>()(
           currentEvent: selectedEvt,
           selectedChoice: null,
           eventResultText: null,
-          discoveryLog: newDiscoveryLog
+          discoveryLog: newDiscoveryLog,
+          recentEventDays: { ...recentEventDays, [selectedEvt.id]: day } // [WO-08]
         });
 
         get().showToast(`[사건 발생] ${selectedEvt.title} 상황에 마주쳤습니다!`);
@@ -2963,7 +3004,7 @@ export const useGameStore = create<GameState>()(
           choice.effects.forEach(eff => {
             newStats[eff.stat] = clamp(
               newStats[eff.stat] + eff.value,
-              eff.stat === 'burnout' ? 0 : 0,
+              0,
               100
             );
           });
@@ -3556,7 +3597,7 @@ export const useGameStore = create<GameState>()(
         effects.forEach((eff: StatEffect) => {
           newStats[eff.stat] = clamp(
             newStats[eff.stat] + eff.value, 
-            eff.stat === 'burnout' ? 0 : 0, 
+            0,
             100
           );
         });
@@ -3732,7 +3773,7 @@ export const useGameStore = create<GameState>()(
         effects.forEach((eff: StatEffect) => {
           newStats[eff.stat] = clamp(
             newStats[eff.stat] + eff.value, 
-            eff.stat === 'burnout' ? 0 : 0, 
+            0,
             100
           );
         });
@@ -3965,7 +4006,7 @@ export const useGameStore = create<GameState>()(
         effects.forEach((eff: StatEffect) => {
           newStats[eff.stat] = clamp(
             newStats[eff.stat] + eff.value, 
-            eff.stat === 'burnout' ? 0 : 0, 
+            0,
             100
           );
         });
@@ -4085,17 +4126,34 @@ export const useGameStore = create<GameState>()(
           const overdueTasks = tasks.filter(t => !t.isCompleted && t.deadlineDay < nextDay);
           const penaltyMessages: string[] = [];
 
-          // 2) 미결 업무 방치 패널티 정산
+          // 2) 미결 업무 방치 패널티 정산 [WO-06] — progressTime의 정산 로직과 동일하게 감쇠·자동 종결 적용
+          const autoResolvedTaskIds: string[] = [];
           overdueTasks.forEach(t => {
-            overtimeStats.adminPower = clamp(overtimeStats.adminPower - 20);
-            overtimeStats.expert = clamp(overtimeStats.expert - 15);
-            overtimeStats.adminTrust = clamp(overtimeStats.adminTrust - 10);
-            overtimeStats.reputation = clamp(overtimeStats.reputation - 8);
-            overtimeStats.burnout = clamp(overtimeStats.burnout + 10);
+            const daysOverdue = nextDay - t.deadlineDay;
+            if (daysOverdue >= 3) {
+              overtimeStats.adminTrust = clamp(overtimeStats.adminTrust - 10);
+              overtimeStats.reputation = clamp(overtimeStats.reputation - 5);
+              autoResolvedTaskIds.push(t.id);
+              penaltyMessages.push(
+                `[업무 강제 종결] "${t.title}" 업무를 3일째 방치해 교감선생님이 대신 처리했습니다. 관리자신뢰 -10, 평판 -5 (사유: 반복된 업무 방치로 인한 신뢰 실추)`
+              );
+            } else {
+              const scale = daysOverdue >= 2 ? 0.25 : 1;
+              const dAdminPower = Math.round(20 * scale);
+              const dExpert = Math.round(15 * scale);
+              const dAdminTrust = Math.round(10 * scale);
+              const dReputation = Math.round(8 * scale);
+              const dBurnout = Math.round(10 * scale);
+              overtimeStats.adminPower = clamp(overtimeStats.adminPower - dAdminPower);
+              overtimeStats.expert = clamp(overtimeStats.expert - dExpert);
+              overtimeStats.adminTrust = clamp(overtimeStats.adminTrust - dAdminTrust);
+              overtimeStats.reputation = clamp(overtimeStats.reputation - dReputation);
+              overtimeStats.burnout = clamp(overtimeStats.burnout + dBurnout);
 
-            penaltyMessages.push(
-              `[업무 미결 패널티] "${t.title}" 업무 마감 기한 초과 방치로 인해 행정역량 -20, 전문성 -15, 관리자신뢰 -10 하락 (사유: 주요 공무 연체에 따른 실무 태만)`
-            );
+              penaltyMessages.push(
+                `[업무 미결 패널티] "${t.title}" 업무 마감 기한 초과 방치로 인해 행정역량 -${dAdminPower}, 전문성 -${dExpert}, 관리자신뢰 -${dAdminTrust} 하락 (사유: 주요 공무 연체에 따른 실무 태만)`
+              );
+            }
           });
 
           // 3) 미확인 학교 메신저 방치 패널티 정산
@@ -4114,13 +4172,7 @@ export const useGameStore = create<GameState>()(
           const unreadPhones = phoneAndTextNotifications.filter(p => !p.isRead);
           unreadPhones.forEach(p => {
             if (p.id.startsWith('phone_positive_')) {
-              overtimeStats.colleagueRelation = clamp(overtimeStats.colleagueRelation - 5);
-              overtimeStats.familySatisfaction = clamp(overtimeStats.familySatisfaction - 5);
-              overtimeStats.studentTrust = clamp(overtimeStats.studentTrust - 5);
-
-              penaltyMessages.push(
-                `[감사 무응답 패널티] 제자/학부모의 격려 연락 무응답으로 동료관계 -5, 가정만족 -5, 학생신뢰 -5 하락 (사유: 긍정 힐링 소통 기회 방치)`
-              );
+              // [WO-07] 감사 전화는 벌점 없이 당일 만료(읽음 처리)만 — 아래 최종 set()에서 처리.
             } else if (p.id.startsWith('phone_parent_')) {
               overtimeStats.parentTrust = clamp(overtimeStats.parentTrust - 10);
               overtimeStats.studentTrust = clamp(overtimeStats.studentTrust - 5);
@@ -4149,7 +4201,8 @@ export const useGameStore = create<GameState>()(
           const syncedStats = syncNewStats(overtimeStats);
 
           // 7) 신규 업무 업데이트 (일정 날짜 고정 업무 + 45% 확률로 랜덤 행정 업무 1~2개 추가)
-          let updatedTasks = [...tasks];
+          // [WO-06] 3일째 자동 종결된 업무는 완료 처리해 다음 날부터 연체 목록에서 빠지게 한다.
+          let updatedTasks = tasks.map(t => autoResolvedTaskIds.includes(t.id) ? { ...t, isCompleted: true } : t);
           
           if (Math.random() < 0.45) {
             const taskCount = Math.floor(Math.random() * 2) + 1; // 1~2개
@@ -4230,7 +4283,11 @@ export const useGameStore = create<GameState>()(
             ],
             completedNpcDialoguesToday: [],
             tasks: updatedTasks,
-            activePhoneAndTextEvent: null
+            activePhoneAndTextEvent: null,
+            // [WO-07] 벌점 없이 당일 만료 — 미확인 감사 전화를 읽음 처리해 다음 날로 이월되지 않게 한다.
+            phoneAndTextNotifications: phoneAndTextNotifications.map(p =>
+              p.id.startsWith('phone_positive_') && !p.isRead ? { ...p, isRead: true } : p
+            )
           });
 
           // 부가 동작 처리

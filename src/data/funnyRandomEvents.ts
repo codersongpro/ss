@@ -52,7 +52,7 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '교탁 뒤에 서서 다리를 절대 밖으로 뻗지 않는 정자세 훈육 모드를 발동하고, 이동 시 슬랙스 밑단을 뒤꿈치 밑으로 한껏 당겨 밟고 걷는다.',
         intent: '교탁 사수 및 슬랙스 하강 엄수',
         immediateEffects: [
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'hp', value: -5 },
           { stat: 'mental', value: 10 }
         ],
@@ -446,7 +446,7 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '빛의 속도로 다리를 내려 양발 착지를 완료하고, 헛기침을 하며 준수하게 수학 오답 대장을 들춰 문제를 지목한다.',
         intent: '엄숙 정자세 신속 복귀',
         immediateEffects: [
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'hp', value: 5 },
           { stat: 'burnout', value: 3 }
         ],
@@ -550,7 +550,7 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '수업 내내 교실 무선 온풍기나 미니 선풍기를 오른쪽 발밑에 강풍으로 틀어놓고 양말 건조 작업을 묵묵히 진행한다.',
         intent: '발밑 무선선풍기 건조',
         immediateEffects: [
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'hp', value: -5 }
         ],
         resultText: '오후가 되어서야 양말이 완전히 말랐습니다. 찝찝했지만 수업을 제시간에 차분하게 완료했습니다.'
@@ -676,7 +676,7 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '비둘기 유해 조수 위생 문제를 들어 창문을 철저히 닫아 시야를 잠그고, 행정실에 비둘기 퇴치 그물망 설비 설치 공문을 올린다.',
         intent: '창문 차단 및 행정망 방지망 설치',
         immediateEffects: [
-          { stat: 'classManagement', value: 15 },
+          { stat: 'studentTrust', value: 15 },
           { stat: 'expert', value: 10 },
           { stat: 'hp', value: -5 }
         ],
@@ -688,7 +688,7 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '생태관찰 쉬는시간 한정 허용',
         immediateEffects: [
           { stat: 'studentTrust', value: 15 },
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'mental', value: 10 },
           { stat: 'burnout', value: 5 }
         ],
@@ -827,7 +827,7 @@ export const funnyRandomEvents: GameEvent[] = [
         intent: '생활 예절 훈계 귀가',
         immediateEffects: [
           { stat: 'expert', value: 15 },
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'burnout', value: 3 }
         ],
         resultText: '아이들은 수긍하며 안전하게 집으로 귀가했습니다. 방과 후 하굣길 안전 수칙을 명확히 각인시켰습니다.'
@@ -930,7 +930,7 @@ export const funnyRandomEvents: GameEvent[] = [
         text: '물티슈 1통을 다 문질러 흙탕물을 닦아내고 교탁 뒤에 말뚝처럼 서서 엉덩이 진흙 자국을 철저히 교무실 의자 뒤로 은폐한다.',
         intent: '교탁 은폐 및 물티슈 세척',
         immediateEffects: [
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'hp', value: -5 }
         ],
         resultText: '하루 종일 의자에 앉은 채 결재를 보냈습니다. 엉덩이 진흙 비밀을 안전하게 봉인하며 하루가 지났습니다.'

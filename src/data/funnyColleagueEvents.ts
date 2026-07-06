@@ -62,7 +62,7 @@ export const funnyColleagueEvents: GameEvent[] = [
         text: '옆에 있던 체육 선생님을 가리키며 "아까 체육 쌤이 탕비실에 침입하시는 것을 얼핏 본 것 같습니다..."라며 은밀하게 물타기를 시도한다.',
         intent: '타인 용의자 지목 물타기',
         immediateEffects: [
-          { stat: 'interpersonal', value: -5 },
+          { stat: 'colleagueRelation', value: -5 },
           { stat: 'colleagueRelation', value: -10 },
           { stat: 'mental', value: 5 }
         ],

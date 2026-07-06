@@ -2287,7 +2287,7 @@ export const gameEvents: GameEvent[] = [
           { stat: 'hp', value: -15 },
           { stat: 'mental', value: -10 },
           { stat: 'familySatisfaction', value: 20 },
-          { stat: 'teachingResearch', value: -10 }
+          { stat: 'expert', value: -10 }
         ],
         resultText: '해열제와 물수건으로 밤새 자녀를 보살펴 열이 내렸고, 가정의 끈끈한 유대를 다졌습니다. 하지만 밤샘으로 심한 피로가 쌓였고 다음 날 아침 수업 구상은 다소 엉성하게 진행되었습니다.'
       },
@@ -2299,7 +2299,7 @@ export const gameEvents: GameEvent[] = [
           { stat: 'hp', value: -5 },
           { stat: 'mental', value: -5 },
           { stat: 'familySatisfaction', value: -15 },
-          { stat: 'teachingResearch', value: 15 }
+          { stat: 'expert', value: 15 }
         ],
         resultText: '완벽한 시각 자료를 마련해 공개 수업은 호평을 얻었으나, 자녀의 열이 아침에 다시 올라 배우자와 심한 마찰을 빚고 가정 신뢰가 하락했습니다.'
       }
@@ -2394,7 +2394,7 @@ export const gameEvents: GameEvent[] = [
           { stat: 'hp', value: 15 },
           { stat: 'familySatisfaction', value: 30 },
           { stat: 'adminTrust', value: -15 },
-          { stat: 'workCapacity', value: -15 }
+          { stat: 'adminPower', value: -15 }
         ],
         resultText: '연극 무대에서 당신을 발견하고 환하게 웃는 자녀를 보며 잊지 못할 부모로서의 보람을 다졌습니다. 단, 학년실 교사들에게 신세를 져서 다소 눈치가 보입니다.'
       },
@@ -2406,7 +2406,7 @@ export const gameEvents: GameEvent[] = [
           { stat: 'hp', value: -10 },
           { stat: 'familySatisfaction', value: -25 },
           { stat: 'adminTrust', value: 15 },
-          { stat: 'workCapacity', value: 15 }
+          { stat: 'adminPower', value: 15 }
         ],
         resultText: '철저한 교무실 상주로 행정 기안을 정시에 통과시키고 기율을 지켰으나, 상심한 자녀는 일기장에 "우리 부모님은 나보다 학교를 더 사랑한다"며 서글픈 낙서를 남겼습니다.'
       }
@@ -2467,7 +2467,7 @@ export const gameEvents: GameEvent[] = [
           { stat: 'hp', value: 25 },
           { stat: 'mental', value: 20 },
           { stat: 'familySatisfaction', value: 20 },
-          { stat: 'workCapacity', value: -10 }
+          { stat: 'adminPower', value: -10 }
         ],
         resultText: '동호회 사람들과 자연 속에서 액티비티를 즐겨 번아웃이 대폭 씻겨나가고 활력을 얻었습니다. 월요일 아침 출근길에 가벼운 콧노래가 나옵니다.'
       },
@@ -2479,7 +2479,7 @@ export const gameEvents: GameEvent[] = [
           { stat: 'hp', value: -10 },
           { stat: 'mental', value: -10 },
           { stat: 'expert', value: 20 },
-          { stat: 'workCapacity', value: 20 }
+          { stat: 'adminPower', value: 20 }
         ],
         resultText: '차세대 교육과정 모델 기획을 완성해 기결 라인에 탑재하여 교감의 두터운 칭찬을 이끌어내고 행정력을 과시했습니다.'
       }
@@ -2539,7 +2539,7 @@ export const gameEvents: GameEvent[] = [
           { stat: 'hp', value: -10 },
           { stat: 'mental', value: 30 },
           { stat: 'familySatisfaction', value: 15 },
-          { stat: 'teachingResearch', value: -10 }
+          { stat: 'expert', value: -10 }
         ],
         resultText: '오랜 친구들과 대화하며 시야를 넓히고 정신적 위안을 얻었습니다. 다음 주 수업 발표 준비는 주말 야간 벼락치기로 대충 갈무리했습니다.'
       },
@@ -2551,7 +2551,7 @@ export const gameEvents: GameEvent[] = [
           { stat: 'hp', value: 5 },
           { stat: 'mental', value: -10 },
           { stat: 'expert', value: 25 },
-          { stat: 'teachingResearch', value: 25 }
+          { stat: 'expert', value: 25 }
         ],
         resultText: '최신 교육 패러다임이 반영된 격조 높은 연구 수업 지도안을 준비해 교사로서의 든든한 학문적 자부심과 실력을 장착했습니다.'
       }
@@ -2586,7 +2586,7 @@ export const gameEvents: GameEvent[] = [
           { stat: 'hp', value: -15 },
           { stat: 'expert', value: 30 },
           { stat: 'reputation', value: 15 },
-          { stat: 'teachingResearch', value: 20 }
+          { stat: 'expert', value: 20 }
         ],
         resultText: '수업 아이디어가 샘솟는 혁신적인 스마트 교구 세미나를 정독하여 교육 전문 지식의 정점을 다지고 부장님의 눈도장을 찍었습니다.'
       }
@@ -3071,7 +3071,7 @@ export const gameEvents: GameEvent[] = [
         text: '오늘은 업무가 밀려 있어, 다음에 꼭 듣겠다며 서둘러 일어선다.',
         intent: '업무 우선',
         immediateEffects: [
-          { stat: 'workCapacity', value: 6 },
+          { stat: 'adminPower', value: 6 },
           { stat: 'studentTrust', value: -8 },
           { stat: 'teachingSatisfaction', value: -5 }
         ],
@@ -3262,7 +3262,7 @@ export const gameEvents: GameEvent[] = [
         text: '도서실 자료로 다시 분류해 서가에 정리해둔다.',
         intent: '묵묵한 정리',
         immediateEffects: [
-          { stat: 'workCapacity', value: 5 }
+          { stat: 'adminPower', value: 5 }
         ],
         resultText: '작은 발견이었지만, 도서실 한 켠이 조금 더 정돈되었습니다.'
       }
@@ -3364,7 +3364,7 @@ export const gameEvents: GameEvent[] = [
         text: '낡아서 쓰기 어려운 상태라 사진만 찍어두고 정리해 치운다.',
         intent: '현실적 정리',
         immediateEffects: [
-          { stat: 'workCapacity', value: 5 }
+          { stat: 'adminPower', value: 5 }
         ],
         resultText: '추억은 사진으로 남기고, 과학실 캐비닛은 한결 깔끔해졌습니다.'
       }
@@ -3401,6 +3401,200 @@ export const gameEvents: GameEvent[] = [
           { stat: 'adminTrust', value: 2 }
         ],
         resultText: '특별한 일은 없었지만, 교장실의 분위기가 어쩐지 조금 다르게 느껴졌습니다.'
+      }
+    ]
+  },
+  // ==================== [WO-04] 'career' 카테고리 이벤트 4종 ====================
+  // ending_supervisor(장학사 엔딩)가 요구하는 careerPoint를 지급할 저녁 이벤트가
+  // 기존에는 하나도 없어(family/colleague 카테고리 소수만 지급) 사실상 고아 스탯이었다.
+  // 저녁 추첨 카테고리 목록(getEventForTime)에 'career'가 이미 포함되어 있으므로
+  // 아래 이벤트들은 별도 배선 없이 바로 추첨 후보에 합류한다.
+  {
+    id: 'evt_career_01',
+    dayRange: [3, 12],
+    title: '교육대학원 진학 설명회',
+    category: 'career',
+    situation: '자택',
+    narratorText: '퇴근길 스마트폰으로 대학원 진학 설명회 안내 메일을 확인합니다. 야간·주말 과정으로 2년이면 석사 학위를 딸 수 있고, 훗날 수석교사나 장학사 시험에 가산점이 된다는 문구가 눈에 들어옵니다. 등록 마감이 임박했습니다.',
+    weight: 70,
+    tags: ['진학', '자기계발'],
+    valence: 'neutral',
+    choices: [
+      {
+        id: 'choice_career_01_1',
+        text: '큰맘 먹고 야간 대학원 과정에 등록한다.',
+        intent: '장기 커리어 투자',
+        immediateEffects: [
+          { stat: 'careerPoint', value: 10 },
+          { stat: 'expert', value: 5 },
+          { stat: 'hp', value: -8 },
+          { stat: 'familySatisfaction', value: -5 }
+        ],
+        resultText: '퇴근 후 강의실로 향하는 발걸음이 무겁지만, 새로운 이론을 배우는 재미도 쏠쏠합니다. 다만 가족과 보내는 저녁 시간이 줄었습니다.'
+      },
+      {
+        id: 'choice_career_01_2',
+        text: '일단 자료만 챙겨두고 다음 학기에 다시 고민해본다.',
+        intent: '신중한 유보',
+        immediateEffects: [
+          { stat: 'careerPoint', value: 2 },
+          { stat: 'mental', value: 3 }
+        ],
+        resultText: '당장의 부담은 피했지만, 마음 한켠에 언젠가는 결정해야 한다는 숙제가 남았습니다.'
+      },
+      {
+        id: 'choice_career_01_3',
+        text: '지금은 학급 아이들에게 집중할 때라며 안내 메일을 조용히 삭제한다.',
+        intent: '현장 우선주의',
+        immediateEffects: [
+          { stat: 'careerPoint', value: -3 },
+          { stat: 'studentTrust', value: 6 },
+          { stat: 'familySatisfaction', value: 5 }
+        ],
+        resultText: '승진이나 학위보다 지금 맡은 아이들이 우선이라는 확신이 듭니다. 가족들도 여유로워진 저녁 시간을 반깁니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_career_02',
+    dayRange: [7, 18],
+    title: '교육청 파견교사 제안',
+    category: 'career',
+    situation: '자택',
+    narratorText: '교감선생님으로부터 문자가 왔습니다. "교육청 정책과에서 1년짜리 파견교사를 찾는데, 김 선생 생각이 나서 추천했어. 경력에는 확실히 도움이 될 텐데, 담임 자리는 비워야 해. 내일까지 의사를 알려줘."',
+    weight: 55,
+    tags: ['파견', '승진'],
+    valence: 'neutral',
+    choices: [
+      {
+        id: 'choice_career_02_1',
+        text: '흔치 않은 기회라 판단해 파견을 수락하겠다고 답장한다.',
+        intent: '경력 확장',
+        immediateEffects: [
+          { stat: 'careerPoint', value: 15 },
+          { stat: 'adminPower', value: 8 },
+          { stat: 'hp', value: -10 },
+          { stat: 'familySatisfaction', value: -8 },
+          { stat: 'colleagueRelation', value: -5 }
+        ],
+        resultText: '교육청 사무실의 낯선 공기가 부담스럽지만, 정책이 만들어지는 과정을 직접 보는 경험은 확실히 남습니다. 갑자기 자리를 비우게 된 반은 동료들에게 미안할 따름입니다.'
+      },
+      {
+        id: 'choice_career_02_2',
+        text: '지금 맡은 아이들을 끝까지 책임지고 싶다며 정중히 거절한다.',
+        intent: '학급 책임 우선',
+        immediateEffects: [
+          { stat: 'careerPoint', value: -5 },
+          { stat: 'studentTrust', value: 8 },
+          { stat: 'familySatisfaction', value: 5 }
+        ],
+        resultText: '교감선생님은 아쉬워하면서도 담임으로서의 책임감을 높이 평가해주셨습니다. 아이들과의 1년을 온전히 지킬 수 있게 되었습니다.'
+      },
+      {
+        id: 'choice_career_02_3',
+        text: '지금은 어렵지만 다음 파견 기회가 있다면 우선 고려해달라고 조율을 시도한다.',
+        intent: '유보 협상',
+        immediateEffects: [
+          { stat: 'careerPoint', value: 8 },
+          { stat: 'adminTrust', value: 5 },
+          { stat: 'mental', value: -5 }
+        ],
+        resultText: '교감선생님은 김 선생의 의지를 긍정적으로 기억해두겠다고 답했습니다. 확답을 미룬 찜찜함이 남지만 관계는 나쁘지 않게 마무리되었습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_career_03',
+    dayRange: [10, 22],
+    title: '수업 연구대회 공고',
+    category: 'career',
+    situation: '자택',
+    narratorText: '교육청 홈페이지에 수업 연구대회 공고가 떴습니다. 입상하면 승진 가산점은 물론, 전국 수업 사례집에 실릴 기회도 주어진다고 합니다. 준비 기간이 촉박한 게 마음에 걸립니다.',
+    weight: 60,
+    tags: ['연구대회', '수업'],
+    valence: 'neutral',
+    choices: [
+      {
+        id: 'choice_career_03_1',
+        text: '밤을 새워서라도 지도안을 완성해 단독으로 도전한다.',
+        intent: '단독 도전',
+        immediateEffects: [
+          { stat: 'careerPoint', value: 12 },
+          { stat: 'expert', value: 10 },
+          { stat: 'teachingSatisfaction', value: 5 },
+          { stat: 'hp', value: -12 },
+          { stat: 'burnout', value: 10 }
+        ],
+        resultText: '수업 지도안을 몇 번이고 고쳐 쓰느라 며칠 밤을 지새웠습니다. 완성도는 스스로도 만족스럽지만, 몸은 이미 녹초가 되었습니다.'
+      },
+      {
+        id: 'choice_career_03_2',
+        text: '지금은 무리하지 않고 평소 수업의 완성도를 높이는 데 집중한다.',
+        intent: '현재에 충실',
+        immediateEffects: [
+          { stat: 'mental', value: 5 },
+          { stat: 'studentTrust', value: 5 }
+        ],
+        resultText: '대회 욕심을 내려놓으니 오히려 평소 수업 하나하나에 마음을 쏟을 여유가 생겼습니다.'
+      },
+      {
+        id: 'choice_career_03_3',
+        text: '동학년 선생님께 함께 팀을 꾸려 도전해보자고 제안한다.',
+        intent: '협업 도전',
+        immediateEffects: [
+          { stat: 'careerPoint', value: 8 },
+          { stat: 'colleagueRelation', value: 8 },
+          { stat: 'colleagueSolidarity', value: 8 },
+          { stat: 'hp', value: -8 }
+        ],
+        resultText: '둘이 머리를 맞대니 혼자일 때보다 아이디어가 훨씬 풍성해졌습니다. 함께 밤을 새운 동료와는 전우애 비슷한 것이 생겼습니다.'
+      }
+    ]
+  },
+  {
+    id: 'evt_career_04',
+    dayRange: [15, 27],
+    title: '승진 가산점 연수 공고',
+    category: 'career',
+    situation: '자택',
+    narratorText: '방학 중 1박 2일 숙박형 승진 가산점 연수 공고가 떴습니다. 신청자가 몰리는 인기 연수라 이번에 놓치면 내년을 기약해야 합니다. 하필 가족 여행을 계획해둔 주말과 겹칩니다.',
+    weight: 55,
+    tags: ['연수', '가산점'],
+    valence: 'neutral',
+    choices: [
+      {
+        id: 'choice_career_04_1',
+        text: '가족에게 양해를 구하고 연수를 신청한다.',
+        intent: '가산점 확보',
+        immediateEffects: [
+          { stat: 'careerPoint', value: 10 },
+          { stat: 'adminPower', value: 5 },
+          { stat: 'familySatisfaction', value: -12 },
+          { stat: 'hp', value: -6 }
+        ],
+        resultText: '연수는 알차게 마쳤지만, 가족 여행이 취소되었다는 소식에 저녁 내내 마음이 무거웠습니다.'
+      },
+      {
+        id: 'choice_career_04_2',
+        text: '연수는 내년을 기약하고 가족 여행을 그대로 떠난다.',
+        intent: '가정 우선',
+        immediateEffects: [
+          { stat: 'careerPoint', value: -3 },
+          { stat: 'familySatisfaction', value: 10 },
+          { stat: 'mental', value: 5 }
+        ],
+        resultText: '오랜만에 가족과 온전히 함께한 주말이었습니다. 승진은 조급해하지 않기로 마음먹습니다.'
+      },
+      {
+        id: 'choice_career_04_3',
+        text: '숙박 연수 대신 동일 학점의 온라인 대체 연수만 이수한다.',
+        intent: '절충안',
+        immediateEffects: [
+          { stat: 'careerPoint', value: 5 },
+          { stat: 'adminPower', value: 3 },
+          { stat: 'hp', value: -3 }
+        ],
+        resultText: '현장감은 덜하지만 가산점도 챙기고 가족 여행도 지킨, 나름 실속 있는 선택이었습니다.'
       }
     ]
   }

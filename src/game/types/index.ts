@@ -38,9 +38,15 @@ export interface PlayerInfo {
   difficulty: 'warm' | 'realistic' | 'hard'; // 난이도
 }
 
+// 5대 핵심 교사 역량 스탯은 useGameStore.ts의 syncNewStats()가 기반 스탯으로부터 매 순간
+// 재계산해 덮어쓰므로, 이 스탯들을 직접 겨냥한 StatEffect는 항상 무효가 된다. 데이터가
+// 실수로 파생 스탯을 타겟하지 못하도록 타입 단계에서 차단한다.
+export type DerivedStatKey = 'workCapacity' | 'interpersonal' | 'familyRelation' | 'classManagement' | 'teachingResearch';
+export type BaseStatKey = Exclude<keyof Stats, DerivedStatKey>;
+
 // 스탯 변동 효과
 export interface StatEffect {
-  stat: keyof Stats;          // 변동을 줄 스탯
+  stat: BaseStatKey;          // 변동을 줄 스탯 (파생 스탯은 직접 지정 불가)
   value: number;              // 변동량 (양수 또는 음수)
 }
 

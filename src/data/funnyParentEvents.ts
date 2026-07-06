@@ -59,7 +59,7 @@ export const funnyParentEvents: GameEvent[] = [
         intent: '공화국 원칙 고수',
         immediateEffects: [
           { stat: 'expert', value: 15 },
-          { stat: 'classManagement', value: 10 },
+          { stat: 'studentTrust', value: 10 },
           { stat: 'parentTrust', value: -5 }
         ],
         resultText: '학부모님은 헌법 언급에 당황하셨으나, 학교 내에서는 규칙을 준수시키겠다고 약속했습니다. 교사의 카리스마가 부각되었습니다.'
@@ -175,7 +175,7 @@ export const funnyParentEvents: GameEvent[] = [
         text: '학부모님께 의학적 소견서나 진단서 제출 규정을 넌지시 설명하고 절차대로 유도한다.',
         intent: '절차 지향 해결',
         immediateEffects: [
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'parentComplaint', value: -10 }
         ],
         resultText: '학부모님은 사실 의사 진단서는 없고 단순 편식 성향이라고 이실직고하셨고, 오이를 골라내고 먹는 지도로 타협했습니다.'
@@ -197,7 +197,7 @@ export const funnyParentEvents: GameEvent[] = [
         text: '원칙적으로 학생이 스스로 만든 과제에만 높은 점수를 주며 대리 제작은 채점 감점 요인임을 정중히 지적한다.',
         intent: '원칙 고수 및 훈계',
         immediateEffects: [
-          { stat: 'classManagement', value: 15 },
+          { stat: 'studentTrust', value: 15 },
           { stat: 'expert', value: 10 },
           { stat: 'parentTrust', value: -5 }
         ],
@@ -232,7 +232,7 @@ export const funnyParentEvents: GameEvent[] = [
         intent: '법령 기준 단호 대처',
         immediateEffects: [
           { stat: 'expert', value: 15 },
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'parentComplaint', value: -10 }
         ],
         resultText: '법적 침해 문제가 부각되자 어머님은 꼬리를 내리셨습니다. 교실 내 학생 사생활 안전지대를 굳건히 수호했습니다.'
@@ -266,7 +266,7 @@ export const funnyParentEvents: GameEvent[] = [
         intent: '원칙 및 시스템 안내',
         immediateEffects: [
           { stat: 'expert', value: 12 },
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'parentComplaint', value: -5 }
         ],
         resultText: '학부모님은 머쓱해하며 어쩔 수 없이 수긍하셨습니다. 철저히 시스템에 근거해 오차 없이 처리했습니다.'
@@ -300,7 +300,7 @@ export const funnyParentEvents: GameEvent[] = [
         text: '출석 번호는 성씨 가나다순 공식 원칙에 따라 지정되며 개별 변경은 불가능함을 정중히 설득한다.',
         intent: '가나다순 원칙 설득',
         immediateEffects: [
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'expert', value: 10 },
           { stat: 'burnout', value: 3 }
         ],
@@ -335,7 +335,7 @@ export const funnyParentEvents: GameEvent[] = [
         text: '교실 위생과 냄새 문제로 생양파 배치는 곤란하며, 보건실 처방은 공식 매뉴얼에 따른 것임을 분명히 밝힌다.',
         intent: '교내 위생 우선 및 정중 거절',
         immediateEffects: [
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'colleagueRelation', value: 5 },
           { stat: 'burnout', value: 3 }
         ],
@@ -370,7 +370,7 @@ export const funnyParentEvents: GameEvent[] = [
         intent: '상담 본질로의 회귀',
         immediateEffects: [
           { stat: 'expert', value: 15 },
-          { stat: 'classManagement', value: 10 },
+          { stat: 'studentTrust', value: 10 },
           { stat: 'burnout', value: 3 }
         ],
         resultText: '어머님은 아쉬워하셨으나 쑥스러워하시며 하준이의 영어 학습 태도 상담으로 서둘러 화제를 돌려 모범적인 상담을 끝마쳤습니다.'
@@ -439,7 +439,7 @@ export const funnyParentEvents: GameEvent[] = [
         text: '소풍 도시락은 학부모 자율 준비 영역이므로 학교가 직접 메뉴를 제한하거나 단일화 규정을 만드는 것은 불가능하다고 설명한다.',
         intent: '자율성 존중 및 원칙 고수',
         immediateEffects: [
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'expert', value: 5 },
           { stat: 'burnout', value: 3 }
         ],
@@ -475,7 +475,7 @@ export const funnyParentEvents: GameEvent[] = [
         intent: '설명회 본질 집중 유도',
         immediateEffects: [
           { stat: 'expert', value: 12 },
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'burnout', value: 3 }
         ],
         resultText: '짜임새 있는 학급 교육 안내 덕분에 어색하던 학부모 총회가 아주 지적이고 유익한 시간으로 원만하게 종료되었습니다.'
@@ -509,7 +509,7 @@ export const funnyParentEvents: GameEvent[] = [
         text: '동우 아버님을 정중히 일으켜 세워 교무실 상담실로 신속히 격리 인도하여 주변 시선을 차단하고 이성을 다독인다.',
         intent: '신속한 시선 차단 및 설득',
         immediateEffects: [
-          { stat: 'classManagement', value: 15 },
+          { stat: 'studentTrust', value: 15 },
           { stat: 'expert', value: 12 },
           { stat: 'hp', value: -5 }
         ],
@@ -543,7 +543,7 @@ export const funnyParentEvents: GameEvent[] = [
         text: '수업 시간에 팔찌를 만지며 소리를 내는 행위는 교실 학습 분위기를 흐리므로 필통 속에 넣어두도록 규칙을 적용한다.',
         intent: '교실 학습 환경 사수',
         immediateEffects: [
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'expert', value: 10 },
           { stat: 'burnout', value: 3 }
         ],
@@ -579,7 +579,7 @@ export const funnyParentEvents: GameEvent[] = [
         intent: '공식 상장 남발 금지 원칙',
         immediateEffects: [
           { stat: 'expert', value: 12 },
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'burnout', value: 3 }
         ],
         resultText: '어머님은 규정이 그렇다면 어쩔 수 없다고 수긍하셨고, 민석이는 교실 칭찬 나무에 스티커 1장을 붙이는 것으로 아쉬움을 달랬습니다.'
@@ -614,7 +614,7 @@ export const funnyParentEvents: GameEvent[] = [
         intent: '규정 한도 엄격 준수 및 조율',
         immediateEffects: [
           { stat: 'expert', value: 15 },
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'parentComplaint', value: -10 }
         ],
         resultText: '어머님은 규정된 체험학습 일수 내에서만 미팅 일정을 조율하겠다며 한 걸음 물러서셨습니다. 수업 출석 질서를 튼튼히 사수했습니다.'
@@ -684,7 +684,7 @@ export const funnyParentEvents: GameEvent[] = [
         intent: '정중한 공사 구분 및 복귀',
         immediateEffects: [
           { stat: 'expert', value: 15 },
-          { stat: 'classManagement', value: 10 },
+          { stat: 'studentTrust', value: 10 },
           { stat: 'burnout', value: 3 }
         ],
         resultText: '아버님은 허허 웃으시며 지훈이 상담에 집중하셨습니다. 상담 후 차분하게 지훈이의 성실한 태도를 함께 칭찬했습니다.'
@@ -754,7 +754,7 @@ export const funnyParentEvents: GameEvent[] = [
         intent: '전문성 기반 발음 강조 및 선 긋기',
         immediateEffects: [
           { stat: 'expert', value: 12 },
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'burnout', value: 3 }
         ],
         resultText: '어머님은 다소 까칠한 반응에 당황하셨지만 더는 목소리로 트집을 잡지 않으셨습니다. 수업 내용 전달력은 고수했습니다.'
@@ -789,7 +789,7 @@ export const funnyParentEvents: GameEvent[] = [
         intent: '보행 안전 제일주의 정중 권고',
         immediateEffects: [
           { stat: 'expert', value: 15 },
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'parentTrust', value: -5 }
         ],
         resultText: '아버님은 "아, 안전이 우선이죠!"라며 황급히 볼륨을 줄이고 차를 빼 주셨습니다. 안전한 등굣길 질서를 즉각 수호했습니다.'
@@ -858,7 +858,7 @@ export const funnyParentEvents: GameEvent[] = [
         text: '공동체 생활 속 교실 청소 활동은 자기 책임을 배우는 공교육 교육과정의 핵심 생활 지도 영역임을 단호히 밝힌다.',
         intent: '생활 지도 가치 및 공교육 고수',
         immediateEffects: [
-          { stat: 'classManagement', value: 15 },
+          { stat: 'studentTrust', value: 15 },
           { stat: 'expert', value: 12 },
           { stat: 'parentComplaint', value: -10 }
         ],
@@ -931,7 +931,7 @@ export const funnyParentEvents: GameEvent[] = [
         intent: '부정행위 차단 및 평가 원칙',
         immediateEffects: [
           { stat: 'expert', value: 15 },
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'burnout', value: 3 }
         ],
         resultText: '아버님은 군인 정신으로 원칙을 깔끔하게 수긍하셨고, 민우는 매일 철봉 매달리기 연습을 해 체력을 증진했습니다.'
@@ -965,7 +965,7 @@ export const funnyParentEvents: GameEvent[] = [
         text: '복장 지도는 기본 가정 교육의 책임 영역이며, 학교 내에서는 활동성과 안전을 위해 실용적인 체육복 바지 규정을 착용해야 함을 단호히 밝힌다.',
         intent: '가정 훈육 책임 강조 및 안전 규정',
         immediateEffects: [
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'expert', value: 12 },
           { stat: 'burnout', value: 3 }
         ],
@@ -1001,7 +1001,7 @@ export const funnyParentEvents: GameEvent[] = [
         intent: '멀티프로필 가동 사생활 차단',
         immediateEffects: [
           { stat: 'expert', value: 15 },
-          { stat: 'classManagement', value: 12 },
+          { stat: 'studentTrust', value: 12 },
           { stat: 'parentComplaint', value: -10 }
         ],
         resultText: '학부모 전용 멀티프로필에는 단정한 칠판 그림만 보이게 설정하여, 귀찮은 훈수 민원을 완벽하게 예방 차단했습니다.'
@@ -1036,7 +1036,7 @@ export const funnyParentEvents: GameEvent[] = [
         intent: '법적 침해 고지 및 철저 금지',
         immediateEffects: [
           { stat: 'expert', value: 15 },
-          { stat: 'classManagement', value: 15 },
+          { stat: 'studentTrust', value: 15 },
           { stat: 'parentTrust', value: -10 }
         ],
         resultText: '어머님은 법적 문제에 당황하며 정중하게 사과하셨고 녹음 뱃지를 수거했습니다. 교실 내 자유로운 표현의 안전지대를 굳게 지켰습니다.'
