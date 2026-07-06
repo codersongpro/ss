@@ -491,6 +491,162 @@ const popDueScheduledEvent = (
   return { event, remaining }; // 데이터에서 이벤트를 못 찾으면(id 오기재 등) 조용히 스킵
 };
 
+// ==========================================
+// [WO-18] 주간 마일스톤 판정 이벤트 (프메식 '정기 평가/대회' 리듬)
+// ==========================================
+// 매주 금요일(5/12/19/26일차) 저녁에 그 주 동안 쌓은 관련 스탯으로 성공 확률이 결정되는
+// 주사위 판정을 강제 배정한다. 문턱을 넘으면 자동 성공이 아니라 "확률이 오른다"는 점이 핵심 —
+// 스탯을 올려야 할 서사적 이유(다가오는 대회/평가)를 만들어준다.
+const calcMilestoneSuccessRate = (statValue: number, threshold: number, bonus: number = 0): number =>
+  clamp(30 + (statValue - threshold) * 2 + bonus, 5, 95);
+
+const getWeeklyMilestoneEvent = (
+  day: number,
+  stats: Stats,
+  tasks: Task[],
+  hiddenFlags: string[]
+): GameEvent | null => {
+  if (day === 5) {
+    const rate = calcMilestoneSuccessRate(stats.studentTrust, 50);
+    return {
+      id: 'evt_milestone_week1_classmeeting',
+      dayRange: [5, 5],
+      title: '주간 학급회의',
+      category: 'student',
+      situation: '교실',
+      narratorText: `한 주를 마무리하는 학급회의 시간입니다. 그동안 쌓아온 학생들과의 신뢰가 오늘 회의 분위기를 좌우할 것입니다. (학생 신뢰 기반 판정 · 성공 확률 ${rate}%)`,
+      weight: 999,
+      tags: ['주간 마일스톤'],
+      choices: [
+        {
+          id: 'choice_milestone_week1_1',
+          text: '이번 한 주를 함께 돌아보며 학급회의를 진행한다.',
+          intent: '주간 마일스톤 판정',
+          successRate: rate,
+          immediateEffects: [
+            { stat: 'studentTrust', value: 8 },
+            { stat: 'teachingSatisfaction', value: 8 }
+          ],
+          successResultText: '아이들이 적극적으로 의견을 나누며 스스로 학급 규칙을 다듬어갑니다. 학급에 대한 신뢰가 한층 깊어졌습니다.',
+          failEffects: [
+            { stat: 'studentTrust', value: -5 }
+          ],
+          failResultText: '몇몇 아이들의 다툼으로 회의가 산만해졌습니다. 학급 분위기가 다소 가라앉았습니다.'
+        }
+      ]
+    };
+  }
+
+  if (day === 12) {
+    const rate = calcMilestoneSuccessRate(stats.expert, 55);
+    return {
+      id: 'evt_milestone_week2_gradelevel',
+      dayRange: [12, 12],
+      title: '동학년 협의회 발표',
+      category: 'colleague',
+      situation: '교무실',
+      narratorText: `이번 주 동학년 협의회에서 자신의 학급 운영 사례를 발표할 차례입니다. 그동안 쌓은 수업 전문성이 발표의 설득력을 좌우할 것입니다. (전문성 기반 판정 · 성공 확률 ${rate}%)`,
+      weight: 999,
+      tags: ['주간 마일스톤'],
+      choices: [
+        {
+          id: 'choice_milestone_week2_1',
+          text: '준비한 사례를 자신 있게 발표한다.',
+          intent: '주간 마일스톤 판정',
+          successRate: rate,
+          immediateEffects: [
+            { stat: 'reputation', value: 10 },
+            { stat: 'adminTrust', value: 5 }
+          ],
+          successResultText: '동학년 선생님들이 고개를 끄덕이며 발표에 호응합니다. 알찬 사례 덕분에 평판이 높아졌습니다.',
+          failEffects: [
+            { stat: 'reputation', value: -5 }
+          ],
+          failResultText: '준비가 부족했던 부분에서 질문이 이어지자 답변이 궁색해졌습니다. 다소 민망한 시간이었습니다.'
+        }
+      ]
+    };
+  }
+
+  if (day === 19) {
+    // [WO-17 연동] 공개수업 아크(evt_arc_openclass_*)에서 쌓은 플래그가 있으면 보너스를 준다.
+    // [WO-18] day10 고정 업무(task_04: 공개수업 지도안 설계)를 미리 완료해두면 준비 보너스로 이어진다.
+    const isTask04Done = tasks.find(t => t.id === 'task_04')?.isCompleted === true;
+    let bonus = isTask04Done ? 15 : 0;
+    if (hiddenFlags.includes('arc_openclass_research')) bonus += 10;
+    if (hiddenFlags.includes('arc_openclass_rehearsed_with_help') || hiddenFlags.includes('arc_openclass_rested')) bonus += 5;
+    if (hiddenFlags.includes('arc_openclass_showy') && !hiddenFlags.includes('arc_openclass_late_fix')) bonus -= 10;
+
+    const combinedStat = Math.round((stats.expert + stats.teachingSatisfaction) / 2);
+    const rate = calcMilestoneSuccessRate(combinedStat, 60, bonus);
+    return {
+      id: 'evt_milestone_week3_openclass',
+      dayRange: [19, 19],
+      title: '공개수업 D-day',
+      category: 'career',
+      situation: '교실',
+      narratorText: `그동안 준비해온 공개수업 당일입니다. 학부모와 동료 교사들이 지켜보는 가운데, 쌓아온 수업 전문성과 그동안의 준비가 오늘의 결과를 가를 것입니다. (수업 전문성·보람 기반 판정 · 성공 확률 ${rate}%)`,
+      weight: 999,
+      tags: ['주간 마일스톤', '공개수업'],
+      choices: [
+        {
+          id: 'choice_milestone_week3_1',
+          text: '준비한 대로 침착하게 수업을 진행한다.',
+          intent: '주간 마일스톤 판정',
+          successRate: rate,
+          immediateEffects: [
+            { stat: 'careerPoint', value: 10 },
+            { stat: 'reputation', value: 12 }
+          ],
+          successResultText: '수업이 매끄럽게 흘러가며 참관하던 학부모와 동료 교사들의 감탄 어린 시선이 이어집니다. 오랜 준비가 결실을 맺었습니다.',
+          failEffects: [
+            { stat: 'adminTrust', value: -10 },
+            { stat: 'mental', value: -10 }
+          ],
+          failResultText: '긴장한 탓에 준비했던 흐름이 자꾸 엉킵니다. 참관록에 아쉬운 평가가 여럿 적히는 것을 지켜볼 수밖에 없었습니다.'
+        }
+      ]
+    };
+  }
+
+  if (day === 26) {
+    // [WO-18] day20 고정 업무(task_05)를 미리 완료해두면 준비 보너스로 이어진다.
+    const isTask05Done = tasks.find(t => t.id === 'task_05')?.isCompleted === true;
+    const complaintPenalty = stats.parentComplaint > 40 ? -15 : 0;
+    const bonus = (isTask05Done ? 15 : 0) + complaintPenalty;
+    const rate = calcMilestoneSuccessRate(stats.parentTrust, 60, bonus);
+    return {
+      id: 'evt_milestone_week4_parentmeeting',
+      dayRange: [26, 26],
+      title: '학기말 학부모 간담회',
+      category: 'parent',
+      situation: '교실',
+      narratorText: `한 학기를 마무리하는 학부모 간담회입니다. 그동안 쌓아온 학부모와의 신뢰, 그리고 미결 민원의 무게가 오늘 분위기를 결정할 것입니다. (학부모 신뢰 기반 판정 · 성공 확률 ${rate}%)`,
+      weight: 999,
+      tags: ['주간 마일스톤'],
+      choices: [
+        {
+          id: 'choice_milestone_week4_1',
+          text: '한 학기를 돌아보는 진솔한 이야기로 간담회를 이끈다.',
+          intent: '주간 마일스톤 판정',
+          successRate: rate,
+          immediateEffects: [
+            { stat: 'parentTrust', value: 10 },
+            { stat: 'parentComplaint', value: -15 }
+          ],
+          successResultText: '학부모들이 한 학기 동안의 노력에 공감하며 박수를 보냅니다. 쌓였던 오해도 상당 부분 풀렸습니다.',
+          failEffects: [
+            { stat: 'parentComplaint', value: 15 }
+          ],
+          failResultText: '몇몇 학부모의 날 선 질문에 제대로 답하지 못하며 분위기가 얼어붙었습니다. 뒷말이 한동안 이어질 듯합니다.'
+        }
+      ]
+    };
+  }
+
+  return null;
+};
+
 // [NEW] 주말용 힐링 이벤트 생성 헬퍼 함수 (자녀 유무에 따른 동적 분기)
 const getWeekendHealingEvent = (day: number, familyState?: string): GameEvent => {
   const isSaturday = day % 7 === 6;
@@ -807,7 +963,9 @@ const getWeekendHealingEvent = (day: number, familyState?: string): GameEvent =>
 // 기획된 마일스톤 자녀/주말 이벤트가 강제 배정되는 날짜 -> 접미사 매핑.
 // day 20 대신 19일차를 쓰는 이유: 20일차(토요일, day % 7 === 6)는 저녁 페이즈가 없어
 // 그 자리에 두면 이벤트가 영구히 발동하지 못한다.
-const MILESTONE_DAYS: Record<number, string> = { 5: '01', 10: '02', 15: '03', 19: '04', 25: '05' };
+// [WO-18] 5일과 19일은 매주 금요일(day % 7 === 5)마다 열리는 주간 마일스톤 판정과 겹치므로,
+// 이 자녀/주말 서사 슬롯은 4일·18일(둘 다 목요일)로 옮겨 두 시스템이 서로 밀어내지 않게 한다.
+const MILESTONE_DAYS: Record<number, string> = { 4: '01', 10: '02', 15: '03', 18: '04', 25: '05' };
 
 // 특정 날짜 범위 및 조건에 맞는 이벤트 추첨 헬퍼
 const getEventForTime = (
@@ -1455,7 +1613,8 @@ export const useGameStore = create<GameState>()(
           stats,
           students,
           inventory,
-          scheduledEvents
+          scheduledEvents,
+          tasks
         } = get();
 
         if (timeOfDay === 'morning') {
@@ -1484,17 +1643,30 @@ export const useGameStore = create<GameState>()(
           }
         } else if (timeOfDay === 'afternoon') {
           // 오후 -> 저녁 (저녁은 집/개인 활동이므로 기존 방식대로 저녁 이벤트를 자동 추첨)
-          // [WO-17] 예약된 후속 이벤트가 있으면(마일스톤 다음 순위) 최우선으로 반환됨 — getEventForTime 내부 처리.
-          const { event: nextEvent, remainingScheduled } = getEventForTime(day, 'evening', hiddenFlags, recentLogs, stats, students, inventory, playerInfo?.familyState, scheduledEvents);
-          set({
-            timeOfDay: 'evening',
-            currentLocation: null,
-            currentEvent: nextEvent,
-            selectedChoice: null,
-            eventResultText: null,
-            currentNpcDialogue: null,
-            scheduledEvents: remainingScheduled
-          });
+          // [WO-18] 매주 금요일(5/12/19/26일차)에는 주간 마일스톤 판정이 최우선으로 열린다.
+          const weeklyMilestone = getWeeklyMilestoneEvent(day, stats, tasks, hiddenFlags);
+          if (weeklyMilestone) {
+            set({
+              timeOfDay: 'evening',
+              currentLocation: null,
+              currentEvent: weeklyMilestone,
+              selectedChoice: null,
+              eventResultText: null,
+              currentNpcDialogue: null
+            });
+          } else {
+            // [WO-17] 예약된 후속 이벤트가 있으면(마일스톤 다음 순위) 최우선으로 반환됨 — getEventForTime 내부 처리.
+            const { event: nextEvent, remainingScheduled } = getEventForTime(day, 'evening', hiddenFlags, recentLogs, stats, students, inventory, playerInfo?.familyState, scheduledEvents);
+            set({
+              timeOfDay: 'evening',
+              currentLocation: null,
+              currentEvent: nextEvent,
+              selectedChoice: null,
+              eventResultText: null,
+              currentNpcDialogue: null,
+              scheduledEvents: remainingScheduled
+            });
+          }
         } else if (timeOfDay === 'evening') {
           // 저녁 -> 정산 화면
           set({
@@ -1670,7 +1842,7 @@ export const useGameStore = create<GameState>()(
             if (nextDay === 10) {
               updatedTasks.push({
                 id: 'task_04',
-                title: '학급 교육공개수업 세부 지도안 설계',
+                title: '학급 교육공개수업 세부 지도안 설계 (19일차 공개수업 D-day 준비)',
                 category: 'teaching',
                 urgency: 4,
                 importance: 5,
@@ -1686,7 +1858,7 @@ export const useGameStore = create<GameState>()(
             if (nextDay === 20) {
               updatedTasks.push({
                 id: 'task_05',
-                title: '전교 학교폭력 예방 교육 주간 행사 보고',
+                title: '전교 학교폭력 예방 교육 주간 행사 보고 (26일차 마일스톤 대비)',
                 category: 'event',
                 urgency: 5,
                 importance: 3,
@@ -3648,7 +3820,7 @@ export const useGameStore = create<GameState>()(
           if (nextDay === 20) {
             updatedTasks.push({
               id: 'task_05',
-              title: '전교 학교폭력 예방 교육 주간 행사 보고',
+              title: '전교 학교폭력 예방 교육 주간 행사 보고 (26일차 마일스톤 대비)',
               category: 'event',
               urgency: 5,
               importance: 3,
