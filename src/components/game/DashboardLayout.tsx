@@ -125,8 +125,13 @@ const TypewriterText: React.FC<{ text: string; speed?: number }> = ({ text, spee
     setDisplayedText('');
     let index = 0;
     const timer = setInterval(() => {
-      setDisplayedText((prev) => prev + text.charAt(index));
+      // index를 먼저 진행시킨 뒤 slice로 그 시점까지를 통째로 표시한다.
+      // 이전 구현은 `prev + text.charAt(index)` 함수형 업데이트 안에서 index를 읽는데,
+      // 바로 다음 줄의 `index++`가 React가 업데이터를 실행하기 전에 먼저 돌아 index가 이미
+      // 증가된 상태로 읽혔다. 그 결과 본문 첫 글자가 어긋나 시작 단어가 한 글자만 남는 등
+      // 첫 글자 표시가 깨졌다. slice(0, index)는 이 순서 의존성을 없앤다.
       index++;
+      setDisplayedText(text.slice(0, index));
       if (index >= text.length) {
         clearInterval(timer);
         timerRef.current = null;

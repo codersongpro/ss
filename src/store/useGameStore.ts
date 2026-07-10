@@ -491,6 +491,23 @@ const popDueScheduledEvent = (
   return { event, remaining }; // 데이터에서 이벤트를 못 찾으면(id 오기재 등) 조용히 스킵
 };
 
+// [FIX] followUpEvents/failFollowUpEvents로만 도달해야 하는 '후속 전용' 이벤트 집합.
+// 이 이벤트들은 예약 큐(popDueScheduledEvent)를 통해서만 등장해야 하는 서사 아크의 2~4단계다.
+// 일반 랜덤 추첨(getEventForTime / exploreLocation) 후보로 섞이면 1단계(도입) 없이 뜬금없이
+// 등장해 "지훈이를 상담실로 불렀습니다" 같은 없던 맥락을 참조한다. 게다가 이 단계들은 예약
+// 우선순위를 위해 weight:999로 잡혀 있어, 후보에 들어가는 순간 다른 이벤트를 거의 다 밀어낸다.
+// 어떤 이벤트/선택지의 후속으로 참조된 id는 전부 랜덤 추첨에서 제외한다(1단계 도입 이벤트는
+// 어디에서도 후속으로 참조되지 않으므로 그대로 추첨된다).
+const SCHEDULED_ONLY_EVENT_IDS: Set<string> = new Set(
+  gameEvents.flatMap(evt => [
+    ...(evt.followUpEvents ?? []),
+    ...evt.choices.flatMap(c => [
+      ...(c.followUpEvents ?? []),
+      ...(c.failFollowUpEvents ?? [])
+    ])
+  ])
+);
+
 // ==========================================
 // [WO-18] 주간 마일스톤 판정 이벤트 (프메식 '정기 평가/대회' 리듬)
 // ==========================================
@@ -1015,6 +1032,8 @@ const getEventForTime = (
   const matchesBase = (evt: GameEvent, applyHistory: boolean): boolean => {
     // 0. 히든 탐험 이벤트는 exploreLocation에서만 낮은 확률로 등장 (시간대 자동 추첨에서는 제외)
     if (evt.tags.includes(HIDDEN_EXPLORATION_TAG)) return false;
+    // 0-2. [FIX] 서사 아크의 후속 전용 단계는 예약 큐로만 등장한다 (선행 단계 없이 뜬금없이 나오는 것 방지)
+    if (SCHEDULED_ONLY_EVENT_IDS.has(evt.id)) return false;
     // 0-1. [NEW · 장소 서사] location 전용 이벤트는 해당 장소 탐색으로만 등장 (저녁 자동추첨에서 제외)
     if (evt.location) return false;
     // 1. 카테고리 매칭
@@ -2248,6 +2267,8 @@ export const useGameStore = create<GameState>()(
         // 해당 카테고리와 날짜에 맞는 후보군 필터링 (일반 후보 / 히든 탐험 후보 분리)
         const matchesExploreBase = (evt: GameEvent): boolean => {
           if (!categories.includes(evt.category)) return false;
+          // [FIX] 서사 아크의 후속 전용 단계는 예약 큐로만 등장한다 (선행 단계 없이 뜬금없이 나오는 것 방지)
+          if (SCHEDULED_ONLY_EVENT_IDS.has(evt.id)) return false;
           // [NEW · 장소 서사] location 지정 이벤트는 해당 장소를 탐색할 때만 등장 (장소 전용 스레드)
           if (evt.location && evt.location !== currentLocation) return false;
           const [start, end] = evt.dayRange;
