@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useGameStore, getEndingCompass, TRUE_MENTOR_STORY_ITEMS } from '@/store/useGameStore';
+import { MiniGames } from './MiniGames';
 import type { TimeOfDay } from '@/store/useGameStore';
 import { 
   Calendar, 
@@ -433,6 +434,13 @@ interface DashboardLayoutProps {
 }
 
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) => {
+  const activeMiniGame = useGameStore(state => state.activeMiniGame);
+  const resolveMiniGame = useGameStore(state => state.resolveMiniGame);
+
+  if (activeMiniGame) {
+    return <MiniGames onResolve={resolveMiniGame} />;
+  }
+
   const {
     day,
     timeOfDay,

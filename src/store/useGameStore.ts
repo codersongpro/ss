@@ -193,7 +193,11 @@ interface GameState {
     targetChoiceId: string | null;
   } | null; // 주사위 판정 상태 [NEW]
   clearDiceRollState: () => void; // 주사위 상태 초기화 [NEW]
+  activeMiniGame: 'cafeteria' | 'proofreading' | 'conflict' | 'stamp' | null; // 현재 활성화된 미니게임 종류 [NEW]
+  triggerMiniGame: (gameType: 'cafeteria' | 'proofreading' | 'conflict' | 'stamp') => void; // 미니게임 수동/자동 트리거 [NEW]
+  resolveMiniGame: (success: boolean) => void; // 미니게임 결과 정산 액션 [NEW]
 }
+
 
 // 0 ~ 100 범위 강제 헬퍼
 const clamp = (val: number, min: number = 0, max: number = 100) => 
@@ -1379,9 +1383,85 @@ export const useGameStore = create<GameState>()(
       burnout100Days: 0, // 기본 번아웃 지속 일수 0 [NEW]
       showStatHints: false, // 기본은 스탯 힌트 숨김 — 수치 최적화가 아닌 역할 판단을 유도(토글로 켤 수 있음) [NEW]
       diceRollState: null, // 초기 주사위 판정 상태는 null [NEW]
+      activeMiniGame: null, // 초기 미니게임 상태는 null [NEW]
 
       toggleStatHints: () => set({ showStatHints: !get().showStatHints }), // 스탯 힌트 토글 액션 [NEW]
       clearDiceRollState: () => set({ diceRollState: null }), // 주사위 상태 초기화 액션 [NEW]
+      
+      triggerMiniGame: (gameType) => set({ activeMiniGame: gameType }),
+      
+      resolveMiniGame: (success) => {
+        const { activeMiniGame, stats, day, recentLogs } = get();
+        if (!activeMiniGame) return;
+
+        const newStats = { ...stats };
+        let resultMsg = '';
+
+        if (activeMiniGame === 'cafeteria') {
+          if (success) {
+            newStats.studentTrust = clamp(newStats.studentTrust + 10);
+            newStats.teachingSatisfaction = clamp(newStats.teachingSatisfaction + 10);
+            newStats.burnout = clamp(newStats.burnout - 5);
+            resultMsg = `[급식 지도 성공] 급식실 소란을 성공적으로 통제하여 학생 신뢰와 교육적 보람이 상승하고 번아웃이 감소했습니다.`;
+          } else {
+            newStats.burnout = clamp(newStats.burnout + 15);
+            newStats.hp = clamp(newStats.hp - 10);
+            newStats.studentTrust = clamp(newStats.studentTrust - 5);
+            resultMsg = `[급식 지도 실패] 급식실이 엉망진창이 되어 체력이 소모되고 번아웃이 대폭 증가했습니다.`;
+          }
+        } else if (activeMiniGame === 'proofreading') {
+          if (success) {
+            newStats.adminPower = clamp(newStats.adminPower + 15);
+            newStats.reputation = clamp(newStats.reputation + 10);
+            newStats.adminTrust = clamp(newStats.adminTrust + 5);
+            resultMsg = `[생기부 검수 성공] 생기부 오탈자와 금지어를 성공적으로 정리하여 행정 실무력과 평판이 대폭 올랐습니다.`;
+          } else {
+            newStats.burnout = clamp(newStats.burnout + 15);
+            newStats.adminTrust = clamp(newStats.adminTrust - 10);
+            newStats.reputation = clamp(newStats.reputation - 5);
+            resultMsg = `[생기부 검수 실패] 교육청 제출 서류의 오탈자로 인해 관리자 신뢰와 대외 평판이 하락하고 피로가 누적되었습니다.`;
+          }
+        } else if (activeMiniGame === 'conflict') {
+          if (success) {
+            newStats.classManagement = clamp(newStats.classManagement + 15);
+            newStats.studentTrust = clamp(newStats.studentTrust + 12);
+            newStats.colleagueSolidarity = clamp(newStats.colleagueSolidarity + 5);
+            resultMsg = `[갈등 중재 성공] 학생 간의 다툼을 지혜롭게 중재하여 학급 운영력과 학생 신뢰도가 크게 상승했습니다.`;
+          } else {
+            newStats.mental = clamp(newStats.mental - 15);
+            newStats.parentComplaint = clamp(newStats.parentComplaint + 20);
+            newStats.parentTrust = clamp(newStats.parentTrust - 10);
+            resultMsg = `[갈등 중재 실패] 학생 다툼이 주먹다짐으로 번져 멘탈이 상하고 학부모 민원이 대폭 증가했습니다.`;
+          }
+        } else if (activeMiniGame === 'stamp') {
+          if (success) {
+            newStats.adminPower = clamp(newStats.adminPower + 15);
+            newStats.adminTrust = clamp(newStats.adminTrust + 15);
+            newStats.careerPoint = clamp(newStats.careerPoint + 5);
+            resultMsg = `[공문 기안 성공] 반려된 공문서의 문제점을 신속히 수정하여 결재권자들의 최종 승인을 받아냈습니다.`;
+          } else {
+            newStats.adminTrust = clamp(newStats.adminTrust - 15);
+            newStats.reputation = clamp(newStats.reputation - 10);
+            newStats.burnout = clamp(newStats.burnout + 10);
+            resultMsg = `[공문 기안 실패] 상신한 기안서가 연이어 반려되어 마감 기한을 넘기고 경고를 받았습니다.`;
+          }
+        }
+
+        const updatedLogs = [
+          `[${day}일차] 미니게임 (${activeMiniGame}) 완료: ${success ? '성공' : '실패'}`,
+          ...recentLogs.slice(0, 19)
+        ];
+
+        set({
+          stats: syncNewStats(newStats),
+          activeMiniGame: null,
+          recentLogs: updatedLogs
+        });
+        
+        get().showToast(resultMsg);
+        get().checkFailureConditions();
+      },
+
 
       // 알림 표출
       showToast: (msg: string) => set({ toastMessage: msg }),
@@ -1418,6 +1498,7 @@ export const useGameStore = create<GameState>()(
           currentLocation: null,
           currentNpcDialogue: null,
           npcDialogueSession: null,
+          activeMiniGame: null,
           stats: initialStats,
           students: JSON.parse(JSON.stringify(selectedStudents)),
           parents: JSON.parse(JSON.stringify(selectedParents)),
@@ -1464,6 +1545,7 @@ export const useGameStore = create<GameState>()(
           currentLocation: null,
           currentNpcDialogue: null,
           npcDialogueSession: null,
+          activeMiniGame: null,
           currentEvent: null,
           selectedChoice: null,
           eventResultText: null,
@@ -1745,6 +1827,17 @@ export const useGameStore = create<GameState>()(
           // 오늘자 정산 및 지연 효과 일제 작동
           get().triggerDelayedEffectsForToday();
         } else if (timeOfDay === 'summary') {
+          // 일주일이 지난 시점(7, 14, 21, 28일차 밤)인지 확인하여 미니게임 강제 트리거 [NEW]
+          if ((day === 7 || day === 14 || day === 21 || day === 28) && !get().activeMiniGame) {
+            const gameMap: Record<number, 'cafeteria' | 'proofreading' | 'conflict' | 'stamp'> = {
+              7: 'cafeteria',
+              14: 'proofreading',
+              21: 'conflict',
+              28: 'stamp'
+            };
+            set({ activeMiniGame: gameMap[day] });
+            return;
+          }
           // 정산 완료 후 -> 다음 날 아침으로 전이
           const nextDay = day + 1;
           
