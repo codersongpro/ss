@@ -32,6 +32,12 @@ import {
   RAMP_TOTAL_WEEKS,
   FINAL_WEEK_START_DAY
 } from '@/game/constants';
+import {
+  WEEKLY_MINI_GAMES,
+  RETRO_MINI_GAMES,
+  type WeeklyMiniGameType,
+  type RetroMiniGameType
+} from '@/game/miniGameDefs';
 import { getItemById } from '@/data/items';
 import { initialStudents, initialParents } from '@/data/students';
 import { gameEvents } from '@/data/events';
@@ -193,9 +199,18 @@ interface GameState {
     targetChoiceId: string | null;
   } | null; // 주사위 판정 상태 [NEW]
   clearDiceRollState: () => void; // 주사위 상태 초기화 [NEW]
-  activeMiniGame: 'cafeteria' | 'proofreading' | 'conflict' | 'stamp' | null; // 현재 활성화된 미니게임 종류 [NEW]
-  triggerMiniGame: (gameType: 'cafeteria' | 'proofreading' | 'conflict' | 'stamp') => void; // 미니게임 수동/자동 트리거 [NEW]
+  activeMiniGame: WeeklyMiniGameType | null; // 현재 활성화된 주간 미니게임 종류 [NEW]
+  completedWeeklyMiniGameDays: number[]; // [FIX] 이미 소화한 주간 미니게임의 편성 날짜. 없으면 정산 화면에서 무한 재발동한다
+  triggerMiniGame: (gameType: WeeklyMiniGameType) => void; // 미니게임 수동/자동 트리거 [NEW]
   resolveMiniGame: (success: boolean) => void; // 미니게임 결과 정산 액션 [NEW]
+
+  // [NEW] 돌발 레트로 미니게임 — 일과 중(장소 행동/탐색) 예고 없이 끼어드는 짧은 게임
+  activeRetroMiniGame: RetroMiniGameType | null;
+  lastRetroMiniGameDay: number; // 마지막으로 돌발 미니게임이 열린 날 (하루 1회 제한용, 0이면 아직 없음)
+  triggerRetroMiniGame: (gameType: RetroMiniGameType) => void;
+  resolveRetroMiniGame: (success: boolean) => void;
+  // 주간/돌발 미니게임의 공통 정산 경로 (miniGameDefs.ts의 효과 표를 그대로 적용)
+  applyMiniGameOutcome: (label: string, success: boolean, effects: StatEffect[], narration: string) => void;
 }
 
 
@@ -366,6 +381,109 @@ const hasPrerequisite = (flag: string, effectiveFlags: string[], inventory: stri
 // 탐험 시 낮은 확률로만 일반 후보군에 합류하는 '숨은 발견' 이벤트 태그 및 등장 확률
 const HIDDEN_EXPLORATION_TAG = '히든탐험';
 const HIDDEN_EXPLORATION_CHANCE = 0.12;
+
+// ==========================================
+// [NEW] 주간 정규 미니게임 편성표
+// ==========================================
+// 예전에는 7/14/21/28일차 정산 화면에서 열렸는데, 이 날들은 전부 day % 7 === 0 — 즉 일요일이었다.
+// 학교에 나오지도 않는 주말 밤에 "급식실 통제", "교실 난투극 중재"가 열리는 것은 시나리오와 어긋나
+// 평일로 옮겼고, 게임 성격에 맞는 시간대에 배치했다.
+//  - 낮에 벌어지는 일(급식 지도, 교실 다툼)은 오전 일과가 끝나는 시점(morning -> afternoon)에
+//  - 퇴근 전 서류 업무(생기부, 공문 기안)는 하루 정산 시점(summary)에
+// 주간 마일스톤(5/12/19/26 금요일)·자녀 서사(4/10/15/18/25)와 날짜가 겹치지 않게 골랐다.
+interface WeeklyMiniGameSlot {
+  day: number;
+  phase: 'afternoon' | 'summary'; // 이 페이즈로 넘어가려 할 때 끼어든다
+  game: WeeklyMiniGameType;
+}
+
+const WEEKLY_MINIGAME_SCHEDULE: WeeklyMiniGameSlot[] = [
+  { day: 3, phase: 'afternoon', game: 'cafeteria' },      // 1주차 · 수요일 점심 급식 지도
+  { day: 11, phase: 'summary', game: 'proofreading' },    // 2주차 · 목요일 퇴근 전 생기부 마감
+  { day: 17, phase: 'afternoon', game: 'conflict' },      // 3주차 · 수요일 쉬는 시간 다툼
+  { day: 24, phase: 'summary', game: 'stamp' }            // 4주차 · 수요일 방과 후 공문 기안
+];
+
+const getWeeklyMiniGameSlot = (
+  day: number,
+  phase: WeeklyMiniGameSlot['phase'],
+  completedDays: number[]
+): WeeklyMiniGameSlot | null =>
+  WEEKLY_MINIGAME_SCHEDULE.find(
+    slot => slot.day === day && slot.phase === phase && !completedDays.includes(slot.day)
+  ) ?? null;
+
+// ==========================================
+// [NEW] 돌발 레트로 미니게임 트리거 규칙
+// ==========================================
+// 주간 미니게임이 "예고된 마감 이벤트"라면, 이쪽은 일과 중 예고 없이 끼어드는 짧은 사건이다.
+// 어떤 게임이 뜨는지는 지금 무엇을 하고 있었는지(장소/행동/시간대)로 정해져, 상황과 겉도는
+// 미니게임이 튀어나오지 않게 한다.
+
+const RETRO_MINIGAME_CHANCE = 0.18; // 조건을 만족한 행동 1회당 발동 확률
+const RETRO_MINIGAME_MIN_DAY = 2;   // 1일차는 튜토리얼이라 제외
+
+// 장소 기준 후보 (행동 기준 후보가 없을 때 쓰는 폴백)
+const RETRO_BY_LOCATION: Partial<Record<LocationType, RetroMiniGameType[]>> = {
+  office: ['printer'],
+  admin_office: ['printer'],
+  principal_room: ['printer'],
+  library: ['printer'],
+  classroom: ['nameface', 'attendance'],
+  class_grade1: ['nameface'],
+  class_grade2: ['nameface'],
+  class_grade3: ['nameface'],
+  class_grade4: ['nameface'],
+  class_grade5: ['nameface'],
+  class_grade6: ['nameface'],
+  cafeteria: ['hallway'],
+  school_gate: ['hallway'],
+  gymnasium: ['hallway'],
+  gym_room: ['hallway'],
+  playground: ['hallway']
+};
+
+// 장소 행동 기준 후보 (executeLocationAction에서 우선 사용)
+const RETRO_BY_ACTION: Record<string, RetroMiniGameType[]> = {
+  office_work: ['printer'],
+  admin_cooperate: ['printer'],
+  library_organize: ['printer'],
+  classroom_lead: ['attendance', 'nameface'],
+  grade_class_inspect: ['nameface'],
+  cafeteria_guide: ['hallway'],
+  gate_safety: ['hallway'],
+  gym_safety: ['hallway'],
+  playground_train: ['hallway']
+};
+
+// 상황에 맞는 돌발 미니게임을 하나 고른다. 조건에 맞지 않으면 null(=발동 안 함).
+const pickRetroMiniGame = (args: {
+  day: number;
+  timeOfDay: TimeOfDay;
+  lastRetroMiniGameDay: number;
+  location: LocationType | null;
+  actionType?: string;
+}): RetroMiniGameType | null => {
+  const { day, timeOfDay, lastRetroMiniGameDay, location, actionType } = args;
+
+  if (day < RETRO_MINIGAME_MIN_DAY) return null;
+  if (lastRetroMiniGameDay === day) return null;      // 하루 1회
+  if (day % 7 === 6 || day % 7 === 0) return null;     // 주말엔 학교에 없다
+  if (Math.random() >= RETRO_MINIGAME_CHANCE) return null;
+
+  let pool = (actionType && RETRO_BY_ACTION[actionType]) || (location ? RETRO_BY_LOCATION[location] : undefined);
+  if (!pool || pool.length === 0) return null;
+
+  // 이름 외우기는 학기 초(아이들을 아직 다 모르는 시기)에만, 조회 호명은 아침에만 어울린다.
+  pool = pool.filter(g => {
+    if (g === 'nameface') return day <= 12;
+    if (g === 'attendance') return timeOfDay === 'morning';
+    return true;
+  });
+  if (pool.length === 0) return null;
+
+  return pool[Math.floor(Math.random() * pool.length)];
+};
 
 // 선택지의 데이터 주도 학생 효과(studentEffects)를 일괄 적용한다(증감치 + clamp).
 const applyStudentEffects = (students: Student[], choice: GameChoice): Student[] => {
@@ -1384,6 +1502,9 @@ export const useGameStore = create<GameState>()(
       showStatHints: false, // 기본은 스탯 힌트 숨김 — 수치 최적화가 아닌 역할 판단을 유도(토글로 켤 수 있음) [NEW]
       diceRollState: null, // 초기 주사위 판정 상태는 null [NEW]
       activeMiniGame: null, // 초기 미니게임 상태는 null [NEW]
+      completedWeeklyMiniGameDays: [],
+      activeRetroMiniGame: null, // 초기 돌발 미니게임 상태는 null [NEW]
+      lastRetroMiniGameDay: 0, // 아직 돌발 미니게임이 열린 적 없음 [NEW]
 
       toggleStatHints: () => set({ showStatHints: !get().showStatHints }), // 스탯 힌트 토글 액션 [NEW]
       clearDiceRollState: () => set({ diceRollState: null }), // 주사위 상태 초기화 액션 [NEW]
@@ -1391,74 +1512,69 @@ export const useGameStore = create<GameState>()(
       triggerMiniGame: (gameType) => set({ activeMiniGame: gameType }),
       
       resolveMiniGame: (success) => {
-        const { activeMiniGame, stats, day, recentLogs } = get();
+        const { activeMiniGame } = get();
         if (!activeMiniGame) return;
+        const def = WEEKLY_MINI_GAMES[activeMiniGame];
+        // [FIX] 소화한 편성 날짜를 기록해야 정산 화면에서 같은 미니게임이 무한 반복되지 않는다.
+        const { day, completedWeeklyMiniGameDays } = get();
+        set({
+          activeMiniGame: null,
+          completedWeeklyMiniGameDays: completedWeeklyMiniGameDays.includes(day)
+            ? completedWeeklyMiniGameDays
+            : [...completedWeeklyMiniGameDays, day]
+        });
+        get().applyMiniGameOutcome(
+          `주간 미니게임 · ${def.title}`,
+          success,
+          success ? def.successEffects : def.failEffects,
+          success ? def.successText : def.failText
+        );
+      },
+
+      // [NEW] 돌발 레트로 미니게임
+      triggerRetroMiniGame: (gameType) => set({
+        activeRetroMiniGame: gameType,
+        lastRetroMiniGameDay: get().day
+      }),
+
+      resolveRetroMiniGame: (success) => {
+        const { activeRetroMiniGame } = get();
+        if (!activeRetroMiniGame) return;
+        const def = RETRO_MINI_GAMES[activeRetroMiniGame];
+        set({ activeRetroMiniGame: null });
+        get().applyMiniGameOutcome(
+          `돌발 미니게임 · ${def.title}`,
+          success,
+          success ? def.successEffects : def.failEffects,
+          success ? def.successText : def.failText
+        );
+      },
+
+      // 주간/돌발 미니게임의 공통 정산 경로.
+      // 보상은 전부 miniGameDefs.ts의 StatEffect[]에서 오므로, 결과 화면이 안내한 수치와
+      // 실제로 적용되는 수치가 어긋날 수 없다(StatEffect는 파생 스탯을 겨냥할 수 없는 타입).
+      applyMiniGameOutcome: (label, success, effects, narration) => {
+        const { stats, day, recentLogs } = get();
 
         const newStats = { ...stats };
-        let resultMsg = '';
+        effects.forEach(eff => {
+          newStats[eff.stat] = clamp(newStats[eff.stat] + eff.value, 0, 100);
+        });
 
-        if (activeMiniGame === 'cafeteria') {
-          if (success) {
-            newStats.studentTrust = clamp(newStats.studentTrust + 10);
-            newStats.teachingSatisfaction = clamp(newStats.teachingSatisfaction + 10);
-            newStats.burnout = clamp(newStats.burnout - 5);
-            resultMsg = `[급식 지도 성공] 급식실 소란을 성공적으로 통제하여 학생 신뢰와 교육적 보람이 상승하고 번아웃이 감소했습니다.`;
-          } else {
-            newStats.burnout = clamp(newStats.burnout + 15);
-            newStats.hp = clamp(newStats.hp - 10);
-            newStats.studentTrust = clamp(newStats.studentTrust - 5);
-            resultMsg = `[급식 지도 실패] 급식실이 엉망진창이 되어 체력이 소모되고 번아웃이 대폭 증가했습니다.`;
-          }
-        } else if (activeMiniGame === 'proofreading') {
-          if (success) {
-            newStats.adminPower = clamp(newStats.adminPower + 15);
-            newStats.reputation = clamp(newStats.reputation + 10);
-            newStats.adminTrust = clamp(newStats.adminTrust + 5);
-            resultMsg = `[생기부 검수 성공] 생기부 오탈자와 금지어를 성공적으로 정리하여 행정 실무력과 평판이 대폭 올랐습니다.`;
-          } else {
-            newStats.burnout = clamp(newStats.burnout + 15);
-            newStats.adminTrust = clamp(newStats.adminTrust - 10);
-            newStats.reputation = clamp(newStats.reputation - 5);
-            resultMsg = `[생기부 검수 실패] 교육청 제출 서류의 오탈자로 인해 관리자 신뢰와 대외 평판이 하락하고 피로가 누적되었습니다.`;
-          }
-        } else if (activeMiniGame === 'conflict') {
-          if (success) {
-            newStats.classManagement = clamp(newStats.classManagement + 15);
-            newStats.studentTrust = clamp(newStats.studentTrust + 12);
-            newStats.colleagueSolidarity = clamp(newStats.colleagueSolidarity + 5);
-            resultMsg = `[갈등 중재 성공] 학생 간의 다툼을 지혜롭게 중재하여 학급 운영력과 학생 신뢰도가 크게 상승했습니다.`;
-          } else {
-            newStats.mental = clamp(newStats.mental - 15);
-            newStats.parentComplaint = clamp(newStats.parentComplaint + 20);
-            newStats.parentTrust = clamp(newStats.parentTrust - 10);
-            resultMsg = `[갈등 중재 실패] 학생 다툼이 주먹다짐으로 번져 멘탈이 상하고 학부모 민원이 대폭 증가했습니다.`;
-          }
-        } else if (activeMiniGame === 'stamp') {
-          if (success) {
-            newStats.adminPower = clamp(newStats.adminPower + 15);
-            newStats.adminTrust = clamp(newStats.adminTrust + 15);
-            newStats.careerPoint = clamp(newStats.careerPoint + 5);
-            resultMsg = `[공문 기안 성공] 반려된 공문서의 문제점을 신속히 수정하여 결재권자들의 최종 승인을 받아냈습니다.`;
-          } else {
-            newStats.adminTrust = clamp(newStats.adminTrust - 15);
-            newStats.reputation = clamp(newStats.reputation - 10);
-            newStats.burnout = clamp(newStats.burnout + 10);
-            resultMsg = `[공문 기안 실패] 상신한 기안서가 연이어 반려되어 마감 기한을 넘기고 경고를 받았습니다.`;
-          }
-        }
-
-        const updatedLogs = [
-          `[${day}일차] 미니게임 (${activeMiniGame}) 완료: ${success ? '성공' : '실패'}`,
-          ...recentLogs.slice(0, 19)
-        ];
+        const effectSummary = effects
+          .map(eff => `${eff.stat} ${eff.value > 0 ? '+' : ''}${eff.value}`)
+          .join(', ');
 
         set({
           stats: syncNewStats(newStats),
-          activeMiniGame: null,
-          recentLogs: updatedLogs
+          recentLogs: [
+            `[${day}일차] ${label} ${success ? '성공' : '실패'} — ${effectSummary}`,
+            ...recentLogs.slice(0, 19)
+          ],
+          recentValenceLog: pushValence(get().recentValenceLog, inferValence(effects))
         });
-        
-        get().showToast(resultMsg);
+
+        get().showToast(`[${label} ${success ? '성공' : '실패'}] ${narration}`);
         get().checkFailureConditions();
       },
 
@@ -1499,6 +1615,9 @@ export const useGameStore = create<GameState>()(
           currentNpcDialogue: null,
           npcDialogueSession: null,
           activeMiniGame: null,
+          completedWeeklyMiniGameDays: [],
+          activeRetroMiniGame: null,
+          lastRetroMiniGameDay: 0,
           stats: initialStats,
           students: JSON.parse(JSON.stringify(selectedStudents)),
           parents: JSON.parse(JSON.stringify(selectedParents)),
@@ -1546,6 +1665,9 @@ export const useGameStore = create<GameState>()(
           currentNpcDialogue: null,
           npcDialogueSession: null,
           activeMiniGame: null,
+          completedWeeklyMiniGameDays: [],
+          activeRetroMiniGame: null,
+          lastRetroMiniGameDay: 0,
           currentEvent: null,
           selectedChoice: null,
           eventResultText: null,
@@ -1779,6 +1901,13 @@ export const useGameStore = create<GameState>()(
             });
             get().triggerDelayedEffectsForToday();
           } else {
+            // 낮에 벌어지는 계열의 주간 미니게임(급식 지도·교실 다툼)은 오전 일과가 끝나는
+            // 이 시점에 끼어든다. 미니게임을 마치고 다시 진행하면 그때 오후로 넘어간다.
+            const noonSlot = getWeeklyMiniGameSlot(day, 'afternoon', get().completedWeeklyMiniGameDays);
+            if (noonSlot && !get().activeMiniGame) {
+              set({ activeMiniGame: noonSlot.game });
+              return;
+            }
             set({
               timeOfDay: 'afternoon',
               currentLocation: null,
@@ -1827,15 +1956,10 @@ export const useGameStore = create<GameState>()(
           // 오늘자 정산 및 지연 효과 일제 작동
           get().triggerDelayedEffectsForToday();
         } else if (timeOfDay === 'summary') {
-          // 일주일이 지난 시점(7, 14, 21, 28일차 밤)인지 확인하여 미니게임 강제 트리거 [NEW]
-          if ((day === 7 || day === 14 || day === 21 || day === 28) && !get().activeMiniGame) {
-            const gameMap: Record<number, 'cafeteria' | 'proofreading' | 'conflict' | 'stamp'> = {
-              7: 'cafeteria',
-              14: 'proofreading',
-              21: 'conflict',
-              28: 'stamp'
-            };
-            set({ activeMiniGame: gameMap[day] });
+          // 퇴근 전 서류 업무 계열 주간 미니게임 편성 확인 [NEW]
+          const nightSlot = getWeeklyMiniGameSlot(day, 'summary', get().completedWeeklyMiniGameDays);
+          if (nightSlot && !get().activeMiniGame) {
+            set({ activeMiniGame: nightSlot.game });
             return;
           }
           // 정산 완료 후 -> 다음 날 아침으로 전이
@@ -2385,6 +2509,20 @@ export const useGameStore = create<GameState>()(
           : normalCandidates;
 
         if (candidates.length === 0) {
+          // [NEW] 사건이 고갈된 장소라도 완전한 헛걸음이 되지 않도록, 여기서만 돌발 미니게임을
+          // 한 번 더 굴린다. 이 경우 TP를 소모하지 않은 상태이므로 "공짜 재도전"이 아니라
+          // 상황이 바뀌어 미니게임으로 대체된 것으로 처리한다.
+          const surprise = pickRetroMiniGame({
+            day,
+            timeOfDay: get().timeOfDay,
+            lastRetroMiniGameDay: get().lastRetroMiniGameDay,
+            location: currentLocation
+          });
+          if (surprise) {
+            set({ actionPoints: actionPoints - ACTION_TP_COST });
+            get().triggerRetroMiniGame(surprise);
+            return;
+          }
           get().showToast('더 이상 이 장소에서 탐색할 수 있는 새로운 사건이 없습니다.');
           return;
         }
@@ -2576,6 +2714,17 @@ export const useGameStore = create<GameState>()(
 
         get().showToast(`${msg}${efficiencyNote}`);
         get().checkFailureConditions();
+
+        // [NEW] 행동을 마친 직후, 낮은 확률로 상황에 맞는 돌발 레트로 미니게임이 끼어든다.
+        // (예: 교무실 업무 중 인쇄기 용지 걸림, 급식 지도 중 복도 소란)
+        const surprise = pickRetroMiniGame({
+          day: get().day,
+          timeOfDay: get().timeOfDay,
+          lastRetroMiniGameDay: get().lastRetroMiniGameDay,
+          location: get().currentLocation,
+          actionType
+        });
+        if (surprise) get().triggerRetroMiniGame(surprise);
       },
 
       // 13. RPG 캐릭터 대화 개시 (TP를 소모하지 않는 이벤트성 대화)
@@ -3351,174 +3500,6 @@ export const useGameStore = create<GameState>()(
         get().checkFailureConditions();
       },
 
-      // 레거시 메신저 액션 백업
-      generateMessengerNotificationsLegacy: () => {
-        const { day, messengerNotifications } = get();
-        
-        // 기존 메신저 리스트 백업
-        const newNotifs = [...messengerNotifications];
-
-        // 1. 교육청 지침 공문 (35% 확률)
-        if (Math.random() < 0.35) {
-          const id = `msg_edu_${day}_${Math.floor(Math.random() * 1000)}`;
-          newNotifs.push({
-            id,
-            sender: '시교육청 초등교육과',
-            previewText: '디지털 교과서 도입 대비 정보 인프라 활용 실태 긴급 조사 및 취합 지시 건',
-            type: 'messenger_event',
-            targetId: 'messenger_evt_edu_01',
-            isRead: false
-          });
-        }
-
-        // 2. 학교 공식 행사 안내 (35% 확률)
-        if (Math.random() < 0.35) {
-          const id = `msg_school_${day}_${Math.floor(Math.random() * 1000)}`;
-          newNotifs.push({
-            id,
-            sender: '교무부 행사기획계',
-            previewText: '교내 과학 체험 창의 융합 축전 행사용 보조교사(부스 운영 전담) 긴급 자원 요청의 건',
-            type: 'messenger_event',
-            targetId: 'messenger_evt_school_01',
-            isRead: false
-          });
-        }
-
-        // 최대 6개까지만 쌓이도록 제한
-        if (newNotifs.length > 6) {
-          set({ messengerNotifications: newNotifs.slice(newNotifs.length - 6) });
-        } else {
-          set({ messengerNotifications: newNotifs });
-        }
-      },
-
-      // [NEW] 학교 메신저 알림 클릭 시 액션
-      triggerMessengerActionLegacy: (notificationId: string) => {
-        const { messengerNotifications } = get();
-        const target = messengerNotifications.find(n => n.id === notificationId);
-        if (!target) return;
-
-        // 읽음 처리
-        set({
-          messengerNotifications: messengerNotifications.map(n => 
-            n.id === notificationId ? { ...n, isRead: true } : n
-          )
-        });
-
-        // 1. NPC 대화 연계인 경우
-        if (target.type === 'npc_dialogue') {
-          get().talkToNPC(target.targetId, target.targetName || '동료 교사');
-        } 
-        // 2. 메신저 전용 A/B 선택형 사건인 경우
-        else if (target.type === 'messenger_event') {
-          let eventDetails: MessengerEvent | null = null;
-          
-          if (target.targetId === 'messenger_evt_edu_01') {
-            eventDetails = {
-              id: target.targetId,
-              sender: target.sender,
-              previewText: '교육청 초등교육과에서 온 디지털 교과서 설문 취합 긴급 지침입니다. 오늘 4시까지 전 학년 활용 수치 통계를 보고해야 합니다. 어떻게 행동하시겠습니까?',
-              choices: [
-                {
-                  id: 'choice_edu_01_1',
-                  text: '교실 청소 지도를 자습으로 대체하고 정보실에 올라가 즉각 보고서 취합 기안을 상신한다.',
-                  effects: [{ stat: 'adminPower', value: 8 }, { stat: 'burnout', value: 12 }, { stat: 'mental', value: -8 }, { stat: 'studentTrust', value: -3 }],
-                  resultText: '정보 부서 결재를 안전하게 뚫고 교육청 공문 처리를 완수하여 관리자의 평판이 오르고 행정 역량을 입증했으나, 담임 교실 지도가 누설되고 몸이 극도로 피로해졌습니다.'
-                },
-                {
-                  id: 'choice_edu_01_2',
-                  text: '메신저로 부장님과 행무 실무사님께 사정을 구해 내일 오전 중으로 협조 보고를 늦춰 작성한다.',
-                  effects: [{ stat: 'colleagueSolidarity', value: 10 }, { stat: 'hp', value: -3 }, { stat: 'burnout', value: -5 }],
-                  resultText: '행정 부서 간 조율을 거치며 동료들과 협동적 연대를 다졌고 오늘 밤 야근을 피했습니다. 단, 공문 마감일이 밀려 행정실의 깐깐한 결재 압박은 약간 남아있습니다.'
-                }
-              ]
-            };
-          } else if (target.targetId === 'messenger_evt_school_01') {
-            eventDetails = {
-              id: target.targetId,
-              sender: target.sender,
-              previewText: '교내 과학 창의 융합 축전 행사입니다. 각 학급 부스 운영을 도울 스태프 교사가 부족하여 지원을 바라는 긴급 공고입니다. 어떻게 응대하시겠습니까?',
-              choices: [
-                {
-                  id: 'choice_school_01_1',
-                  text: '적극 지원하여 우주 과학 실험 부스를 책임지고 당당히 종일 운영한다.',
-                  effects: [{ stat: 'expert', value: 10 }, { stat: 'teachingSatisfaction', value: 10 }, { stat: 'hp', value: -10 }, { stat: 'burnout', value: 10 }],
-                  resultText: '과학 부스를 열어 아이들에게 경이로운 실험 체험을 제공하고 수업 전문성과 보람을 드높였습니다. 교무실 평판도 훌륭하지만 체력 소진이 엄청납니다.'
-                },
-                {
-                  id: 'choice_school_01_2',
-                  text: '교실에서 부적응 학생 개별 상담 일정이 밀려 있어 부스 행사 지원을 정중히 양해 구하고 거절한다.',
-                  effects: [{ stat: 'studentTrust', value: 8 }, { stat: 'colleagueSolidarity', value: -5 }, { stat: 'mental', value: 3 }],
-                  resultText: '체육 축제나 과학 행사 동원 대신 교실에서 지현이와 민준이 등 위기 학생과의 밀착 상담에 집중해 학생들의 절대적인 지지와 신뢰를 얻어냈습니다.'
-                }
-              ]
-            };
-          } else if (target.targetId === 'messenger_evt_parent_01') {
-            eventDetails = {
-              id: target.targetId,
-              sender: target.sender,
-              previewText: '학부모 민준 어머님의 개인적인 메신저 쪽지입니다. "우리 민준이가 지난번 단원평가에서 틀린 오답 문항들에 대한 오답 원인 피드백 노트를 메신저로 꼼꼼히 정리해 보내주세요."',
-              choices: [
-                {
-                  id: 'choice_parent_01_1',
-                  text: '민원 최소화와 신뢰 구축을 위해, 퇴근 후 시험지를 분석해 민준이 전용 오답 피드백 3단 노트를 전송한다.',
-                  effects: [{ stat: 'parentTrust', value: 10 }, { stat: 'parentComplaint', value: -10 }, { stat: 'hp', value: -6 }, { stat: 'burnout', value: 8 }],
-                  resultText: '학부모가 감동하여 감사 인사를 보내며 학부모 신뢰가 크게 쌓이고 민원 위험성이 낮아졌습니다. 대신 개인 사생활 시간의 침해로 약간의 스트레스가 유발됩니다.'
-                },
-                {
-                  id: 'choice_parent_01_2',
-                  text: '학급 전체 단원평가 공통 오답 분석지만 메신저로 전송하고, 개별 피드백은 교실 방과후 지도로 조율한다.',
-                  effects: [{ stat: 'educationSoshin', value: 10 }, { stat: 'familySatisfaction', value: 10 }, { stat: 'parentTrust', value: -5 }],
-                  resultText: '개인 맞춤형 초과 요구에 선을 긋고 공통 교육안을 제시하여 소신을 확립하고 워라밸을 지켰으나, 학부모의 섭섭함이 교장실 간접 불만으로 누적될 수 있습니다.'
-                }
-              ]
-            };
-          }
-
-          if (eventDetails) {
-            set({ activeMessengerEvent: eventDetails });
-          }
-        }
-      },
-
-      // [NEW] 학교 메신저 선택지 클릭 시 스탯 적용 및 피드백 출력
-      selectMessengerChoiceLegacy: (_choiceId: string, effects: StatEffect[], resultText: string) => {
-        const { stats, recentLogs, day } = get();
-        
-        // 스탯 변동 적용
-        const newStats = { ...stats };
-        effects.forEach((eff: StatEffect) => {
-          newStats[eff.stat] = clamp(
-            newStats[eff.stat] + eff.value, 
-            0,
-            100
-          );
-        });
-
-        const logMsg = `[메신저 처리] ${resultText.slice(0, 30)}...`;
-        const updatedLogs = [
-          `[${day}일차] 메신저 응답: ${logMsg}`,
-          ...recentLogs.slice(0, 19)
-        ];
-
-        // 팝업 내부 피드백 상태 반영
-        const { activeMessengerEvent } = get();
-        if (activeMessengerEvent) {
-          set({
-            stats: newStats,
-            recentLogs: updatedLogs,
-            activeMessengerEvent: {
-              ...activeMessengerEvent,
-              previewText: resultText,
-              choices: [] // 선택지 배열을 지워서 확인 버튼만 띄우게 함
-            }
-          });
-        }
-        
-        get().checkFailureConditions();
-      },
-
-      // [NEW] 메신저 팝업 닫기 (알림 제거 연동)
       closeMessengerEvent: () => {
         const { activeMessengerEvent, messengerNotifications } = get();
         if (activeMessengerEvent && activeMessengerEvent.notificationId) {

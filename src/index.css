@@ -215,3 +215,135 @@ body {
   transform: translate(1px, 1px);
   box-shadow: var(--shadow-school-press);
 }
+
+/* ==========================================================================
+   돌발 레트로 미니게임 전용 스타일 (8비트 오락실 CRT 느낌)
+   RetroMiniGames.tsx 에서만 사용한다.
+   ========================================================================== */
+
+.retro-screen {
+  background-color: #0a0f0a;
+  background-image:
+    linear-gradient(rgba(57, 255, 20, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(57, 255, 20, 0.04) 1px, transparent 1px);
+  background-size: 8px 8px;
+  color: #d6ffd0;
+  border: 4px solid #39ff14;
+  border-radius: 0.25rem;
+  box-shadow:
+    0 0 0 4px #0a0f0a,
+    0 0 28px rgba(57, 255, 20, 0.35),
+    inset 0 0 40px rgba(57, 255, 20, 0.08);
+  font-family: 'DungGeunMo', 'Galmuri11', ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
+  letter-spacing: 0.02em;
+  image-rendering: pixelated;
+  position: relative;
+  overflow: hidden;
+}
+
+/* CRT 스캔라인 오버레이 */
+.retro-scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.25) 0px,
+    rgba(0, 0, 0, 0.25) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  z-index: 5;
+}
+
+.retro-title {
+  color: #39ff14;
+  font-weight: 700;
+  text-shadow: 2px 2px 0 #0a0f0a, 0 0 12px rgba(57, 255, 20, 0.6);
+}
+
+.retro-btn {
+  display: block;
+  background-color: #39ff14;
+  color: #06210a;
+  font-weight: 800;
+  font-family: inherit;
+  letter-spacing: 0.08em;
+  border: 3px solid #d6ffd0;
+  padding: 0.75rem 1.25rem;
+  box-shadow: 4px 4px 0 0 #0a3d0a;
+  transition: transform 0.1s ease-out, box-shadow 0.1s ease-out, filter 0.1s ease-out;
+  cursor: pointer;
+}
+.retro-btn:hover:not(:disabled) {
+  filter: brightness(1.15);
+}
+.retro-btn:active:not(:disabled) {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0 0 #0a3d0a;
+}
+.retro-btn:disabled {
+  background-color: #2b4b2b;
+  color: #7a9a7a;
+  cursor: not-allowed;
+  box-shadow: 4px 4px 0 0 #0a1f0a;
+}
+
+/* 두더지잡기·순서 기억 게임의 공용 칸 */
+.retro-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  background-color: rgba(57, 255, 20, 0.05);
+  border: 3px solid rgba(57, 255, 20, 0.45);
+  transition: background-color 0.1s ease-out, box-shadow 0.1s ease-out;
+  cursor: pointer;
+}
+.retro-cell:active {
+  background-color: rgba(57, 255, 20, 0.18);
+}
+.retro-cell-lit {
+  background-color: rgba(255, 212, 0, 0.3);
+  border-color: #ffd400;
+  box-shadow: 0 0 18px rgba(255, 212, 0, 0.7), inset 0 0 18px rgba(255, 212, 0, 0.35);
+}
+
+/* 이름 짝맞추기 카드 */
+.retro-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  background-color: #12331a;
+  border: 3px solid rgba(57, 255, 20, 0.45);
+  color: #7a9a7a;
+  font-weight: 700;
+  transition: all 0.15s ease-out;
+  cursor: pointer;
+}
+.retro-card-open {
+  background-color: rgba(57, 255, 20, 0.12);
+  border-color: #39ff14;
+  color: #d6ffd0;
+}
+.retro-card-done {
+  background-color: rgba(255, 212, 0, 0.16);
+  border-color: #ffd400;
+  color: #ffd400;
+  cursor: default;
+}
+
+@keyframes retroBlink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0.15; }
+}
+.retro-blink {
+  animation: retroBlink 0.9s step-end infinite;
+}
+
+@keyframes retroPop {
+  0% { transform: scale(0.4); }
+  100% { transform: scale(1); }
+}

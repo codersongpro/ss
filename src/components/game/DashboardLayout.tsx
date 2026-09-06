@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useGameStore, getEndingCompass, TRUE_MENTOR_STORY_ITEMS } from '@/store/useGameStore';
 import { MiniGames } from './MiniGames';
+import { RetroMiniGameHost } from './RetroMiniGames';
+import { STAT_LABELS } from '@/game/statLabels';
 import type { TimeOfDay } from '@/store/useGameStore';
 import { 
   Calendar, 
@@ -25,33 +27,6 @@ import type { Student } from '@/game/types';
 import { DIFFICULTY_TP } from '@/game/constants';
 import { getItemById } from '@/data/items';
 import { locationImages } from '@/assets/gameImageAssets';
-
-// 스탯명 한글화 및 이모지 매핑 테이블 [NEW]
-const STAT_LABELS: Record<string, { label: string; icon: string }> = {
-  hp: { label: "건강", icon: "🏥" },
-  mental: { label: "멘탈", icon: "🧠" },
-  burnout: { label: "번아웃", icon: "😓" },
-  expert: { label: "전문성", icon: "📚" },
-  studentTrust: { label: "학생신뢰", icon: "👥" },
-  parentTrust: { label: "학부모신뢰", icon: "👪" },
-  colleagueRelation: { label: "동료관계", icon: "🤝" },
-  adminTrust: { label: "관리자신뢰", icon: "📋" },
-  adminPower: { label: "행정실무", icon: "💻" },
-  familySatisfaction: { label: "가정만족", icon: "🏠" },
-  educationSoshin: { label: "교육소신", icon: "💡" },
-  reputation: { label: "평판", icon: "🌟" },
-  careerPoint: { label: "커리어점수", icon: "🏆" },
-  teachingSatisfaction: { label: "교육보람", icon: "⭐" },
-  colleagueSolidarity: { label: "동료연대", icon: "🛡️" },
-  parentComplaint: { label: "학부모민원", icon: "⚠️" },
-  
-  // 5대 역량 스탯
-  workCapacity: { label: "업무능력", icon: "⚙️" },
-  interpersonal: { label: "인간관계", icon: "🌐" },
-  familyRelation: { label: "가족관계", icon: "👨‍👩‍👧" },
-  classManagement: { label: "학급운영", icon: "🏫" },
-  teachingResearch: { label: "수업연구", icon: "🧪" }
-};
 
 // 스탯 변동 전후 팝업 상세 브리핑 헬퍼 컴포넌트 [NEW]
 // 이전 수치 가이드와 현재 잔여량 프로그레스 바를 시각적으로 연출합니다.
@@ -434,12 +409,12 @@ interface DashboardLayoutProps {
 }
 
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) => {
+  // [FIX] 예전에는 여기서 activeMiniGame을 읽고 곧바로 early return 했다. 그 아래에 40개 가까운
+  // useState/useEffect가 있어, 미니게임이 켜지는 순간 렌더 한 번에 호출되는 훅 개수가 급감하며
+  // React가 "Rendered fewer hooks than expected"로 앱 전체를 크래시시켰다 — 즉 미니게임이
+  // 발동하는 순간 게임이 죽었다. 훅은 전부 호출한 뒤, 반환 시점에만 분기한다.
   const activeMiniGame = useGameStore(state => state.activeMiniGame);
   const resolveMiniGame = useGameStore(state => state.resolveMiniGame);
-
-  if (activeMiniGame) {
-    return <MiniGames onResolve={resolveMiniGame} />;
-  }
 
   const {
     day,
@@ -995,6 +970,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
       return () => clearTimeout(timer);
     }
   }, [toastMessage, clearToast]);
+
+  // 모든 훅을 호출한 뒤에 분기한다 (훅 순서 보존).
+  if (activeMiniGame) {
+    return <MiniGames onResolve={resolveMiniGame} />;
+  }
 
   return (
     <div className="min-h-screen bg-[#F0ECE3] flex flex-col text-slate-800 transition-colors duration-300">
@@ -3422,6 +3402,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onExitGame }) 
           </div>
         </div>
       )}
+
+      {/* [NEW] 돌발 레트로 미니게임 오버레이 — 일과 중 예고 없이 끼어든다 */}
+      <RetroMiniGameHost />
     </div>
   );
 };

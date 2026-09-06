@@ -4,6 +4,10 @@ import { funnyParentEvents } from './funnyParentEvents';
 import { funnyColleagueEvents } from './funnyColleagueEvents';
 import { funnyAdminEvents } from './funnyAdminEvents';
 import { funnyRandomEvents } from './funnyRandomEvents';
+// [FIX] funnyConflictEvents는 만들어져 있었지만 어디에서도 import되지 않아, 완성된 동료 갈등
+// 이벤트 6종이 게임에 한 번도 등장하지 못했다. 이제 정식으로 풀에 합류시킨다.
+import { funnyConflictEvents } from './funnyConflictEvents';
+import { extraEvents } from './extraEvents';
 
 export const gameEvents: GameEvent[] = [
   ...funnyStudentEvents,
@@ -11,6 +15,8 @@ export const gameEvents: GameEvent[] = [
   ...funnyColleagueEvents,
   ...funnyAdminEvents,
   ...funnyRandomEvents,
+  ...funnyConflictEvents,
+  ...extraEvents,
   // ==================== [학부모 악성 민원 사건군 (evt_complaint_01 ~ 03) [NEW]] ====================
   {
     id: 'evt_complaint_01',

@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useGameStore } from '@/store/useGameStore';
 import { Timer, Shield, Check, ShieldAlert, Award, FileText, Zap, ChevronRight, User } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { WEEKLY_MINI_GAMES } from '@/game/miniGameDefs';
+import { formatEffects } from '@/game/statLabels';
 
 // ==========================================
 // 1. 급식 전쟁 타이쿤 (Cafeteria Tycoon)
@@ -14,6 +16,8 @@ interface Bubble {
   timeRemaining: number; // 초 단위 잔여 시간
 }
 
+const CAFETERIA_TARGET = 12;
+
 const CafeteriaGame: React.FC<{ onComplete: (success: boolean) => void }> = ({ onComplete }) => {
   const [timeLeft, setTimeLeft] = useState(25);
   const [hp, setHp] = useState(100);
@@ -22,6 +26,18 @@ const CafeteriaGame: React.FC<{ onComplete: (success: boolean) => void }> = ({ o
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
   const nextId = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // 종료 판정이 여러 이펙트에서 동시에 걸릴 수 있어(체력 소진 + 시간 만료) 1회로 봉인한다.
+  const finishedRef = useRef(false);
+  const finish = useCallback(
+    (success: boolean) => {
+      if (finishedRef.current) return;
+      finishedRef.current = true;
+      if (success) confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+      onComplete(success);
+    },
+    [onComplete]
+  );
 
   // 게임 메인 타이머
   useEffect(() => {
@@ -39,6 +55,10 @@ const CafeteriaGame: React.FC<{ onComplete: (success: boolean) => void }> = ({ o
   }, []);
 
   // 버블 관리 타이머 (0.1초 단위 업데이트)
+  // [FIX] 예전에는 의존성에 bubbles.length가 들어 있어 버블이 생기거나 사라질 때마다 100ms
+  // 인터벌이 통째로 해제·재생성됐다. 남은 시간 감소가 그때마다 초기화되어 제한 시간 표시가
+  // 실제 동작과 어긋났다. 스폰 상한 판정은 setBubbles 업데이터 안에서 최신 값으로 처리하고,
+  // 인터벌은 게임 시작~종료까지 하나만 유지한다.
   useEffect(() => {
     if (timeLeft <= 0) return;
 
@@ -61,50 +81,43 @@ const CafeteriaGame: React.FC<{ onComplete: (success: boolean) => void }> = ({ o
             next.push({ ...b, timeRemaining: nextTime });
           }
         });
-        return next;
-      });
 
-      // 2. 새로운 버블 무작위 생성 (약 15% 확률로 0.1초마다 생성)
-      if (Math.random() < 0.15 && bubbles.length < 5) {
-        const types: Bubble['type'][] = ['run', 'spinach', 'drop'];
-        const randomType = types[Math.floor(Math.random() * types.length)];
-        const timeLimit = randomType === 'drop' ? 1.5 : randomType === 'run' ? 2.5 : 3.5;
-        
-        if (containerRef.current) {
-          const width = containerRef.current.clientWidth - 100;
-          const height = containerRef.current.clientHeight - 100;
-          const newBubble: Bubble = {
+        // 2. 새로운 버블 무작위 생성 (약 15% 확률, 동시 5개 상한)
+        if (Math.random() < 0.15 && next.length < 5 && containerRef.current) {
+          const types: Bubble['type'][] = ['run', 'spinach', 'drop'];
+          const randomType = types[Math.floor(Math.random() * types.length)];
+          const timeLimit = randomType === 'drop' ? 1.5 : randomType === 'run' ? 2.5 : 3.5;
+          const width = Math.max(20, containerRef.current.clientWidth - 110);
+          const height = Math.max(20, containerRef.current.clientHeight - 90);
+          next.push({
             id: nextId.current++,
-            x: Math.max(20, Math.random() * width),
-            y: Math.max(20, Math.random() * height),
+            x: Math.random() * width,
+            y: Math.random() * height,
             type: randomType,
             timeRemaining: timeLimit,
-          };
-          setBubbles((prev) => [...prev, newBubble]);
+          });
         }
-      }
+
+        return next;
+      });
     }, 100);
 
     return () => clearInterval(bubbleInterval);
-  }, [timeLeft, bubbles.length]);
+  }, [timeLeft]);
 
   // 체력 바닥 시 즉시 종료 (실패)
   useEffect(() => {
     if (hp <= 0 || spilledCount >= 3) {
-      onComplete(false);
+      finish(false);
     }
-  }, [hp, spilledCount, onComplete]);
+  }, [hp, spilledCount, finish]);
 
   // 시간 만료 시 성공 판정
   useEffect(() => {
     if (timeLeft === 0) {
-      const isSuccess = hp > 30 && spilledCount < 3 && resolvedCount >= 12;
-      if (isSuccess) {
-        confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
-      }
-      onComplete(isSuccess);
+      finish(hp > 30 && spilledCount < 3 && resolvedCount >= CAFETERIA_TARGET);
     }
-  }, [timeLeft, hp, spilledCount, resolvedCount, onComplete]);
+  }, [timeLeft, hp, spilledCount, resolvedCount, finish]);
 
   // 버블 해결 액션
   const handleResolve = (id: number, type: Bubble['type']) => {
@@ -167,7 +180,7 @@ const CafeteriaGame: React.FC<{ onComplete: (success: boolean) => void }> = ({ o
         {/* 해결한 수 */}
         <div className="bg-slate-900 border border-slate-800 p-3.5 rounded-xl flex flex-col justify-center">
           <div className="text-xs text-slate-400">통제 성공한 횟수</div>
-          <div className="font-mono text-2xl font-black text-amber-400 mt-1">{resolvedCount} / 12회 이상 필요</div>
+          <div className="font-mono text-2xl font-black text-amber-400 mt-1">{resolvedCount} / {CAFETERIA_TARGET}회 이상 필요</div>
         </div>
       </div>
 
@@ -192,7 +205,7 @@ const CafeteriaGame: React.FC<{ onComplete: (success: boolean) => void }> = ({ o
             label = '🥦 시금치 투정';
             actionLabel = '달래기';
           } else if (b.type === 'drop') {
-            colorClass = 'bg-sky-500 shadow-sky-500/50 border-sky-300 animate-ping-once';
+            colorClass = 'bg-sky-500 shadow-sky-500/50 border-sky-300';
             label = '🍱 식판 낙하!';
             actionLabel = '받기!';
           }
@@ -228,8 +241,10 @@ const CafeteriaGame: React.FC<{ onComplete: (success: boolean) => void }> = ({ o
 // ==========================================
 // 2. 생기부 오탈자 & 금지어 사냥 (Proofreading Game)
 // ==========================================
+// 화면에 그려지는 것은 words 배열뿐이라 문장 전체를 담던 text 필드는 렌더에 쓰이지 않았고,
+// 실제로 words와 내용이 어긋난 문항이 여럿 있었다(예: text에는 있는 어절이 words에는 없음).
+// 어긋난 사본을 유지하는 대신 필드를 제거해 words를 단일 소스로 삼는다.
 interface Question {
-  text: string; // 전체 문장
   words: { text: string; isError: boolean; correction: string; isClue: boolean }[]; // 단어 분할 배열
 }
 
@@ -242,7 +257,6 @@ const ProofreadingGame: React.FC<{ onComplete: (success: boolean) => void }> = (
   // 문장 목록 데이터베이스
   const [questions, setQuestions] = useState<Question[]>([
     {
-      text: "민우는 수업 태도가 매우 해이해질 때가 있지만, 수학 문제 해결력은 우수함.",
       words: [
         { text: "민우는", isError: false, correction: "", isClue: false },
         { text: "수업 태도가", isError: false, correction: "", isClue: false },
@@ -257,7 +271,6 @@ const ProofreadingGame: React.FC<{ onComplete: (success: boolean) => void }> = (
       ],
     },
     {
-      text: "수학 동아리 시간에 적극적으로 활동하였으며 과학 올림피아드에 참가해 우수한 탐구력을 보임.",
       words: [
         { text: "수학", isError: false, correction: "", isClue: false },
         { text: "동아리", isError: false, correction: "", isClue: false },
@@ -272,7 +285,6 @@ const ProofreadingGame: React.FC<{ onComplete: (success: boolean) => void }> = (
       ],
     },
     {
-      text: "성격이 대범헤서 친구들과의 교우 관계가 원만하고 주도적으로 반장을 맡음.",
       words: [
         { text: "성격이", isError: false, correction: "", isClue: false },
         { text: "대범헤서", isError: true, correction: "대범해서", isClue: false },
@@ -286,7 +298,6 @@ const ProofreadingGame: React.FC<{ onComplete: (success: boolean) => void }> = (
       ],
     },
     {
-      text: "어머니가 외교관이시라 외국어 능력이 탁월하며 다문화 문학 독서에 열중함.",
       words: [
         { text: "어머니가", isError: true, correction: "[기재 금지어 - 부모 지위]", isClue: true },
         { text: "외교관이시라", isError: true, correction: "[기재 금지어 - 부모 직업]", isClue: true },
@@ -300,7 +311,6 @@ const ProofreadingGame: React.FC<{ onComplete: (success: boolean) => void }> = (
       ],
     },
     {
-      text: "교외 백일장에서 장려상을 수상하여 남다른 시적 재능을 검증받은 인재임.",
       words: [
         { text: "교외", isError: true, correction: "[기재 금지어 - 외부 활동]", isClue: true },
         { text: "백일장에서", isError: true, correction: "[기재 금지어 - 외부 대회]", isClue: true },
@@ -313,7 +323,6 @@ const ProofreadingGame: React.FC<{ onComplete: (success: boolean) => void }> = (
       ],
     },
     {
-      text: "도서관 행사에 성실히 임하며 도서 분류 정리를 꼼꼼이 도와 사서 교사의 칭찬을 받음.",
       words: [
         { text: "도서관", isError: false, correction: "", isClue: false },
         { text: "행사에", isError: false, correction: "", isClue: false },
@@ -329,7 +338,6 @@ const ProofreadingGame: React.FC<{ onComplete: (success: boolean) => void }> = (
       ],
     },
     {
-      text: "사설 정보 학원에서 코딩 강좌를 수강하고 파이썬 게임 제작 아이디어를 발표함.",
       words: [
         { text: "사설", isError: true, correction: "[기재 금지어 - 사교육]", isClue: true },
         { text: "정보", isError: false, correction: "", isClue: false },
@@ -373,30 +381,36 @@ const ProofreadingGame: React.FC<{ onComplete: (success: boolean) => void }> = (
   // 단어 클릭 처리
   const handleWordClick = (wordIdx: number) => {
     const word = questions[currentIdx].words[wordIdx];
-    
+
     if (word.isError) {
       // 정답 클릭 시
       setFeedback({ msg: `정정 성공! ➔ ${word.correction}`, isSuccess: true });
       setCorrectedCount((prev) => prev + 1);
-      
-      // 단어 즉시 교정
-      setQuestions((prev) => {
-        const next = [...prev];
-        next[currentIdx].words[wordIdx] = {
-          ...word,
-          text: word.correction,
-          isError: false, // 이제 오류 아님
-        };
-        return next;
-      });
-      
+
+      // 단어 즉시 교정.
+      // [FIX] 예전에는 next[currentIdx].words[wordIdx] = ... 로 기존 배열/객체를 그대로 변형해
+      // 상태를 직접 뒤집었다. 모든 층을 새로 만들어 불변성을 지킨다.
+      setQuestions((prev) =>
+        prev.map((q, qi) =>
+          qi !== currentIdx
+            ? q
+            : {
+                words: q.words.map((w, wi) =>
+                  wi !== wordIdx ? w : { ...w, text: w.correction, isError: false }
+                )
+              }
+        )
+      );
+
       // 1초 뒤 피드백 제거
       setTimeout(() => setFeedback(null), 1000);
-      
-      // 현재 문장에 오류 단어가 더 있는지 체크
-      const remainingErrors = questions[currentIdx].words.some(w => w.isError);
+
+      // [FIX] 남은 오류를 questions(교정 전 스냅샷)로 세면 방금 고친 단어가 계속 오류로 잡혀
+      // remainingErrors가 항상 true였고, 그래서 자동 넘김이 한 번도 동작하지 않았다.
+      // 방금 고친 인덱스를 빼고 센다.
+      const remainingErrors = questions[currentIdx].words.some((w, wi) => wi !== wordIdx && w.isError);
       if (!remainingErrors) {
-        // 문장 내 모든 오류를 찾았으면 1초 뒤 다음 문장으로 자동 이동
+        // 문장 내 모든 오류를 찾았으면 잠시 뒤 다음 문장으로 자동 이동
         setTimeout(() => {
           setCurrentIdx((prev) => (prev + 1) % questions.length);
         }, 1200);
@@ -502,11 +516,25 @@ const ProofreadingGame: React.FC<{ onComplete: (success: boolean) => void }> = (
 // ==========================================
 // 3. 교실 난투극 중재 (Conflict Resolution)
 // ==========================================
+// 두 아이를 동시에 이 선 아래로 끌어내리면 그 순간 중재 성공.
+const CONFLICT_CALM_LINE = 20;
+
 const ConflictGame: React.FC<{ onComplete: (success: boolean) => void }> = ({ onComplete }) => {
   const [timeLeft, setTimeLeft] = useState(30);
   const [minwooExcitement, setMinwooExcitement] = useState(65);
   const [jungwooExcitement, setJungwooExcitement] = useState(65);
   const [mitigationTimer, setMitigationTimer] = useState(0); // 차분한 환기 활성 시간
+
+  const finishedRef = useRef(false);
+  const finish = useCallback(
+    (success: boolean) => {
+      if (finishedRef.current) return;
+      finishedRef.current = true;
+      if (success) confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+      onComplete(success);
+    },
+    [onComplete]
+  );
 
   // 쿨다운 관리 상태
   const [cooldowns, setCooldowns] = useState({
@@ -550,13 +578,17 @@ const ConflictGame: React.FC<{ onComplete: (success: boolean) => void }> = ({ on
       // 차분한 환기 켜져 있으면 상승률 50% 반감
       const divisor = mitigationTimer > 0 ? 2 : 1;
       
+      // [FIX] 예전에는 두 아이가 각각 0.5초마다 2~5씩(초당 4~10) 올랐다. 스킬 최대 처리량이
+      // 그에 한참 못 미쳐 "둘 다 20 이하"는 사실상 도달 불가능했고, 판정도 정확히 시간이 0이 된
+      // 순간에만 이뤄져 중간에 진정시켜도 인정되지 않았다. 상승폭을 1~3으로 낮춰 실제로 밀어낼
+      // 수 있는 싸움으로 만든다.
       setMinwooExcitement((prev) => {
-        const delta = Math.floor(Math.random() * 4) + 2; // 2~5 상승
-        return Math.min(100, prev + Math.round(delta / divisor));
+        const delta = Math.floor(Math.random() * 3) + 1; // 1~3 상승
+        return Math.min(100, prev + Math.max(1, Math.round(delta / divisor)));
       });
       setJungwooExcitement((prev) => {
-        const delta = Math.floor(Math.random() * 4) + 2; // 2~5 상승
-        return Math.min(100, prev + Math.round(delta / divisor));
+        const delta = Math.floor(Math.random() * 3) + 1; // 1~3 상승
+        return Math.min(100, prev + Math.max(1, Math.round(delta / divisor)));
       });
     }, 500);
 
@@ -566,20 +598,23 @@ const ConflictGame: React.FC<{ onComplete: (success: boolean) => void }> = ({ on
   // 임계치 터져서 주먹다짐 발생 시 즉시 패배
   useEffect(() => {
     if (minwooExcitement >= 100 || jungwooExcitement >= 100) {
-      onComplete(false);
+      finish(false);
     }
-  }, [minwooExcitement, jungwooExcitement, onComplete]);
+  }, [minwooExcitement, jungwooExcitement, finish]);
 
-  // 시간 만료 시 성공 판정 (둘 다 20 이하 달성)
+  // 둘 다 진정선 아래로 내려간 순간 즉시 성공 (시간이 0이 될 때까지 기다리지 않는다)
+  useEffect(() => {
+    if (minwooExcitement <= CONFLICT_CALM_LINE && jungwooExcitement <= CONFLICT_CALM_LINE) {
+      finish(true);
+    }
+  }, [minwooExcitement, jungwooExcitement, finish]);
+
+  // 시간 만료 시에도 진정선 도달 여부로 판정
   useEffect(() => {
     if (timeLeft === 0) {
-      const isSuccess = minwooExcitement <= 20 && jungwooExcitement <= 20;
-      if (isSuccess) {
-        confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
-      }
-      onComplete(isSuccess);
+      finish(minwooExcitement <= CONFLICT_CALM_LINE && jungwooExcitement <= CONFLICT_CALM_LINE);
     }
-  }, [timeLeft, minwooExcitement, jungwooExcitement, onComplete]);
+  }, [timeLeft, minwooExcitement, jungwooExcitement, finish]);
 
   // 스킬 발동 함수
   const triggerSkill = (skillType: 'stop' | 'minwoo' | 'jungwoo' | 'calm') => {
@@ -588,7 +623,7 @@ const ConflictGame: React.FC<{ onComplete: (success: boolean) => void }> = ({ on
     if (skillType === 'stop') {
       setMinwooExcitement((m) => Math.max(0, m - 20));
       setJungwooExcitement((j) => Math.max(0, j - 20));
-      setCooldowns((c) => ({ ...c, stop: 5 }));
+      setCooldowns((c) => ({ ...c, stop: 4 }));
     } else if (skillType === 'minwoo') {
       setMinwooExcitement((m) => Math.max(0, m - 35));
       setJungwooExcitement((j) => Math.min(100, j + 8)); // 편들면 다른 애가 소외감에 자극받음
@@ -598,8 +633,8 @@ const ConflictGame: React.FC<{ onComplete: (success: boolean) => void }> = ({ on
       setMinwooExcitement((m) => Math.min(100, m + 8));
       setCooldowns((c) => ({ ...c, jungwoo: 4 }));
     } else if (skillType === 'calm') {
-      setMitigationTimer(4); // 4초 동안 환기
-      setCooldowns((c) => ({ ...c, calm: 8 }));
+      setMitigationTimer(5); // 5초 동안 환기
+      setCooldowns((c) => ({ ...c, calm: 6 }));
     }
   };
 
@@ -611,7 +646,7 @@ const ConflictGame: React.FC<{ onComplete: (success: boolean) => void }> = ({ on
           <h2 className="text-xl font-black text-rose-400 flex items-center gap-2">
             💥 3주차 미니게임: 돌발 상황! 교실 난투극 중재
           </h2>
-          <p className="text-xs text-slate-400">두 아이의 흥분도를 모두 20 이하로 낮춰 자리에 앉히세요! 한 명이라도 100에 도달하면 난투극이 벌어집니다.</p>
+          <p className="text-xs text-slate-400">두 아이의 흥분도를 모두 {CONFLICT_CALM_LINE} 이하로 낮추면 그 즉시 중재 성공입니다! 한 명이라도 100에 도달하면 난투극이 벌어집니다.</p>
         </div>
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-1.5 font-mono text-lg font-bold">
@@ -733,10 +768,14 @@ interface DraftItem {
   options: { key: string; text: string; isCorrect: boolean }[];
 }
 
+const DRAFT_TIME_LIMIT = 8;  // 기안서 한 개당 제한시간(초). 지문이 길어 6초는 읽기에도 빠듯했다.
+const DRAFT_PASS_LINE = 8;   // 10건 중 통과해야 하는 최소 건수
+
 const AdministrativeDraftGame: React.FC<{ onComplete: (success: boolean) => void }> = ({ onComplete }) => {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(6); // 기안서 한 개당 제한시간 6초
+  const correctRef = useRef(0); // 지연 실행되는 최종 판정이 읽을, 항상 최신인 점수
+  const [timeLeft, setTimeLeft] = useState(DRAFT_TIME_LIMIT);
   const [feedback, setFeedback] = useState<{ msg: string; isCorrect: boolean } | null>(null);
 
   const drafts = useRef<DraftItem[]>([
@@ -842,36 +881,39 @@ const AdministrativeDraftGame: React.FC<{ onComplete: (success: boolean) => void
     }
   ]);
 
-  // 개별 문제 타이머
+  // [FIX] 예전에는 setTimeLeft 업데이터 함수 안에서 setFeedback/setTimeout을 호출했다.
+  // 업데이터는 순수해야 하고 StrictMode에서는 두 번 실행되므로, 시간 초과 한 번에 다음 문제로
+  // 두 번 넘어가는 일이 생겼다. 이제 업데이터는 숫자만 계산하고, 시간 초과 처리는 별도 이펙트가 맡는다.
   useEffect(() => {
     if (feedback) return; // 피드백 보일 땐 정지
 
     const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          // 시간 초과 -> 반려 처리 및 다음 문제로 전이
-          setFeedback({ msg: '시간 초과! 반려되었습니다. ❌', isCorrect: false });
-          setTimeout(() => {
-            moveToNext(false);
-          }, 1500);
-          return 0;
-        }
-        return prev - 1;
-      });
+      setTimeLeft((prev) => Math.max(0, prev - 1));
     }, 1000);
 
     return () => clearInterval(timer);
   }, [currentIdx, feedback]);
 
-  const moveToNext = (isCorrect: boolean) => {
+  // 시간 초과 -> 반려 처리 및 다음 문제로 전이
+  useEffect(() => {
+    if (timeLeft > 0 || feedback) return;
+    setFeedback({ msg: '시간 초과! 반려되었습니다. ❌', isCorrect: false });
+    const t = setTimeout(moveToNext, 1500);
+    return () => clearTimeout(t);
+    // moveToNext는 매 렌더 새로 만들어지지만 항상 최신 상태를 읽으므로 의존성에서 제외한다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeLeft, feedback]);
+
+  const moveToNext = () => {
     setFeedback(null);
-    setTimeLeft(6);
+    setTimeLeft(DRAFT_TIME_LIMIT);
 
     const next = currentIdx + 1;
     if (next >= drafts.current.length) {
-      // 마지막 문제 완료 시
-      const finalCorrect = correctCount + (isCorrect ? 1 : 0);
-      const isSuccess = finalCorrect >= 8;
+      // 마지막 문제 완료. [FIX] 예전에는 1.5초 뒤 실행되는 이 시점에 클로저가 잡아둔 낡은
+      // correctCount로 합격 여부를 계산해, 마지막 문제의 정답이 점수에 반영되지 않았다.
+      // 점수는 ref에 즉시 반영해두고 최종 판정은 그 ref를 읽는다.
+      const isSuccess = correctRef.current >= DRAFT_PASS_LINE;
       if (isSuccess) {
         confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
       }
@@ -885,15 +927,14 @@ const AdministrativeDraftGame: React.FC<{ onComplete: (success: boolean) => void
     if (feedback) return;
 
     if (isCorrect) {
-      setCorrectCount((c) => c + 1);
+      correctRef.current += 1;
+      setCorrectCount(correctRef.current);
       setFeedback({ msg: '결재선 최종 통과! 기안 승인 완료 ⭕', isCorrect: true });
     } else {
       setFeedback({ msg: '피드백 미반영 반려! 결재선 차단 ❌', isCorrect: false });
     }
 
-    setTimeout(() => {
-      moveToNext(isCorrect);
-    }, 1500);
+    setTimeout(moveToNext, 1500);
   };
 
   const currentDraft = drafts.current[currentIdx];
@@ -923,14 +964,14 @@ const AdministrativeDraftGame: React.FC<{ onComplete: (success: boolean) => void
         <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
           <div>
             <span className="text-slate-400">결재 통과된 기안문 수</span>
-            <div className="text-lg font-black text-emerald-400 mt-0.5">{correctCount} / 8개 이상 필요</div>
+            <div className="text-lg font-black text-emerald-400 mt-0.5">{correctCount} / {DRAFT_PASS_LINE}개 이상 필요</div>
           </div>
           <Check className="w-6 h-6 text-emerald-400" />
         </div>
         <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
           <div>
             <span className="text-slate-400">진행 중인 기안 건수</span>
-            <div className="text-lg font-black text-slate-300 mt-0.5">{currentIdx + 1} / 10</div>
+            <div className="text-lg font-black text-slate-300 mt-0.5">{currentIdx + 1} / {drafts.current.length}</div>
           </div>
           <FileText className="w-6 h-6 text-slate-400" />
         </div>
@@ -1000,53 +1041,24 @@ export const MiniGames: React.FC<MiniGamesProps> = ({ onResolve }) => {
   const [gameState, setGameState] = useState<'intro' | 'playing' | 'result'>('intro');
   const [success, setSuccess] = useState<boolean | null>(null);
 
-  // 미니게임 데이터 바인딩
-  const getGameConfig = () => {
-    switch (activeMiniGame) {
-      case 'cafeteria':
-        return {
-          title: '급식 전쟁 타이쿤',
-          desc: '급식실에서 일어나는 아이들의 다양한 돌발 행동을 시간 내에 적절히 클릭해 진정시키세요. 식판을 3개 이상 엎지르면 실패합니다!',
-          icon: '🍛',
-          color: 'from-rose-500 to-amber-500',
-        };
-      case 'proofreading':
-        return {
-          title: '생기부 오탈자 & 금지어 사냥',
-          desc: '생활기록부는 공정성과 규정이 생명입니다. 기재 금지어(외부 대회, 부모 직업 등)와 오탈자를 문장에서 골라 정정하세요. 5개 이상 맞추어야 합니다.',
-          icon: '✍️',
-          color: 'from-amber-500 to-yellow-500',
-        };
-      case 'conflict':
-        return {
-          title: '돌발 상황! 교실 난투극 중재',
-          desc: '민우와 정우가 싸우고 있습니다! 두 학생의 흥분 게이지가 100에 닿기 전에 스킬을 활용해 둘 다 20 이하로 진정시켜 착석시키세요.',
-          icon: '💥',
-          color: 'from-red-500 to-purple-500',
-        };
-      case 'stamp':
-        return {
-          title: '방과 후 공문 기안 / 결재선 패스',
-          desc: '퇴근 직전 상신한 문서들이 쏟아지는 피드백을 받습니다. 결재권자의 반려 사유를 읽고 알맞은 기안 수정안을 신속히 골라 8개 이상 최종 결재 통과를 받아내세요!',
-          icon: '💻',
-          color: 'from-emerald-500 to-teal-500',
-        };
-      default:
-        return {
-          title: '미니게임',
-          desc: '교사의 돌발 업무 상황에 대처하세요!',
-          icon: '🎮',
-          color: 'from-blue-500 to-indigo-500',
-        };
-    }
-  };
+  // 미니게임이 바뀌면(주차가 넘어가면) 인트로부터 다시 시작한다.
+  useEffect(() => {
+    setGameState('intro');
+    setSuccess(null);
+  }, [activeMiniGame]);
 
-  const config = getGameConfig();
-
-  const handleGameEnd = (isSuccess: boolean) => {
+  const handleGameEnd = useCallback((isSuccess: boolean) => {
     setSuccess(isSuccess);
     setGameState('result');
-  };
+  }, []);
+
+  if (!activeMiniGame) return null;
+
+  // [FIX] 제목·설명·보상 안내를 여기서 다시 적지 않고 miniGameDefs.ts의 정의를 그대로 읽는다.
+  // 예전에는 결과 화면이 보상 수치를 손으로 복사해 두어, 스토어가 실제로 적용하는 값과
+  // 어긋나 있었다(대표적으로 '학급운영 +15'는 파생 스탯이라 실제로는 적용되지 않았다).
+  const def = WEEKLY_MINI_GAMES[activeMiniGame];
+  const shownEffects = success ? def.successEffects : def.failEffects;
 
   const handleComplete = () => {
     if (success !== null) {
@@ -1060,23 +1072,23 @@ export const MiniGames: React.FC<MiniGamesProps> = ({ onResolve }) => {
         {gameState === 'intro' && (
           <div className="flex-1 flex flex-col justify-center items-center text-center p-8 bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl relative overflow-hidden">
             {/* 네온 배경 효과 */}
-            <div className={`absolute -top-40 -left-40 w-96 h-96 bg-gradient-to-br ${config.color} opacity-20 rounded-full blur-3xl`} />
+            <div className={`absolute -top-40 -left-40 w-96 h-96 bg-gradient-to-br ${def.gradient} opacity-20 rounded-full blur-3xl`} />
             <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-gradient-to-br from-indigo-500 to-purple-500 opacity-20 rounded-full blur-3xl" />
 
             <div className="z-10 max-w-lg">
-              <span className="text-7xl mb-6 block animate-bounce">{config.icon}</span>
+              <span className="text-7xl mb-6 block animate-bounce">{def.icon}</span>
               <h1 className="text-3xl font-black text-white tracking-tight mb-2">
-                {config.title}
+                {def.title}
               </h1>
               <div className="inline-block bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-black px-3.5 py-1 rounded-full mb-6">
                 🚨 주간 마감 미니게임 발동!
               </div>
               <p className="text-sm text-slate-300 leading-relaxed mb-8">
-                {config.desc}
+                {def.desc}
               </p>
               <button
                 onClick={() => setGameState('playing')}
-                className={`w-full bg-gradient-to-r ${config.color} hover:brightness-110 text-white font-black text-sm py-4 px-8 rounded-2xl shadow-xl transition-all cursor-pointer flex justify-center items-center gap-2`}
+                className={`w-full bg-gradient-to-r ${def.gradient} hover:brightness-110 text-white font-black text-sm py-4 px-8 rounded-2xl shadow-xl transition-all cursor-pointer flex justify-center items-center gap-2`}
               >
                 <Zap className="w-4 h-4 fill-white" />
                 <span>미니게임 시작하기</span>
@@ -1104,34 +1116,15 @@ export const MiniGames: React.FC<MiniGamesProps> = ({ onResolve }) => {
                 미니게임 {success ? '성공!' : '실패...'}
               </h1>
               <p className="text-slate-300 text-sm leading-relaxed mb-8">
-                {success 
-                  ? '교직원과 학생들 모두 감탄했습니다. 이번 주 마감 미니게임을 성공적으로 완수하여 보상을 얻습니다!' 
-                  : '정말 고된 하루였습니다... 예상치 못한 문제로 상황이 다소 아쉽게 끝났습니다. 다음 기회에 더 잘해봐요!'}
+                {success ? def.successText : def.failText}
               </p>
 
-              {/* 스탯 영향 정보 요약 */}
+              {/* 스탯 영향 정보 요약 (스토어가 실제로 적용하는 효과 그대로) */}
               <div className="bg-black/40 border border-slate-800 p-4 rounded-xl mb-8 text-left text-xs text-slate-400 space-y-1">
                 <div className="font-bold text-slate-300 mb-2">📋 스탯 보정 결과:</div>
-                {activeMiniGame === 'cafeteria' && (
-                  success 
-                    ? <div className="text-emerald-400 font-semibold">학생신뢰 +10, 교육보람 +10, 번아웃 -5</div>
-                    : <div className="text-rose-400 font-semibold">번아웃 +15, 건강 -10, 학생신뢰 -5</div>
-                )}
-                {activeMiniGame === 'proofreading' && (
-                  success 
-                    ? <div className="text-emerald-400 font-semibold">행정실무 +15, 평판 +10, 관리자신뢰 +5</div>
-                    : <div className="text-rose-400 font-semibold">번아웃 +15, 관리자신뢰 -10, 평판 -5</div>
-                )}
-                {activeMiniGame === 'conflict' && (
-                  success 
-                    ? <div className="text-emerald-400 font-semibold">학급운영 +15, 학생신뢰 +12, 동료연대 +5</div>
-                    : <div className="text-rose-400 font-semibold">멘탈 -15, 학부모민원 +20, 학부모신뢰 -10</div>
-                )}
-                {activeMiniGame === 'stamp' && (
-                  success 
-                    ? <div className="text-emerald-400 font-semibold">행정실무 +15, 관리자신뢰 +15, 커리어점수 +5</div>
-                    : <div className="text-rose-400 font-semibold">관리자신뢰 -15, 평판 -10, 번아웃 +10</div>
-                )}
+                <div className={`font-semibold ${success ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  {formatEffects(shownEffects)}
+                </div>
               </div>
 
               <button
